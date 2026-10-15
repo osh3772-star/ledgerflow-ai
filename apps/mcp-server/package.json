@@ -1,0 +1,17 @@
+{
+  "name": "@ledgerflow/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/server.ts",
+  "dependencies": {
+    "@ledgerflow/contracts": "workspace:*",
+    "@ledgerflow/application-services": "workspace:*",
+    "@ledgerflow/accounting-core": "workspace:*",
+    "@ledgerflow/public-data": "workspace:*",
+    "@supabase/supabase-js": "2.117.3",
+    "@modelcontextprotocol/server": "2.3.1",
+    "@hono/node-server": "2.1.5",
+    "zod": "4.6.7"
+  }
+}

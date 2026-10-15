@@ -1,0 +1,44 @@
+name: LedgerFlow checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      ADAPTER_MODE: mock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm evaluate
+      - run: pnpm web:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ledgerflow-dashboard-${{ matrix.os }}
+          path: apps/web/dist
+  container:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the non-root Node image
+        run: docker build --tag ledgerflow-ci .
+      - name: Verify one foreground MCP product in the built image
+        run: docker run --rm --init ledgerflow-ci node --import tsx scripts/container-smoke.ts

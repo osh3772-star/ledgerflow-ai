@@ -1,0 +1,9 @@
+# Frontmatter is parsed by both native clients and the regression tests.
+.agents/skills/** text eol=lf
+.claude/skills/** text eol=lf
+.claude/agents/** text eol=lf
+.codex/** text eol=lf
+# Preserve the original migration/generator bytes and screenshots.
+supabase/migrations/*.sql -text
+packages/test-data/src/*.ts -text
+*.png -text

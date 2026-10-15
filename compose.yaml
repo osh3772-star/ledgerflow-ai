@@ -1,0 +1,19 @@
+# Local development on Linux Docker Engine with host networking.
+# Docker Desktop requires host-network support to be enabled separately.
+services:
+  ledgerflow:
+    build: .
+    init: true
+    network_mode: host
+    env_file:
+      - .env.local
+    restart: "no"
+    stop_grace_period: 30s
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - audit:/app/.ledgerflow/mcp-audit
+volumes:
+  audit:

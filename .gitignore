@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+.ledgerflow/
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+*.tsbuildinfo
+.astro/

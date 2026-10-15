@@ -1,0 +1,5 @@
+[mcp_servers.ledgerflow-accounting-mcp]
+url = "http://127.0.0.1:8787/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 30
+enabled_tools = ["get_system_status","get_company_context","get_transactions","get_unprocessed_transactions","get_invoices","get_bank_transactions","get_inventory","get_counterparties","create_transaction","get_source_documents","get_accounting_source","propose_journal_entry","get_journal_entry","list_journal_entries","validate_journal_entry","request_journal_approval","get_approval_status","post_journal_entry","get_general_ledger","get_trial_balance","get_company_financial_statements","create_adjusting_entries","reverse_journal_entry","close_fiscal_period","calculate_depreciation","run_audit_checks","record_agent_result","discard_journal_entry","get_reconciliation_report","match_bank_transaction","verify_business","get_business_status","search_disclosures","get_financial_statements","compare_company_financials","search_tax_law","get_law_article","check_law_amendment","get_exchange_rate","get_interest_rate","get_economic_indicator"]

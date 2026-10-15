@@ -1,0 +1,35 @@
+{
+  "fixtureVersion": "manual-sale-gold-v1",
+  "authoring": "Written before accounting implementation from the Phase 1 scenario",
+  "company": "LedgerFlow Trading Co., Ltd.",
+  "sourceExternalRef": "LF-A-003",
+  "effectiveDate": "2026-01-10",
+  "purpose": "revenue",
+  "currency": "KRW",
+  "assumptions": [
+    "단일 상품의 인도·검수로 통제 이전",
+    "국내 일반 과세 매출 VAT 10%",
+    "반품권·변동대가·금융요소 없음"
+  ],
+  "standardRef": "K-IFRS 1115",
+  "paragraphRef": null,
+  "expertReviewed": false,
+  "expectedLines": [
+    {
+      "accountCode": "1100",
+      "debit": "110000",
+      "credit": "0"
+    },
+    {
+      "accountCode": "4010",
+      "debit": "0",
+      "credit": "100000"
+    },
+    {
+      "accountCode": "2100",
+      "debit": "0",
+      "credit": "10000"
+    }
+  ],
+  "note": "Revenue journal only. COGS requires independent inventory cost evidence; no accounting engine has been implemented yet."
+}

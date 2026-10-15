@@ -1,0 +1,22 @@
+{
+  "fixtureVersion": "lf-erp-1000-v1",
+  "sourceExternalRef": "LF26-SAL-0101",
+  "recognitionOn": "2026-01-10",
+  "quantity": "2",
+  "net": "2800",
+  "tax": "280",
+  "gross": "3080",
+  "costOfSales": "2000",
+  "expectedLines": [
+    { "accountCode": "1100", "debit": "3080", "credit": "0" },
+    { "accountCode": "4010", "debit": "0", "credit": "2800" },
+    { "accountCode": "2100", "debit": "0", "credit": "280" },
+    { "accountCode": "5010", "debit": "2000", "credit": "0" },
+    { "accountCode": "1200", "debit": "0", "credit": "2000" }
+  ],
+  "basis": {
+    "standards": ["K-IFRS 제1115호", "K-IFRS 제1002호"],
+    "assumptions": ["상품 인도 및 고객 통제 이전", "하나의 수행의무", "매입 단위원가 1000원으로 일정", "시나리오 부가세 10%"],
+    "expertReviewed": false
+  }
+}

@@ -1,0 +1,3618 @@
+{
+  "server": "ledgerflow-accounting-mcp",
+  "origin": "disposable_synthetic_demo_and_mock",
+  "humanApprovalPerformed": false,
+  "note": "Some valid requests deliberately fail because the demo reader cannot create ERP, self-approve, post or close an incomplete period.",
+  "examples": [
+    {
+      "request": {
+        "name": "get_system_status",
+        "arguments": {}
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "server": "ledgerflow-accounting-mcp",
+          "profile": "demo",
+          "tools": [
+            "get_system_status",
+            "get_company_context",
+            "get_transactions",
+            "get_unprocessed_transactions",
+            "get_invoices",
+            "get_bank_transactions",
+            "get_inventory",
+            "get_counterparties",
+            "create_transaction",
+            "get_source_documents",
+            "get_accounting_source",
+            "propose_journal_entry",
+            "get_journal_entry",
+            "list_journal_entries",
+            "validate_journal_entry",
+            "request_journal_approval",
+            "get_approval_status",
+            "post_journal_entry",
+            "get_general_ledger",
+            "get_trial_balance",
+            "get_company_financial_statements",
+            "create_adjusting_entries",
+            "reverse_journal_entry",
+            "close_fiscal_period",
+            "calculate_depreciation",
+            "run_audit_checks",
+            "record_agent_result",
+            "discard_journal_entry",
+            "get_reconciliation_report",
+            "match_bank_transaction",
+            "verify_business",
+            "get_business_status",
+            "search_disclosures",
+            "get_financial_statements",
+            "compare_company_financials",
+            "search_tax_law",
+            "get_law_article",
+            "check_law_amendment",
+            "get_exchange_rate",
+            "get_interest_rate",
+            "get_economic_indicator"
+          ],
+          "capabilities": {
+            "erpRead": true,
+            "journalDraft": true,
+            "validation": true,
+            "humanApproval": true,
+            "posting": true,
+            "trialBalance": true,
+            "publicApiTools": true
+          },
+          "paidModelApi": false,
+          "ownOrchestrator": false,
+          "unattendedScheduler": false,
+          "publicApiMetrics": {
+            "requests": 0,
+            "cacheHits": 0,
+            "retries": 0,
+            "failures": 0
+          }
+        },
+        "meta": {
+          "traceId": "66425fcb-0510-43c0-a5d2-9f3df8e9b422",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_company_context",
+        "arguments": {}
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "name": "LedgerFlow Trading Co., Ltd.",
+          "origin": "synthetic_erp",
+          "functionalCurrency": "KRW",
+          "accountingBasis": "K-IFRS_target_not_certified",
+          "policyVersion": "synthetic-goods-2026-v1",
+          "periods": [
+            {
+              "id": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+              "from": "2026-01-01",
+              "to": "2026-01-31",
+              "status": "open"
+            },
+            {
+              "id": "3be58723-5ab5-5e45-9d37-e46061836c70",
+              "from": "2026-02-01",
+              "to": "2026-02-28",
+              "status": "open"
+            },
+            {
+              "id": "68975c87-20b6-5734-b3dc-1970ed554f4d",
+              "from": "2026-03-01",
+              "to": "2026-03-31",
+              "status": "open"
+            },
+            {
+              "id": "92a17886-443e-50dd-8709-b62e1276b6f7",
+              "from": "2026-04-01",
+              "to": "2026-04-30",
+              "status": "open"
+            },
+            {
+              "id": "ac278905-a7e6-56ea-a881-f73797ed6ba7",
+              "from": "2026-05-01",
+              "to": "2026-05-31",
+              "status": "open"
+            },
+            {
+              "id": "c6a4f060-53fb-5bce-9f33-c9a18e9dd857",
+              "from": "2026-06-01",
+              "to": "2026-06-30",
+              "status": "open"
+            },
+            {
+              "id": "9c52bd9c-e6f2-59e3-a704-883315cf7af1",
+              "from": "2026-07-01",
+              "to": "2026-07-31",
+              "status": "open"
+            },
+            {
+              "id": "ee43736e-b741-5ed9-aa51-70c352e9c458",
+              "from": "2026-08-01",
+              "to": "2026-08-31",
+              "status": "open"
+            },
+            {
+              "id": "1d7bd326-2208-5b7e-bf6a-4031a74b2e31",
+              "from": "2026-09-01",
+              "to": "2026-09-30",
+              "status": "open"
+            },
+            {
+              "id": "d7f62732-c0b6-5c71-9356-dd54001f13fd",
+              "from": "2026-10-01",
+              "to": "2026-10-31",
+              "status": "open"
+            },
+            {
+              "id": "1d6d25f8-6f44-5cee-8ca8-5dffce994e8e",
+              "from": "2026-11-01",
+              "to": "2026-11-30",
+              "status": "open"
+            },
+            {
+              "id": "9a252693-27a9-5eb3-8941-650845928c41",
+              "from": "2026-12-01",
+              "to": "2026-12-31",
+              "status": "open"
+            }
+          ]
+        },
+        "meta": {
+          "traceId": "438883f7-63d9-417a-a114-2cf0429c04dd",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_transactions",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "id": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+              "sourceDocumentId": "aa2baca8-3f26-5e91-b03d-a459c8293350",
+              "externalRef": "LF26-PPE-01",
+              "kind": "asset_acquisition",
+              "occurredOn": "2026-01-01",
+              "recognitionOn": "2026-01-01",
+              "currency": "KRW",
+              "origin": "synthetic_erp",
+              "net": "600000",
+              "tax": "60000",
+              "gross": "660000",
+              "status": "unprocessed",
+              "idempotencyKey": "lf-erp-1000-v1/9c8ea756-7981-5f3d-a272-2640a18054be/LF26-PPE-01"
+            }
+          ],
+          "nextCursor": "eyJjb21wYW55SWQiOiI5YzhlYTc1Ni03OTgxLTVmM2QtYTI3Mi0yNjQwYTE4MDU0YmUiLCJmcm9tIjoiMjAyNi0wMS0wMSIsInRvIjoiMjAyNi0wMS0zMSIsInN0YXR1cyI6bnVsbCwia2luZCI6bnVsbCwiZGF0ZSI6IjIwMjYtMDEtMDEiLCJpZCI6ImI4NzkyMTA1LWU2NDctNTNhOS1iOTgxLWYzZDY3ZWViMGM0MSJ9"
+        },
+        "meta": {
+          "traceId": "ef6f5c17-961a-4ea4-9618-5fa1900c7259",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_unprocessed_transactions",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "id": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+              "sourceDocumentId": "aa2baca8-3f26-5e91-b03d-a459c8293350",
+              "externalRef": "LF26-PPE-01",
+              "kind": "asset_acquisition",
+              "occurredOn": "2026-01-01",
+              "recognitionOn": "2026-01-01",
+              "currency": "KRW",
+              "origin": "synthetic_erp",
+              "net": "600000",
+              "tax": "60000",
+              "gross": "660000",
+              "status": "unprocessed",
+              "idempotencyKey": "lf-erp-1000-v1/9c8ea756-7981-5f3d-a272-2640a18054be/LF26-PPE-01"
+            }
+          ],
+          "nextCursor": "eyJ2IjoibGVkZ2VyLXBlbmRpbmctdjEiLCJjb21wYW55SWQiOiI5YzhlYTc1Ni03OTgxLTVmM2QtYTI3Mi0yNjQwYTE4MDU0YmUiLCJmcm9tIjoiMjAyNi0wMS0wMSIsInRvIjoiMjAyNi0wMS0zMSIsImtpbmQiOm51bGwsImRhdGUiOiIyMDI2LTAxLTAxIiwiaWQiOiJiODc5MjEwNS1lNjQ3LTUzYTktYjk4MS1mM2Q2N2VlYjBjNDEifQ"
+        },
+        "meta": {
+          "traceId": "7acfb20c-bade-452f-88d8-0fe6b8282f8a",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_invoices",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "id": "e1eaa5b0-79d7-5206-ad10-1a45a3a5f1f4",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "origin": "synthetic_erp",
+              "transactionId": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+              "sourceDocumentId": "aa2baca8-3f26-5e91-b03d-a459c8293350",
+              "counterpartyId": "15e01713-1b67-51ef-bff2-4fc8bd2b480c",
+              "direction": "purchase",
+              "number": "DEMO-LF26-PPE-01",
+              "issueDate": "2026-01-01",
+              "net": "600000",
+              "tax": "60000",
+              "gross": "660000",
+              "governmentIssued": false,
+              "evidenceSha256": "4244c0642d829ccb021af9dbba439fbb24d55778acdb6ba4bef55ace301b18b4",
+              "lines": [
+                {
+                  "id": "109f00c0-eb63-5c06-854b-c03f21d4e690",
+                  "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+                  "origin": "synthetic_erp",
+                  "invoiceId": "e1eaa5b0-79d7-5206-ad10-1a45a3a5f1f4",
+                  "productId": null,
+                  "description": "가상 사무용 비품",
+                  "quantity": "1",
+                  "unitPrice": "600000",
+                  "net": "600000"
+                }
+              ]
+            }
+          ],
+          "nextCursor": "eyJ2IjoxLCJyZXNvdXJjZSI6Imludm9pY2VzIiwiZmlsdGVycyI6ImQyYmRhOWYyMWNkMzNhNTA5ZWFlYzM1MjU0ZmU3MTI3MWIxZmZhMzdhNjRiNDE3MGIzMGYwYzliNTYzZDMzNmEiLCJkYXRlIjoiMjAyNi0wMS0wMSIsImlkIjoiZTFlYWE1YjAtNzlkNy01MjA2LWFkMTAtMWE0NWEzYTVmMWY0In0"
+        },
+        "meta": {
+          "traceId": "6b4bafac-25a6-4db8-8d37-46d40f45447d",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_bank_transactions",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "id": "6a6951c7-cf06-5f74-a726-adcb4176ddeb",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "origin": "synthetic_erp",
+              "transactionId": "d42fdc55-5397-5598-b941-00b0efba4438",
+              "bankAccountId": "d316c773-57f9-5746-9752-8d49787bda80",
+              "bookedOn": "2026-01-01",
+              "direction": "out",
+              "amount": "120000",
+              "currency": "KRW",
+              "erpAllocatedAmount": "0",
+              "erpUnallocatedAmount": "120000"
+            }
+          ],
+          "nextCursor": "eyJ2IjoxLCJyZXNvdXJjZSI6ImJhbmtfdHJhbnNhY3Rpb25zIiwiZmlsdGVycyI6ImZlMmViNzMzYzdlZDk5ZmZiYTAwMGI0ODc3MTRjMmZiMDAwODlkYzYxODM0YjUwZDUyMDgzOGRmMTVjODcwMzciLCJkYXRlIjoiMjAyNi0wMS0wMSIsImlkIjoiNmE2OTUxYzctY2YwNi01Zjc0LWE3MjYtYWRjYjQxNzZkZGViIn0"
+        },
+        "meta": {
+          "traceId": "9343a4a6-a025-411c-aebf-575a168fa28d",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_inventory",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "asOf": "2026-01-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "origin": "synthetic_erp",
+              "productId": "0771ecd6-c44c-5ebe-bedd-c4db18d240df",
+              "sku": "LF-SKU-05",
+              "quantity": "53",
+              "carryingAmount": "265000",
+              "asOf": "2026-01-31",
+              "movementCount": 2,
+              "costStatus": "source_estimate",
+              "costPolicyVersion": "synthetic-constant-unit-cost-v1"
+            }
+          ],
+          "nextCursor": "eyJ2IjoxLCJyZXNvdXJjZSI6ImludmVudG9yeSIsImZpbHRlcnMiOiJiZGI5MmUyODZlODNhMDc4NGE1ZmNkYTdkNjcyMWY0MjcxZTJkNzhhNDY4MGQxOGMxNTRlYzNiMTg0ZmEyZjE5IiwiZGF0ZSI6bnVsbCwiaWQiOiIwNzcxZWNkNi1jNDRjLTVlYmUtYmVkZC1jNGRiMThkMjQwZGYifQ"
+        },
+        "meta": {
+          "traceId": "1a9a2f27-4c2a-4135-afeb-91153e11e24a",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_counterparties",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [
+            {
+              "id": "0452977f-752e-5e3f-8189-af13a779d0d3",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "origin": "synthetic_erp",
+              "name": "가상 거래처 12",
+              "role": "customer",
+              "businessNoMasked": null
+            }
+          ],
+          "nextCursor": "eyJ2IjoxLCJyZXNvdXJjZSI6ImNvdW50ZXJwYXJ0aWVzIiwiZmlsdGVycyI6IjNiNTlkZDM4NzljMTY5OTEwYTY5MjZlMjBmMTM3ZmUxNjZiZjhiMTExZWVjOTEzNDIzZGM3ODBjNWU4MDE0ODgiLCJkYXRlIjpudWxsLCJpZCI6IjA0NTI5NzdmLTc1MmUtNWUzZi04MTg5LWFmMTNhNzc5ZDBkMyJ9"
+        },
+        "meta": {
+          "traceId": "0f183cc3-83a1-41d8-af08-aa07aa93ceb7",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "create_transaction",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "idempotencyKey": "docs/erp-example",
+          "externalRef": "DOCS-ACCRUAL",
+          "kind": "accrual",
+          "occurredOn": "2026-01-31",
+          "recognitionOn": "2026-01-31",
+          "currency": "KRW",
+          "net": "100",
+          "tax": "0",
+          "gross": "100",
+          "documents": [
+            {
+              "documentType": "accrual",
+              "issueDate": "2026-01-31",
+              "content": {
+                "origin": "synthetic_erp",
+                "purpose": "documentation fixture"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "ok": false,
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "이 회사의 요청 권한이 없습니다."
+        },
+        "meta": {
+          "traceId": "8577f2f2-9ebf-4319-b3a4-a0bd03d4bfcb",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_source_documents",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": [
+          {
+            "id": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+            "type": "sale",
+            "issueDate": "2026-01-10",
+            "origin": "synthetic_erp",
+            "content": {
+              "net": "2800",
+              "tax": "280",
+              "kind": "sale",
+              "origin": "synthetic_erp",
+              "issuedOn": "2026-01-10",
+              "quantity": "2",
+              "productId": "cda32fe2-50fc-522e-bd07-6d463e894d02",
+              "deliveredOn": "2026-01-10",
+              "externalRef": "LF26-SAL-0101",
+              "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+              "counterpartyId": "7d645e51-2373-5fb4-80f4-8da7ee75ca4f",
+              "singlePerformanceObligation": true
+            },
+            "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2",
+            "storagePath": null
+          }
+        ],
+        "meta": {
+          "traceId": "c6c05cd0-b9e1-4816-9489-fbb72b3a7478",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_accounting_source",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "transaction": {
+            "id": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "sourceDocumentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+            "externalRef": "LF26-SAL-0101",
+            "kind": "sale",
+            "occurredOn": "2026-01-10",
+            "recognitionOn": "2026-01-10",
+            "currency": "KRW",
+            "origin": "synthetic_erp",
+            "net": "2800",
+            "tax": "280",
+            "gross": "3080",
+            "status": "unprocessed",
+            "idempotencyKey": "lf-erp-1000-v1/9c8ea756-7981-5f3d-a272-2640a18054be/LF26-SAL-0101"
+          },
+          "document": {
+            "net": "2800",
+            "tax": "280",
+            "kind": "sale",
+            "origin": "synthetic_erp",
+            "issuedOn": "2026-01-10",
+            "quantity": "2",
+            "productId": "cda32fe2-50fc-522e-bd07-6d463e894d02",
+            "deliveredOn": "2026-01-10",
+            "externalRef": "LF26-SAL-0101",
+            "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "counterpartyId": "7d645e51-2373-5fb4-80f4-8da7ee75ca4f",
+            "singlePerformanceObligation": true
+          },
+          "documentIds": [
+            "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1"
+          ],
+          "documentHashes": [
+            {
+              "documentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+              "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2"
+            }
+          ],
+          "period": {
+            "id": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "from": "2026-01-01",
+            "to": "2026-01-31",
+            "status": "open"
+          },
+          "accounts": [
+            {
+              "code": "1010",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1100",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1200",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1300",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1400",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1500",
+              "kind": "asset",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "1590",
+              "kind": "asset",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "2010",
+              "kind": "liability",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "2020",
+              "kind": "liability",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "2030",
+              "kind": "liability",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "2100",
+              "kind": "liability",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "3010",
+              "kind": "equity",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "4010",
+              "kind": "revenue",
+              "normalSide": "credit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "5010",
+              "kind": "expense",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "5020",
+              "kind": "expense",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "5030",
+              "kind": "expense",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "5040",
+              "kind": "expense",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            },
+            {
+              "code": "5050",
+              "kind": "expense",
+              "normalSide": "debit",
+              "active": true,
+              "validFrom": "2026-01-01",
+              "validTo": null
+            }
+          ],
+          "invoice": {
+            "net": "2800",
+            "tax": "280",
+            "gross": "3080"
+          },
+          "contract": {
+            "deliveredOn": "2026-01-10",
+            "performanceObligations": 1
+          },
+          "inventory": {
+            "quantity": "2",
+            "unitCost": "1000"
+          }
+        },
+        "meta": {
+          "traceId": "c7bce1e3-419d-4a9b-a792-3fa345fb18c5",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "propose_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+          "idempotencyKey": "docs/sale-001"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "payload": {
+            "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "recognitionOn": "2026-01-10",
+            "entryType": "source",
+            "description": "LF26-SAL-0101 sale",
+            "sourceDocumentIds": [
+              "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1"
+            ],
+            "lines": [
+              {
+                "accountCode": "1100",
+                "debit": "3080",
+                "credit": "0"
+              },
+              {
+                "accountCode": "4010",
+                "debit": "0",
+                "credit": "2800"
+              },
+              {
+                "accountCode": "2100",
+                "debit": "0",
+                "credit": "280"
+              },
+              {
+                "accountCode": "5010",
+                "debit": "2000",
+                "credit": "0"
+              },
+              {
+                "accountCode": "1200",
+                "debit": "0",
+                "credit": "2000"
+              }
+            ],
+            "evidenceHashes": [
+              {
+                "documentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+                "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2"
+              }
+            ],
+            "basis": {
+              "standards": [
+                "K-IFRS 제1001호",
+                "K-IFRS 제1115호",
+                "K-IFRS 제1002호"
+              ],
+              "assumptions": [
+                "가상회사 정수 KRW",
+                "부가세 금액·공제 가능 여부는 증빙 시나리오 가정이며 세법 판단 아님",
+                "상품 인도일의 통제 이전·단일 수행의무",
+                "증빙 단위원가 일정; 변동 원가는 별도 검토"
+              ],
+              "uncertainty": "K-IFRS 판단 가정에 대한 전문가 검토 미완료; 한국 세법 공제·신고 계산 미포함",
+              "expertReviewed": false
+            },
+            "policyVersion": "lf-accounting-v1"
+          },
+          "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+          "version": 1,
+          "state": "Draft",
+          "idempotencyKey": "docs/sale-001",
+          "postedAt": null,
+          "discardedAt": null,
+          "discardReason": null
+        },
+        "meta": {
+          "traceId": "e3a8cb0d-666f-4b85-b6ba-925f5500f5a3",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "payload": {
+            "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "recognitionOn": "2026-01-10",
+            "entryType": "source",
+            "description": "LF26-SAL-0101 sale",
+            "sourceDocumentIds": [
+              "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1"
+            ],
+            "lines": [
+              {
+                "accountCode": "1100",
+                "debit": "3080",
+                "credit": "0"
+              },
+              {
+                "accountCode": "4010",
+                "debit": "0",
+                "credit": "2800"
+              },
+              {
+                "accountCode": "2100",
+                "debit": "0",
+                "credit": "280"
+              },
+              {
+                "accountCode": "5010",
+                "debit": "2000",
+                "credit": "0"
+              },
+              {
+                "accountCode": "1200",
+                "debit": "0",
+                "credit": "2000"
+              }
+            ],
+            "evidenceHashes": [
+              {
+                "documentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+                "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2"
+              }
+            ],
+            "basis": {
+              "standards": [
+                "K-IFRS 제1001호",
+                "K-IFRS 제1115호",
+                "K-IFRS 제1002호"
+              ],
+              "assumptions": [
+                "가상회사 정수 KRW",
+                "부가세 금액·공제 가능 여부는 증빙 시나리오 가정이며 세법 판단 아님",
+                "상품 인도일의 통제 이전·단일 수행의무",
+                "증빙 단위원가 일정; 변동 원가는 별도 검토"
+              ],
+              "uncertainty": "K-IFRS 판단 가정에 대한 전문가 검토 미완료; 한국 세법 공제·신고 계산 미포함",
+              "expertReviewed": false
+            },
+            "policyVersion": "lf-accounting-v1"
+          },
+          "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+          "version": 1,
+          "state": "Draft",
+          "idempotencyKey": "docs/sale-001",
+          "postedAt": null,
+          "discardedAt": null,
+          "discardReason": null
+        },
+        "meta": {
+          "traceId": "a8f4eb65-ae7a-46f1-99dd-2805faff2e77",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "list_journal_entries",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": [
+          {
+            "id": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+            "state": "Draft",
+            "discardedAt": null,
+            "recognitionOn": "2026-01-10",
+            "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+            "description": "LF26-SAL-0101 sale"
+          }
+        ],
+        "meta": {
+          "traceId": "a41922bf-0d69-4be5-8257-ea6310e7aa9d",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "validate_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "payload": {
+            "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "recognitionOn": "2026-01-10",
+            "entryType": "source",
+            "description": "LF26-SAL-0101 sale",
+            "sourceDocumentIds": [
+              "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1"
+            ],
+            "lines": [
+              {
+                "accountCode": "1100",
+                "debit": "3080",
+                "credit": "0"
+              },
+              {
+                "accountCode": "4010",
+                "debit": "0",
+                "credit": "2800"
+              },
+              {
+                "accountCode": "2100",
+                "debit": "0",
+                "credit": "280"
+              },
+              {
+                "accountCode": "5010",
+                "debit": "2000",
+                "credit": "0"
+              },
+              {
+                "accountCode": "1200",
+                "debit": "0",
+                "credit": "2000"
+              }
+            ],
+            "evidenceHashes": [
+              {
+                "documentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+                "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2"
+              }
+            ],
+            "basis": {
+              "standards": [
+                "K-IFRS 제1001호",
+                "K-IFRS 제1115호",
+                "K-IFRS 제1002호"
+              ],
+              "assumptions": [
+                "가상회사 정수 KRW",
+                "부가세 금액·공제 가능 여부는 증빙 시나리오 가정이며 세법 판단 아님",
+                "상품 인도일의 통제 이전·단일 수행의무",
+                "증빙 단위원가 일정; 변동 원가는 별도 검토"
+              ],
+              "uncertainty": "K-IFRS 판단 가정에 대한 전문가 검토 미완료; 한국 세법 공제·신고 계산 미포함",
+              "expertReviewed": false
+            },
+            "policyVersion": "lf-accounting-v1"
+          },
+          "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+          "version": 1,
+          "state": "Validated",
+          "idempotencyKey": "docs/sale-001",
+          "postedAt": null,
+          "discardedAt": null,
+          "discardReason": null
+        },
+        "meta": {
+          "traceId": "9f30fb6b-1812-489f-bee5-6de27d3d742c",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "request_journal_approval",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "payload": {
+            "transactionId": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "recognitionOn": "2026-01-10",
+            "entryType": "source",
+            "description": "LF26-SAL-0101 sale",
+            "sourceDocumentIds": [
+              "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1"
+            ],
+            "lines": [
+              {
+                "accountCode": "1100",
+                "debit": "3080",
+                "credit": "0"
+              },
+              {
+                "accountCode": "4010",
+                "debit": "0",
+                "credit": "2800"
+              },
+              {
+                "accountCode": "2100",
+                "debit": "0",
+                "credit": "280"
+              },
+              {
+                "accountCode": "5010",
+                "debit": "2000",
+                "credit": "0"
+              },
+              {
+                "accountCode": "1200",
+                "debit": "0",
+                "credit": "2000"
+              }
+            ],
+            "evidenceHashes": [
+              {
+                "documentId": "3b938fe7-b0ca-5ed1-a863-39cd251cb1a1",
+                "sha256": "79ac744c7858a3accb159b422acb28368ccc7948490fd1d36ac779425f92c8c2"
+              }
+            ],
+            "basis": {
+              "standards": [
+                "K-IFRS 제1001호",
+                "K-IFRS 제1115호",
+                "K-IFRS 제1002호"
+              ],
+              "assumptions": [
+                "가상회사 정수 KRW",
+                "부가세 금액·공제 가능 여부는 증빙 시나리오 가정이며 세법 판단 아님",
+                "상품 인도일의 통제 이전·단일 수행의무",
+                "증빙 단위원가 일정; 변동 원가는 별도 검토"
+              ],
+              "uncertainty": "K-IFRS 판단 가정에 대한 전문가 검토 미완료; 한국 세법 공제·신고 계산 미포함",
+              "expertReviewed": false
+            },
+            "policyVersion": "lf-accounting-v1"
+          },
+          "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+          "version": 1,
+          "state": "Approval",
+          "idempotencyKey": "docs/sale-001",
+          "postedAt": null,
+          "discardedAt": null,
+          "discardReason": null
+        },
+        "meta": {
+          "traceId": "202f4f7b-636c-4d5e-b546-8d66ecbf749e",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_approval_status",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "c7543aaf-db7f-4793-9167-46cbd69bf41e",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "version": 1,
+          "hash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6",
+          "status": "pending",
+          "decidedAt": null
+        },
+        "meta": {
+          "traceId": "cc5f3c0c-35d2-40fd-b2bd-4e733e92e5a8",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "post_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "expectedHash": "4bbcf36d205f8a25c53dfe7c6a201a0fac7a8201d8590a95bfc4bb53eec27bd6"
+        }
+      },
+      "response": {
+        "ok": false,
+        "error": {
+          "code": "APPROVAL_REQUIRED",
+          "message": "처리 조건을 확인하세요. 오류 코드: APPROVAL_REQUIRED"
+        },
+        "meta": {
+          "traceId": "d2dfaa7f-f99a-48e2-9e55-4ffd45a16566",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_general_ledger",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": [],
+        "meta": {
+          "traceId": "6b691165-720c-4b12-a168-43bf999559d9",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_trial_balance",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "items": [],
+          "totalDebit": "0",
+          "totalCredit": "0"
+        },
+        "meta": {
+          "traceId": "66a616b7-2ab4-4ffc-8d9b-98c97dbcc28d",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_company_financial_statements",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "asOf": "2026-01-31",
+          "from": "2026-01-01",
+          "origin": "synthetic_erp",
+          "basis": "portfolio_K_IFRS_assumptions_not_certified",
+          "balanceSheet": {
+            "assets": "0",
+            "liabilities": "0",
+            "equity": "0",
+            "currentAndPriorProfit": "0",
+            "balanced": true,
+            "accounts": []
+          },
+          "incomeStatement": {
+            "revenue": "0",
+            "expenses": "0",
+            "profit": "0",
+            "accounts": []
+          },
+          "limitations": [
+            "법인세·법정 신고·자본변동표·현금흐름표·주석 미포함",
+            "게시된 가상 전표에 한정",
+            "전문가 검토 미완료"
+          ]
+        },
+        "meta": {
+          "traceId": "2df4c0db-e619-49c8-aa4f-56d0a7cabb0d",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "create_adjusting_entries",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+          "proposals": [
+            {
+              "id": "d72d40ab-6236-4700-b494-bff0b67717be",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "payload": {
+                "transactionId": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+                "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+                "recognitionOn": "2026-01-31",
+                "entryType": "adjustment",
+                "description": "2026-01-31 depreciation 3add3639-0f1e-5f7a-bad1-64fba36e4426",
+                "sourceDocumentIds": [
+                  "aa2baca8-3f26-5e91-b03d-a459c8293350"
+                ],
+                "lines": [
+                  {
+                    "accountCode": "5030",
+                    "debit": "10000",
+                    "credit": "0"
+                  },
+                  {
+                    "accountCode": "1590",
+                    "debit": "0",
+                    "credit": "10000"
+                  }
+                ],
+                "evidenceHashes": [
+                  {
+                    "documentId": "aa2baca8-3f26-5e91-b03d-a459c8293350",
+                    "sha256": "4244c0642d829ccb021af9dbba439fbb24d55778acdb6ba4bef55ace301b18b4"
+                  }
+                ],
+                "basis": {
+                  "standards": [
+                    "K-IFRS 제1016호"
+                  ],
+                  "assumptions": [
+                    "사용가능/보장 월부터 월 균등 인식",
+                    "기게시 상각 차감·잔액 상한·마지막 월 보정"
+                  ],
+                  "uncertainty": "전문가 검토 미완료; 시나리오 월 규약",
+                  "expertReviewed": false
+                },
+                "policyVersion": "lf-accounting-v1",
+                "calculation": {
+                  "type": "depreciation",
+                  "referenceId": "3add3639-0f1e-5f7a-bad1-64fba36e4426",
+                  "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae"
+                }
+              },
+              "hash": "5b875e34af862494f5c198a475e77091a74ad669d9128e12e8a4125da904b13f",
+              "version": 1,
+              "state": "Draft",
+              "idempotencyKey": "close/099e84a4-df50-5c9b-b4c0-8bd28c6d5bae/depreciation/3add3639-0f1e-5f7a-bad1-64fba36e4426",
+              "postedAt": null,
+              "discardedAt": null,
+              "discardReason": null
+            },
+            {
+              "id": "0a5c2e6b-663a-4635-a302-4d3661ff7904",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "payload": {
+                "transactionId": "dab7f550-2a33-54ec-a6ba-c880798e228e",
+                "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+                "recognitionOn": "2026-01-31",
+                "entryType": "adjustment",
+                "description": "2026-01-31 prepaid_expense 1bc42414-c786-5cfd-b674-6bd88996870b",
+                "sourceDocumentIds": [
+                  "ec3fa826-a047-5e4e-a98d-3c611d61bbba"
+                ],
+                "lines": [
+                  {
+                    "accountCode": "5040",
+                    "debit": "10000",
+                    "credit": "0"
+                  },
+                  {
+                    "accountCode": "1400",
+                    "debit": "0",
+                    "credit": "10000"
+                  }
+                ],
+                "evidenceHashes": [
+                  {
+                    "documentId": "ec3fa826-a047-5e4e-a98d-3c611d61bbba",
+                    "sha256": "64fa7e9338ec9d16ab78e0e7184790fd79dc060378adbbe45f312dc69ca4e7f0"
+                  }
+                ],
+                "basis": {
+                  "standards": [
+                    "K-IFRS 제1001호"
+                  ],
+                  "assumptions": [
+                    "사용가능/보장 월부터 월 균등 인식",
+                    "기게시 상각 차감·잔액 상한·마지막 월 보정"
+                  ],
+                  "uncertainty": "전문가 검토 미완료; 시나리오 월 규약",
+                  "expertReviewed": false
+                },
+                "policyVersion": "lf-accounting-v1",
+                "calculation": {
+                  "type": "prepaid_expense",
+                  "referenceId": "1bc42414-c786-5cfd-b674-6bd88996870b",
+                  "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae"
+                }
+              },
+              "hash": "a92e7388b62d726ffeed40e7d0c7856e130e3a019f6de3fba75e426895c8bc09",
+              "version": 1,
+              "state": "Draft",
+              "idempotencyKey": "close/099e84a4-df50-5c9b-b4c0-8bd28c6d5bae/prepaid_expense/1bc42414-c786-5cfd-b674-6bd88996870b",
+              "postedAt": null,
+              "discardedAt": null,
+              "discardReason": null
+            },
+            {
+              "id": "081ffd12-6fa9-46f2-a712-bcc8622f8c01",
+              "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+              "payload": {
+                "transactionId": "d42fdc55-5397-5598-b941-00b0efba4438",
+                "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+                "recognitionOn": "2026-01-31",
+                "entryType": "adjustment",
+                "description": "2026-01-31 prepaid_expense 5c94d5ad-328a-5bf3-aa87-b25d827d3466",
+                "sourceDocumentIds": [
+                  "496e96ee-f8c2-5d04-8de4-bcc30f906608"
+                ],
+                "lines": [
+                  {
+                    "accountCode": "5040",
+                    "debit": "10000",
+                    "credit": "0"
+                  },
+                  {
+                    "accountCode": "1400",
+                    "debit": "0",
+                    "credit": "10000"
+                  }
+                ],
+                "evidenceHashes": [
+                  {
+                    "documentId": "496e96ee-f8c2-5d04-8de4-bcc30f906608",
+                    "sha256": "8091bd309b42a246ecd44a9d0ec0aad6df25b8cd53d4ea0a9919909d182779b0"
+                  }
+                ],
+                "basis": {
+                  "standards": [
+                    "K-IFRS 제1001호"
+                  ],
+                  "assumptions": [
+                    "사용가능/보장 월부터 월 균등 인식",
+                    "기게시 상각 차감·잔액 상한·마지막 월 보정"
+                  ],
+                  "uncertainty": "전문가 검토 미완료; 시나리오 월 규약",
+                  "expertReviewed": false
+                },
+                "policyVersion": "lf-accounting-v1",
+                "calculation": {
+                  "type": "prepaid_expense",
+                  "referenceId": "5c94d5ad-328a-5bf3-aa87-b25d827d3466",
+                  "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae"
+                }
+              },
+              "hash": "296ae8055ff7cbf5355f60164eb87bb74c5a1eccea338d6997fdf98b267e44b5",
+              "version": 1,
+              "state": "Draft",
+              "idempotencyKey": "close/099e84a4-df50-5c9b-b4c0-8bd28c6d5bae/prepaid_expense/5c94d5ad-328a-5bf3-aa87-b25d827d3466",
+              "postedAt": null,
+              "discardedAt": null,
+              "discardReason": null
+            }
+          ],
+          "posted": false
+        },
+        "meta": {
+          "traceId": "42dd5b59-357a-46b7-99c0-83facc5d1966",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "reverse_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c",
+          "recognitionOn": "2026-01-31",
+          "idempotencyKey": "docs/reversal"
+        }
+      },
+      "response": {
+        "ok": false,
+        "error": {
+          "code": "INVALID_STATE",
+          "message": "처리 조건을 확인하세요. 오류 코드: INVALID_STATE"
+        },
+        "meta": {
+          "traceId": "b68d5bc2-fe8a-4bd3-80eb-675585ad9c60",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "close_fiscal_period",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae"
+        }
+      },
+      "response": {
+        "ok": false,
+        "error": {
+          "code": "CLOSE_INCOMPLETE",
+          "message": "처리 조건을 확인하세요. 오류 코드: CLOSE_INCOMPLETE"
+        },
+        "meta": {
+          "traceId": "f3278bf6-7b07-4ad2-a318-15aed26f9866",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "calculate_depreciation",
+        "arguments": {
+          "cost": "600000",
+          "residual": "0",
+          "months": 60
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "monthly": "10000",
+          "currency": "KRW",
+          "method": "straight_line_monthly_rounded",
+          "requiresHumanReview": true
+        },
+        "meta": {
+          "traceId": "39bb5664-35b3-43b4-a1b0-318cd408aceb",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "run_audit_checks",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "duplicateEvidence": [],
+          "unbalancedJournals": [],
+          "unpostedSources": [
+            {
+              "id": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+              "reference": "LF26-PPE-01",
+              "kind": "asset_acquisition"
+            },
+            {
+              "id": "d42fdc55-5397-5598-b941-00b0efba4438",
+              "reference": "LF26-PRE-0101",
+              "kind": "prepayment"
+            },
+            {
+              "id": "dab7f550-2a33-54ec-a6ba-c880798e228e",
+              "reference": "LF26-PRE-0102",
+              "kind": "prepayment"
+            },
+            {
+              "id": "f7a5def6-29b2-5c61-a0a5-6a0e5f2f5afc",
+              "reference": "LF26-CAP-01",
+              "kind": "opening_capital"
+            },
+            {
+              "id": "09900f16-cb95-53ed-8e1f-a308519cb904",
+              "reference": "LF26-PUR-0104",
+              "kind": "purchase"
+            },
+            {
+              "id": "0f360949-4d10-514e-8bb1-b914cafed7c2",
+              "reference": "LF26-PUR-0108",
+              "kind": "purchase"
+            },
+            {
+              "id": "13d13fbd-378c-5a8f-ba2f-cbbed8be25d2",
+              "reference": "LF26-PUR-0120",
+              "kind": "purchase"
+            },
+            {
+              "id": "257570b9-ce08-5019-9a23-ec23f532a26c",
+              "reference": "LF26-PUR-0119",
+              "kind": "purchase"
+            },
+            {
+              "id": "315829e5-7ad9-5db5-b305-4ea318a59926",
+              "reference": "LF26-PUR-0112",
+              "kind": "purchase"
+            },
+            {
+              "id": "39f44aa2-e22d-5753-881d-24ef42d70c34",
+              "reference": "LF26-PUR-0105",
+              "kind": "purchase"
+            },
+            {
+              "id": "3c224bdf-66da-5291-ac25-8b4176fa7e34",
+              "reference": "LF26-PUR-0101",
+              "kind": "purchase"
+            },
+            {
+              "id": "42e69229-8de4-58c7-a024-8c7d67929b63",
+              "reference": "LF26-PUR-0113",
+              "kind": "purchase"
+            },
+            {
+              "id": "4db40cda-747d-5adf-be2f-156bac20a3d5",
+              "reference": "LF26-PUR-0116",
+              "kind": "purchase"
+            },
+            {
+              "id": "5c39ae42-fdfc-538c-8aaa-a073699a0cb3",
+              "reference": "LF26-PUR-0102",
+              "kind": "purchase"
+            },
+            {
+              "id": "6a7f119d-3779-5b05-8f7b-8867cee2e29b",
+              "reference": "LF26-PUR-0118",
+              "kind": "purchase"
+            },
+            {
+              "id": "6da4f406-cf87-5729-9c1b-b5fdcbec2a03",
+              "reference": "LF26-PUR-0111",
+              "kind": "purchase"
+            },
+            {
+              "id": "7f6d7b63-b388-550c-abec-8b13a98851f6",
+              "reference": "LF26-PUR-0117",
+              "kind": "purchase"
+            },
+            {
+              "id": "86c7fdf1-6092-5a35-b498-517b079972ec",
+              "reference": "LF26-PUR-0109",
+              "kind": "purchase"
+            },
+            {
+              "id": "8899fa9e-fdfa-564f-8de9-ddd05bf2e443",
+              "reference": "LF26-PUR-0106",
+              "kind": "purchase"
+            },
+            {
+              "id": "8c682933-cef9-53b8-9dd1-d16a529f9d9a",
+              "reference": "LF26-PUR-0110",
+              "kind": "purchase"
+            },
+            {
+              "id": "a3d5666d-83bd-5e80-b6bb-28b183c9022c",
+              "reference": "LF26-PUR-0114",
+              "kind": "purchase"
+            },
+            {
+              "id": "ac35d5d8-fbed-5542-9b79-2635ccb3769c",
+              "reference": "LF26-PUR-0115",
+              "kind": "purchase"
+            },
+            {
+              "id": "d7dc89e8-bb3c-5a2c-a6ea-e88af3444553",
+              "reference": "LF26-PUR-0107",
+              "kind": "purchase"
+            },
+            {
+              "id": "f05d0fdf-5a66-5a12-b629-dffc2206cf00",
+              "reference": "LF26-PUR-0103",
+              "kind": "purchase"
+            },
+            {
+              "id": "057a2220-956b-5f56-8648-be817689bc22",
+              "reference": "LF26-SAL-0110",
+              "kind": "sale"
+            },
+            {
+              "id": "42ee1ce6-cd12-5a25-bd3b-8b55c86b33b8",
+              "reference": "LF26-SAL-0111",
+              "kind": "sale"
+            },
+            {
+              "id": "4b006a41-73bc-5683-a404-02d97e1f0c3e",
+              "reference": "LF26-SAL-0103",
+              "kind": "sale"
+            },
+            {
+              "id": "4cc349e7-9ad1-55b0-b934-bf90b71159e8",
+              "reference": "LF26-SAL-0117",
+              "kind": "sale"
+            },
+            {
+              "id": "568e0c06-f27e-5523-8d90-a5a4fd5272d2",
+              "reference": "LF26-SAL-0102",
+              "kind": "sale"
+            },
+            {
+              "id": "5a3ca9ee-eb9a-594e-8e28-d6ebf8297649",
+              "reference": "LF26-SAL-0106",
+              "kind": "sale"
+            },
+            {
+              "id": "5ed56deb-8a16-5dfe-91cd-9fff95c77e07",
+              "reference": "LF26-SAL-0104",
+              "kind": "sale"
+            },
+            {
+              "id": "771d1745-afe1-556b-b081-6a00636b046c",
+              "reference": "LF26-SAL-0120",
+              "kind": "sale"
+            },
+            {
+              "id": "7873cc6a-3f96-59a5-96e4-996b4618ef34",
+              "reference": "LF26-SAL-0101",
+              "kind": "sale"
+            },
+            {
+              "id": "8e434132-8a5c-5105-97b5-9406f2108a64",
+              "reference": "LF26-SAL-0115",
+              "kind": "sale"
+            },
+            {
+              "id": "916ec62e-3e53-541f-a272-7542810abd96",
+              "reference": "LF26-SAL-0108",
+              "kind": "sale"
+            },
+            {
+              "id": "abdd30c9-d0cc-5f1c-a18f-d061256222ec",
+              "reference": "LF26-SAL-0112",
+              "kind": "sale"
+            },
+            {
+              "id": "b169c170-b687-5263-bf86-d606b16a50ea",
+              "reference": "LF26-SAL-0105",
+              "kind": "sale"
+            },
+            {
+              "id": "bef4369d-748c-59d3-bc4a-6e3285291133",
+              "reference": "LF26-SAL-0109",
+              "kind": "sale"
+            },
+            {
+              "id": "cc6a2168-0c05-5d90-8c48-6d5ed49aa1d7",
+              "reference": "LF26-SAL-0114",
+              "kind": "sale"
+            },
+            {
+              "id": "cd235e6d-36cc-5ba8-9bfc-e41e9d6ed3b7",
+              "reference": "LF26-SAL-0113",
+              "kind": "sale"
+            },
+            {
+              "id": "ceaa8634-e2f9-54f1-be19-f17693fbf85a",
+              "reference": "LF26-SAL-0118",
+              "kind": "sale"
+            },
+            {
+              "id": "d00b9b76-b77c-5e88-9669-ebc45011b3c2",
+              "reference": "LF26-SAL-0119",
+              "kind": "sale"
+            },
+            {
+              "id": "f26f7bdc-7253-583d-894e-7a69b81d6ba9",
+              "reference": "LF26-SAL-0107",
+              "kind": "sale"
+            },
+            {
+              "id": "ff740fc2-25f7-5814-8c4a-a7a56459113a",
+              "reference": "LF26-SAL-0116",
+              "kind": "sale"
+            },
+            {
+              "id": "19b4a04d-9ec4-549b-b5e7-45ca41efd8aa",
+              "reference": "LF26-RCP-0119",
+              "kind": "receipt"
+            },
+            {
+              "id": "26705803-7343-5f18-bb2a-06a815a366e8",
+              "reference": "LF26-RCP-0102",
+              "kind": "receipt"
+            },
+            {
+              "id": "35d300be-be06-5379-a2b7-4c4d50993965",
+              "reference": "LF26-RCP-0116",
+              "kind": "receipt"
+            },
+            {
+              "id": "4ddda9c3-3a25-5fa0-be2a-f2f6fdb7daa0",
+              "reference": "LF26-RCP-0120",
+              "kind": "receipt"
+            },
+            {
+              "id": "522eba36-f8e9-5d78-a36d-3c526dd5a84d",
+              "reference": "LF26-RCP-0111",
+              "kind": "receipt"
+            },
+            {
+              "id": "55d4452f-fa24-56c0-815f-d387b1287cec",
+              "reference": "LF26-RCP-0106",
+              "kind": "receipt"
+            },
+            {
+              "id": "568eff5b-676e-5bd7-898c-ca66ad2a6b27",
+              "reference": "LF26-RCP-0110",
+              "kind": "receipt"
+            },
+            {
+              "id": "56f5603e-a7f8-5850-a681-35aecd793cb4",
+              "reference": "LF26-RCP-0101",
+              "kind": "receipt"
+            },
+            {
+              "id": "5d6e7b1d-5361-5c69-b604-28e900be10ac",
+              "reference": "LF26-RCP-0104",
+              "kind": "receipt"
+            },
+            {
+              "id": "7d883888-d7a0-5c8d-9f84-941219be864c",
+              "reference": "LF26-RCP-0103",
+              "kind": "receipt"
+            },
+            {
+              "id": "8388f35f-c211-5634-b2e4-afd4a6c0ea59",
+              "reference": "LF26-RCP-0108",
+              "kind": "receipt"
+            },
+            {
+              "id": "864d2a97-b27a-5169-8faf-c72ec4ddae29",
+              "reference": "LF26-RCP-0115",
+              "kind": "receipt"
+            },
+            {
+              "id": "8651ab56-7439-5376-b9ff-ff2ba872dc74",
+              "reference": "LF26-RCP-0114",
+              "kind": "receipt"
+            },
+            {
+              "id": "91d98c15-a581-5de4-99fc-552af7383abf",
+              "reference": "LF26-RCP-0112",
+              "kind": "receipt"
+            },
+            {
+              "id": "970b99b6-2e74-5032-8e1c-a1e2d23aa91e",
+              "reference": "LF26-RCP-0105",
+              "kind": "receipt"
+            },
+            {
+              "id": "ba9dc244-d878-5cab-acc9-7b161a310f67",
+              "reference": "LF26-RCP-0107",
+              "kind": "receipt"
+            },
+            {
+              "id": "c1569b62-cc1f-5fb2-b275-2a3f7374b927",
+              "reference": "LF26-RCP-0118",
+              "kind": "receipt"
+            },
+            {
+              "id": "de65e1c0-914c-5297-a3fa-d6ed4b773de4",
+              "reference": "LF26-RCP-0113",
+              "kind": "receipt"
+            },
+            {
+              "id": "fee5b6f3-c067-5d56-b302-c5fa56abbe09",
+              "reference": "LF26-RCP-0109",
+              "kind": "receipt"
+            },
+            {
+              "id": "ffcc3490-d2bd-5a1e-9bbc-e57dd1d8ec70",
+              "reference": "LF26-RCP-0117",
+              "kind": "receipt"
+            },
+            {
+              "id": "01901de8-8751-562f-9e04-4989f57eb3ec",
+              "reference": "LF26-PAY-0111",
+              "kind": "payment"
+            },
+            {
+              "id": "08ecd234-0aa0-53c2-bf1f-e62871aa1bcb",
+              "reference": "LF26-PAY-0114",
+              "kind": "payment"
+            },
+            {
+              "id": "09da652a-ac9d-5436-9cfb-f03dfde7d3c2",
+              "reference": "LF26-PAY-0106",
+              "kind": "payment"
+            },
+            {
+              "id": "0c24476d-809b-5a0a-9d5b-37c6a8528cf9",
+              "reference": "LF26-PAY-0112",
+              "kind": "payment"
+            },
+            {
+              "id": "136fad92-efc8-543c-9700-35cfe5e5b284",
+              "reference": "LF26-PAY-0104",
+              "kind": "payment"
+            },
+            {
+              "id": "1ea1cff3-0eab-5689-829a-f3f5002039d8",
+              "reference": "LF26-PAY-0105",
+              "kind": "payment"
+            },
+            {
+              "id": "3e3dfeb8-00d9-5a2b-b9a9-c89d6e98c290",
+              "reference": "LF26-PAY-0102",
+              "kind": "payment"
+            },
+            {
+              "id": "482b36d3-767d-5987-b63d-19b6c822ce7d",
+              "reference": "LF26-PAY-0120",
+              "kind": "payment"
+            },
+            {
+              "id": "5333c634-2feb-5d59-bd65-fca09518706a",
+              "reference": "LF26-PAY-0107",
+              "kind": "payment"
+            },
+            {
+              "id": "55c764bc-0ab5-5423-8fa3-8b6e6114ee36",
+              "reference": "LF26-PAY-0101",
+              "kind": "payment"
+            },
+            {
+              "id": "5668c9bb-b916-5382-ab3d-6077efc871dd",
+              "reference": "LF26-PAY-0117",
+              "kind": "payment"
+            },
+            {
+              "id": "63671270-8d96-5ed0-a1a3-09393ceff1e7",
+              "reference": "LF26-PAY-0119",
+              "kind": "payment"
+            },
+            {
+              "id": "6b02c95a-22cb-5a49-bbcf-9bf4fca0a00c",
+              "reference": "LF26-PAY-0115",
+              "kind": "payment"
+            },
+            {
+              "id": "6edcc288-2df7-5a1a-908a-ed85242e24cf",
+              "reference": "LF26-PAY-0110",
+              "kind": "payment"
+            },
+            {
+              "id": "86fbe997-28d9-5c3f-b9b4-b9e69389b23c",
+              "reference": "LF26-PAY-0116",
+              "kind": "payment"
+            },
+            {
+              "id": "95f50ed4-5077-565e-b7d0-2fc50bd42794",
+              "reference": "LF26-PAY-0113",
+              "kind": "payment"
+            },
+            {
+              "id": "b1d4f624-b52a-5843-86c2-62b9cd5380de",
+              "reference": "LF26-PAY-0103",
+              "kind": "payment"
+            },
+            {
+              "id": "cfe71124-7424-512b-98fe-8add0b7c5071",
+              "reference": "LF26-PAY-0118",
+              "kind": "payment"
+            },
+            {
+              "id": "e04c1edb-c99d-5da8-90a2-3806d14e802a",
+              "reference": "LF26-PAY-0109",
+              "kind": "payment"
+            },
+            {
+              "id": "e7968705-ccc2-53de-b01d-d67632a86b06",
+              "reference": "LF26-PAY-0108",
+              "kind": "payment"
+            },
+            {
+              "id": "10c57c8d-aafc-55a0-b1cf-c08a23a6a401",
+              "reference": "LF26-PAYROLL-0101",
+              "kind": "payroll"
+            },
+            {
+              "id": "58c29c5d-d63a-50b5-9b0f-bf57737aac31",
+              "reference": "LF26-PAYROLL-0102",
+              "kind": "payroll"
+            },
+            {
+              "id": "cf7313f3-eb2b-58a6-b782-d9d779abb5f4",
+              "reference": "LF26-PAYROLL-0103",
+              "kind": "payroll"
+            },
+            {
+              "id": "157f6e34-c916-5d7a-9926-7933d50c79ce",
+              "reference": "LF26-ACC-0104",
+              "kind": "accrual"
+            },
+            {
+              "id": "2fd87522-1a7b-56dd-8780-5a67e463cfba",
+              "reference": "LF26-ADJ-DEP-001",
+              "kind": "adjustment"
+            },
+            {
+              "id": "5acc43ed-4715-5204-9837-1a1cf0c30384",
+              "reference": "LF26-ACC-0103",
+              "kind": "accrual"
+            },
+            {
+              "id": "6eec82f0-7a0d-5bf6-8bbb-0e4a3c0aa52b",
+              "reference": "LF26-ACC-0102",
+              "kind": "accrual"
+            },
+            {
+              "id": "9f212d72-49cb-5bcd-b8a4-3029dbe5a447",
+              "reference": "LF26-ACC-0101",
+              "kind": "accrual"
+            }
+          ],
+          "missingEvidence": [],
+          "periodErrors": [],
+          "note": "미처리 거래는 감사 오류 확정이 아니라 업무 누락 후보입니다. 최대 100개 표시."
+        },
+        "meta": {
+          "traceId": "869cf3e3-b639-492e-8a53-f42f8eab967b",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "record_agent_result",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "client": "codex",
+          "result": {
+            "taskId": "docs-result",
+            "role": "sales",
+            "status": "blocked",
+            "transactionIds": [
+              "7873cc6a-3f96-59a5-96e4-996b4618ef34"
+            ],
+            "toolTraceIds": [],
+            "findings": [
+              "Synthetic documentation exercise only"
+            ],
+            "missingEvidence": [],
+            "riskFlags": [],
+            "blockedReasons": [
+              "Human approval required"
+            ],
+            "humanApprovalRequired": true,
+            "journalPosted": false
+          }
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "runId": "addf5458-b42e-47aa-9ec4-106b385ba4f7",
+          "taskId": "66fc69ea-b573-4aab-b379-759dff6f8cbe",
+          "recorded": true
+        },
+        "meta": {
+          "traceId": "f9198a50-675d-47f9-99e8-04a8d0ef324f",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "discard_journal_entry",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "journalId": "45ed91b0-5985-4e6e-9934-d31ee9af1553",
+          "expectedHash": "ec1ad3ff6362703dd56ac793232736b97cd5ce244b7257cc8b42ff7a4937f29d",
+          "reason": "Disposable documentation example"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "id": "45ed91b0-5985-4e6e-9934-d31ee9af1553",
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "payload": {
+            "transactionId": "568e0c06-f27e-5523-8d90-a5a4fd5272d2",
+            "periodId": "099e84a4-df50-5c9b-b4c0-8bd28c6d5bae",
+            "recognitionOn": "2026-01-10",
+            "entryType": "source",
+            "description": "LF26-SAL-0102 sale",
+            "sourceDocumentIds": [
+              "aa400364-d096-5107-a716-3bb07d4ac209"
+            ],
+            "lines": [
+              {
+                "accountCode": "1100",
+                "debit": "21560",
+                "credit": "0"
+              },
+              {
+                "accountCode": "4010",
+                "debit": "0",
+                "credit": "19600"
+              },
+              {
+                "accountCode": "2100",
+                "debit": "0",
+                "credit": "1960"
+              },
+              {
+                "accountCode": "5010",
+                "debit": "14000",
+                "credit": "0"
+              },
+              {
+                "accountCode": "1200",
+                "debit": "0",
+                "credit": "14000"
+              }
+            ],
+            "evidenceHashes": [
+              {
+                "documentId": "aa400364-d096-5107-a716-3bb07d4ac209",
+                "sha256": "377430dcd247569d10005c0624a48cb422169528c25e27f9844fedf060681387"
+              }
+            ],
+            "basis": {
+              "standards": [
+                "K-IFRS 제1001호",
+                "K-IFRS 제1115호",
+                "K-IFRS 제1002호"
+              ],
+              "assumptions": [
+                "가상회사 정수 KRW",
+                "부가세 금액·공제 가능 여부는 증빙 시나리오 가정이며 세법 판단 아님",
+                "상품 인도일의 통제 이전·단일 수행의무",
+                "증빙 단위원가 일정; 변동 원가는 별도 검토"
+              ],
+              "uncertainty": "K-IFRS 판단 가정에 대한 전문가 검토 미완료; 한국 세법 공제·신고 계산 미포함",
+              "expertReviewed": false
+            },
+            "policyVersion": "lf-accounting-v1"
+          },
+          "hash": "ec1ad3ff6362703dd56ac793232736b97cd5ce244b7257cc8b42ff7a4937f29d",
+          "version": 1,
+          "state": "Draft",
+          "idempotencyKey": "docs/discard",
+          "postedAt": null,
+          "discardedAt": "2026-10-15T08:20:16.207327+09:00",
+          "discardReason": "Disposable documentation example"
+        },
+        "meta": {
+          "traceId": "b557817d-2a11-48dc-9ee5-d5bf0bc3cbba",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_reconciliation_report",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "from": "2026-01-01",
+          "to": "2026-01-31"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "asOf": "2026-01-31",
+          "origin": "synthetic_erp",
+          "bank": [
+            {
+              "id": "6a6951c7-cf06-5f74-a726-adcb4176ddeb",
+              "transactionId": "d42fdc55-5397-5598-b941-00b0efba4438",
+              "date": "2026-01-01",
+              "direction": "out",
+              "amount": "120000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "7bc95206-664b-5306-995b-a2374e8f8cbf",
+              "transactionId": "f7a5def6-29b2-5c61-a0a5-6a0e5f2f5afc",
+              "date": "2026-01-01",
+              "direction": "in",
+              "amount": "250000000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "903ead24-c091-5e15-a25a-7fa2efb5309f",
+              "transactionId": "dab7f550-2a33-54ec-a6ba-c880798e228e",
+              "date": "2026-01-01",
+              "direction": "out",
+              "amount": "120000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "cc312aac-b4b9-5080-99b1-2164aad9abc8",
+              "transactionId": "b8792105-e647-53a9-b981-f3d67eeb0c41",
+              "date": "2026-01-01",
+              "direction": "out",
+              "amount": "660000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "dc1bbb44-de32-56a0-9fa5-4b78c6232aff",
+              "transactionId": "f7a5def6-29b2-5c61-a0a5-6a0e5f2f5afc",
+              "date": "2026-01-01",
+              "direction": "in",
+              "amount": "250000000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "008d9363-47e8-5a4b-aa4d-b17ee3baceed",
+              "transactionId": "8651ab56-7439-5376-b9ff-ff2ba872dc74",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "129360",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "0cf77fae-20dc-5f0b-8c46-1f8c48646d4e",
+              "transactionId": "26705803-7343-5f18-bb2a-06a815a366e8",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "21560",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "116ae54e-fb2c-5b78-b2c9-c34ae62784e9",
+              "transactionId": "7d883888-d7a0-5c8d-9f84-941219be864c",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "9240",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "142283bf-3331-59f2-9a03-a390f35fa9d7",
+              "transactionId": "864d2a97-b27a-5169-8faf-c72ec4ddae29",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "80850",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "1ac5f3fe-081f-5afc-a53d-07dd29dd6789",
+              "transactionId": "91d98c15-a581-5de4-99fc-552af7383abf",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "83160",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "6ef862af-84ea-590c-bdd7-fb1996f31489",
+              "transactionId": "35d300be-be06-5379-a2b7-4c4d50993965",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "49280",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "74c783ed-f457-5f34-b938-681f4fd2c83f",
+              "transactionId": "568eff5b-676e-5bd7-898c-ca66ad2a6b27",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "138600",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "79f226c7-4c32-58b1-8e09-99ff07da4fd7",
+              "transactionId": "ffcc3490-d2bd-5a1e-9bbc-e57dd1d8ec70",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "209440",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "7d807316-611c-5de2-9c3e-198b35f14767",
+              "transactionId": "5d6e7b1d-5361-5c69-b604-28e900be10ac",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "6160",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "7e748a5d-e614-535d-9dc8-d2ce97ad2d2b",
+              "transactionId": "4ddda9c3-3a25-5fa0-be2a-f2f6fdb7daa0",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "308000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "8720b4a8-2098-5215-a9bc-13951e67f4b3",
+              "transactionId": "522eba36-f8e9-5d78-a36d-3c526dd5a84d",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "50820",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "8b8b2a2c-f1b0-5c50-8fa4-e3a0b0613df4",
+              "transactionId": "55d4452f-fa24-56c0-815f-d387b1287cec",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "18480",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "8e7b5cde-6e9f-5541-a262-20b51dc10c13",
+              "transactionId": "de65e1c0-914c-5297-a3fa-d6ed4b773de4",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "240240",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "9567586c-64d0-5d74-a544-4be7542534bf",
+              "transactionId": "8388f35f-c211-5634-b2e4-afd4a6c0ea59",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "147840",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "b7af2dc3-3f30-5679-8776-bb34a55963fc",
+              "transactionId": "ba9dc244-d878-5cab-acc9-7b161a310f67",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "129360",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "c89bf85a-bfd6-5d6f-85aa-bb40faf70831",
+              "transactionId": "19b4a04d-9ec4-549b-b5e7-45ca41efd8aa",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "292600",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "ceeb2d54-81a9-5a57-9854-5fae9f4e1b53",
+              "transactionId": "fee5b6f3-c067-5d56-b302-c5fa56abbe09",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "62370",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "cf85afd1-8d8e-5b14-bc3b-5ecc7462d65e",
+              "transactionId": "56f5603e-a7f8-5850-a681-35aecd793cb4",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "3080",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "d5254ac3-50d0-5ff9-ac24-2d860e50c1ef",
+              "transactionId": "970b99b6-2e74-5032-8e1c-a1e2d23aa91e",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "30800",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "dc51f19f-f2f5-53e8-a3a7-ea6d56964236",
+              "transactionId": "c1569b62-cc1f-5fb2-b275-2a3f7374b927",
+              "date": "2026-01-15",
+              "direction": "in",
+              "amount": "110880",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "1ad51060-e34a-5666-bb6f-4dd8617ed490",
+              "transactionId": "5668c9bb-b916-5382-ab3d-6077efc871dd",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "1439900",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "2324ffbf-ab0a-513a-80be-20361d02bdd6",
+              "transactionId": "6b02c95a-22cb-5a49-bbcf-9bf4fca0a00c",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "429000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "39fca6f2-2d84-5e41-9f07-940810356b49",
+              "transactionId": "86fbe997-28d9-5c3f-b9b4-b9e69389b23c",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "1460800",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "3da3eef2-2bd6-5461-884b-364ce619dc3c",
+              "transactionId": "e04c1edb-c99d-5da8-90a2-3806d14e802a",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "272250",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "4eff070e-982e-51d4-a54c-49e8fc13e099",
+              "transactionId": "136fad92-efc8-543c-9700-35cfe5e5b284",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "330000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "590b7a48-3da4-5220-8cd4-bef5883d7de1",
+              "transactionId": "63671270-8d96-5ed0-a1a3-09393ceff1e7",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "1525700",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "62c3876d-dc13-5d6a-b667-d9c45d7c8856",
+              "transactionId": "3e3dfeb8-00d9-5a2b-b9a9-c89d6e98c290",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "173800",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "741b47a2-3134-5818-83f5-dbff9fe5d60e",
+              "transactionId": "b1d4f624-b52a-5843-86c2-62b9cd5380de",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "92400",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "75d19bd3-f349-5304-9033-936701e541a1",
+              "transactionId": "0c24476d-809b-5a0a-9d5b-37c6a8528cf9",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "554400",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "79471c1b-a7de-5964-ac61-5f67d425611f",
+              "transactionId": "55c764bc-0ab5-5423-8fa3-8b6e6114ee36",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "66000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "87a9cbd0-fbb6-5a87-bcba-c0368a10d8dc",
+              "transactionId": "cfe71124-7424-512b-98fe-8add0b7c5071",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "594000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "87f1faf1-1460-5eda-9fd3-a95b0ba3f36e",
+              "transactionId": "08ecd234-0aa0-53c2-bf1f-e62871aa1bcb",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "1078000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "97bb5c05-ff7f-5ed9-bbaa-66e1f1330e08",
+              "transactionId": "5333c634-2feb-5d59-bd65-fca09518706a",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "539000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "a29daea5-e28c-5265-bfcc-9ff670bcfb56",
+              "transactionId": "482b36d3-767d-5987-b63d-19b6c822ce7d",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "1584000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "afeeec51-0410-5047-bacf-af6d45b28530",
+              "transactionId": "6edcc288-2df7-5a1a-908a-ed85242e24cf",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "957000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "bc1308c9-1194-5a03-b75d-1770ab2023e9",
+              "transactionId": "01901de8-8751-562f-9e04-4989f57eb3ec",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "738100",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "c41f5a64-687e-5743-86fe-1288ec3f5ab9",
+              "transactionId": "e7968705-ccc2-53de-b01d-d67632a86b06",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "545600",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "d1877e2a-b472-5ec6-9bf4-d56c373e952d",
+              "transactionId": "09da652a-ac9d-5436-9cfb-f03dfde7d3c2",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "198000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "df93be1c-ac2e-50b4-816e-787742fa470d",
+              "transactionId": "95f50ed4-5077-565e-b7d0-2fc50bd42794",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "972400",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "f4a86472-3480-5fed-a929-a301efe47641",
+              "transactionId": "1ea1cff3-0eab-5689-829a-f3f5002039d8",
+              "date": "2026-01-18",
+              "direction": "out",
+              "amount": "313500",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "5b5940f2-503d-5053-8ca2-2f4191f650f9",
+              "transactionId": "10c57c8d-aafc-55a0-b1cf-c08a23a6a401",
+              "date": "2026-01-25",
+              "direction": "out",
+              "amount": "1800000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "a2fadfd9-c63b-50f2-9d7b-65e4a6257b9b",
+              "transactionId": "58c29c5d-d63a-50b5-9b0f-bf57737aac31",
+              "date": "2026-01-25",
+              "direction": "out",
+              "amount": "1800000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            },
+            {
+              "id": "bf6bec9b-2495-57ff-816a-0efc361d74cf",
+              "transactionId": "cf7313f3-eb2b-58a6-b782-d9d779abb5f4",
+              "date": "2026-01-25",
+              "direction": "out",
+              "amount": "1800000",
+              "postedJournalId": null,
+              "matchId": null,
+              "reversed": false
+            }
+          ],
+          "cash": {
+            "bankNetMovement": "481958270",
+            "ledgerCashBalance": "0"
+          },
+          "invoiceBalances": [
+            {
+              "id": "e1eaa5b0-79d7-5206-ad10-1a45a3a5f1f4",
+              "direction": "purchase",
+              "gross": "660000",
+              "allocated": "0",
+              "outstanding": "660000"
+            },
+            {
+              "id": "16424908-da13-50df-9eb2-e185c6557ebc",
+              "direction": "purchase",
+              "gross": "330000",
+              "allocated": "330000",
+              "outstanding": "0"
+            },
+            {
+              "id": "219d3c83-6cb7-5c1e-9846-5d6c3641e7a7",
+              "direction": "purchase",
+              "gross": "1460800",
+              "allocated": "1460800",
+              "outstanding": "0"
+            },
+            {
+              "id": "2aea1e20-116c-5a2a-887e-a66db582aa69",
+              "direction": "purchase",
+              "gross": "184800",
+              "allocated": "92400",
+              "outstanding": "92400"
+            },
+            {
+              "id": "2d4e720a-b8d8-5d94-8a2c-4d31cf082434",
+              "direction": "purchase",
+              "gross": "545600",
+              "allocated": "545600",
+              "outstanding": "0"
+            },
+            {
+              "id": "3737c8df-742d-58c5-a525-f15be06e804f",
+              "direction": "purchase",
+              "gross": "1439900",
+              "allocated": "1439900",
+              "outstanding": "0"
+            },
+            {
+              "id": "3f723600-7aae-520e-bee8-1123f0321b97",
+              "direction": "purchase",
+              "gross": "1108800",
+              "allocated": "554400",
+              "outstanding": "554400"
+            },
+            {
+              "id": "5264d221-4a32-5b22-abac-f8549b21e252",
+              "direction": "purchase",
+              "gross": "396000",
+              "allocated": "198000",
+              "outstanding": "198000"
+            },
+            {
+              "id": "53464138-dc66-5daa-a602-a43da96271cc",
+              "direction": "purchase",
+              "gross": "539000",
+              "allocated": "539000",
+              "outstanding": "0"
+            },
+            {
+              "id": "6425dea9-d4f1-564d-8c5e-001c2c8df2aa",
+              "direction": "purchase",
+              "gross": "66000",
+              "allocated": "66000",
+              "outstanding": "0"
+            },
+            {
+              "id": "7950c95e-f030-5ce3-a603-c5c7becffe46",
+              "direction": "purchase",
+              "gross": "1584000",
+              "allocated": "1584000",
+              "outstanding": "0"
+            },
+            {
+              "id": "7f28c587-a190-5644-aeec-84184f26e9ae",
+              "direction": "purchase",
+              "gross": "738100",
+              "allocated": "738100",
+              "outstanding": "0"
+            },
+            {
+              "id": "91fc77d3-bc4b-5e9b-8fe2-289c5dcfa583",
+              "direction": "purchase",
+              "gross": "173800",
+              "allocated": "173800",
+              "outstanding": "0"
+            },
+            {
+              "id": "95c7dfa2-e054-5390-a307-848a40d9f547",
+              "direction": "purchase",
+              "gross": "858000",
+              "allocated": "429000",
+              "outstanding": "429000"
+            },
+            {
+              "id": "a94b0fdb-6a16-58a7-9547-32c8a42b329d",
+              "direction": "purchase",
+              "gross": "544500",
+              "allocated": "272250",
+              "outstanding": "272250"
+            },
+            {
+              "id": "af8d9146-f8ac-5bb2-96fd-d706617c3941",
+              "direction": "purchase",
+              "gross": "313500",
+              "allocated": "313500",
+              "outstanding": "0"
+            },
+            {
+              "id": "d38294b1-b463-590b-9ae6-6b43719a75ff",
+              "direction": "purchase",
+              "gross": "1188000",
+              "allocated": "594000",
+              "outstanding": "594000"
+            },
+            {
+              "id": "e1c2466f-9926-56a0-8eca-4a6e143df06e",
+              "direction": "purchase",
+              "gross": "957000",
+              "allocated": "957000",
+              "outstanding": "0"
+            },
+            {
+              "id": "e29d9f36-e48c-5163-9d04-1062d9a1fd67",
+              "direction": "purchase",
+              "gross": "1525700",
+              "allocated": "1525700",
+              "outstanding": "0"
+            },
+            {
+              "id": "e446bd45-b4b8-55db-afad-21e656824f50",
+              "direction": "purchase",
+              "gross": "972400",
+              "allocated": "972400",
+              "outstanding": "0"
+            },
+            {
+              "id": "e4bc629a-a3ec-5fb0-b3fc-afa4c58b11de",
+              "direction": "purchase",
+              "gross": "1078000",
+              "allocated": "1078000",
+              "outstanding": "0"
+            },
+            {
+              "id": "05effac0-cd52-5f01-8859-437fa1ab95ee",
+              "direction": "sale",
+              "gross": "30800",
+              "allocated": "30800",
+              "outstanding": "0"
+            },
+            {
+              "id": "0618b8da-d901-5f69-8d7a-6c7eedece683",
+              "direction": "sale",
+              "gross": "3080",
+              "allocated": "3080",
+              "outstanding": "0"
+            },
+            {
+              "id": "08455cb3-79b0-514a-9935-b10b788683a3",
+              "direction": "sale",
+              "gross": "21560",
+              "allocated": "21560",
+              "outstanding": "0"
+            },
+            {
+              "id": "350d14d6-0438-52d8-b1e9-e510d1ba9c6a",
+              "direction": "sale",
+              "gross": "124740",
+              "allocated": "62370",
+              "outstanding": "62370"
+            },
+            {
+              "id": "3fd8f252-4201-586a-a9cf-5589fb599bb3",
+              "direction": "sale",
+              "gross": "308000",
+              "allocated": "308000",
+              "outstanding": "0"
+            },
+            {
+              "id": "420018e7-bf1f-5382-8087-297b1925f9b1",
+              "direction": "sale",
+              "gross": "36960",
+              "allocated": "18480",
+              "outstanding": "18480"
+            },
+            {
+              "id": "449f116b-3541-5073-93dc-485b9bcb97a8",
+              "direction": "sale",
+              "gross": "50820",
+              "allocated": "50820",
+              "outstanding": "0"
+            },
+            {
+              "id": "498e5d21-ba0f-58bd-91b6-fb7cd83cc920",
+              "direction": "sale",
+              "gross": "292600",
+              "allocated": "292600",
+              "outstanding": "0"
+            },
+            {
+              "id": "590a250f-0e03-5134-a633-326839cba277",
+              "direction": "sale",
+              "gross": "240240",
+              "allocated": "240240",
+              "outstanding": "0"
+            },
+            {
+              "id": "5bbfe656-8bf3-5022-9cd8-3014bdc42bcb",
+              "direction": "sale",
+              "gross": "6160",
+              "allocated": "6160",
+              "outstanding": "0"
+            },
+            {
+              "id": "69bc911d-e883-5171-9246-3533dc65296c",
+              "direction": "sale",
+              "gross": "221760",
+              "allocated": "110880",
+              "outstanding": "110880"
+            },
+            {
+              "id": "6e510100-ad60-56f2-8511-e8d8c7f6fa38",
+              "direction": "sale",
+              "gross": "49280",
+              "allocated": "49280",
+              "outstanding": "0"
+            },
+            {
+              "id": "7e9d9163-ad6e-5fda-a013-a2be32d07c18",
+              "direction": "sale",
+              "gross": "166320",
+              "allocated": "83160",
+              "outstanding": "83160"
+            },
+            {
+              "id": "82c220ab-8786-5370-a6e5-42e7682250e0",
+              "direction": "sale",
+              "gross": "161700",
+              "allocated": "80850",
+              "outstanding": "80850"
+            },
+            {
+              "id": "a2ce5322-fe32-55d8-b955-bda7aa11b13b",
+              "direction": "sale",
+              "gross": "138600",
+              "allocated": "138600",
+              "outstanding": "0"
+            },
+            {
+              "id": "a3e9f64e-b4cf-5591-8b92-f043e644c7d7",
+              "direction": "sale",
+              "gross": "147840",
+              "allocated": "147840",
+              "outstanding": "0"
+            },
+            {
+              "id": "a61595f4-fa13-5206-9fb2-1c967cf97268",
+              "direction": "sale",
+              "gross": "18480",
+              "allocated": "9240",
+              "outstanding": "9240"
+            },
+            {
+              "id": "c29bd7b9-b528-5dca-bb40-1801f742a6da",
+              "direction": "sale",
+              "gross": "129360",
+              "allocated": "129360",
+              "outstanding": "0"
+            },
+            {
+              "id": "e823e2dd-a9c1-53f6-aa21-bad5db6b4648",
+              "direction": "sale",
+              "gross": "209440",
+              "allocated": "209440",
+              "outstanding": "0"
+            },
+            {
+              "id": "f5f75516-acfa-5149-86f2-a35dc65106ab",
+              "direction": "sale",
+              "gross": "129360",
+              "allocated": "129360",
+              "outstanding": "0"
+            }
+          ],
+          "notes": [
+            "은행·세금계산서 ERP와 게시 장부를 별도 표시",
+            "미전기/역분개/기간 차이는 검토 대상",
+            "은행·세금계산서 각 최대 100건; cash는 전체 누적",
+            "단일 현금 계정 1010 가정; 실제 은행 명세서 외부 연동 없음"
+          ]
+        },
+        "meta": {
+          "traceId": "6f14392f-ffd1-4acc-8d70-093bf303440a",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "match_bank_transaction",
+        "arguments": {
+          "companyId": "9c8ea756-7981-5f3d-a272-2640a18054be",
+          "bankTransactionId": "7bc95206-664b-5306-995b-a2374e8f8cbf",
+          "journalId": "b8f6e6d2-2910-4144-a190-d125d8a6288c"
+        }
+      },
+      "response": {
+        "ok": false,
+        "error": {
+          "code": "RECONCILIATION_MISMATCH",
+          "message": "처리 조건을 확인하세요. 오류 코드: RECONCILIATION_MISMATCH"
+        },
+        "meta": {
+          "traceId": "2fc824e0-c44d-49e8-8fcd-b18384d14eb9",
+          "origin": "synthetic_erp",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "verify_business",
+        "arguments": {
+          "businesses": [
+            {
+              "businessNumber": "0000000000",
+              "startDate": "2026-01-01",
+              "representative": "가상 테스트"
+            }
+          ]
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "businesses": [
+              {
+                "businessNumberMasked": "000****000",
+                "statusCode": "01",
+                "taxType": "mock 일반과세",
+                "closedDate": null,
+                "verification": "unconfirmed"
+              }
+            ]
+          },
+          "provenance": {
+            "provider": "nts",
+            "origin": "mock",
+            "sourceUrl": "https://api.odcloud.kr/api/nts-businessman/v1/validate",
+            "fetchedAt": "2026-10-14T23:20:16.608Z",
+            "effectiveDate": null,
+            "rawSha256": "6b5c97486d45750157ca43e25df667efe7bb90db63fe39cd10403753b3cfe5b7",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": null
+          },
+          "warnings": [
+            "현재 상태이며 과거 거래일 상태를 보증하지 않음"
+          ]
+        },
+        "meta": {
+          "traceId": "39ae2614-bbe8-4168-9b82-648c63b2ce9e",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_business_status",
+        "arguments": {
+          "businessNumbers": [
+            "0000000000"
+          ]
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "businesses": [
+              {
+                "businessNumberMasked": "000****000",
+                "statusCode": "01",
+                "taxType": "mock 일반과세",
+                "closedDate": null,
+                "verification": "unconfirmed"
+              }
+            ]
+          },
+          "provenance": {
+            "provider": "nts",
+            "origin": "mock",
+            "sourceUrl": "https://api.odcloud.kr/api/nts-businessman/v1/status",
+            "fetchedAt": "2026-10-14T23:20:16.395Z",
+            "effectiveDate": null,
+            "rawSha256": "ba3507959bec35a33cf4a68a36c92392908e304512ad5e7360dc58714a17fdda",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": null
+          },
+          "warnings": [
+            "현재 상태이며 과거 거래일 상태를 보증하지 않음"
+          ]
+        },
+        "meta": {
+          "traceId": "9919b352-c611-4165-9e9a-65fcf2223efc",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "search_disclosures",
+        "arguments": {
+          "corpCode": "00126380",
+          "from": "2025-01-01",
+          "to": "2025-12-31",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "total": 1,
+            "disclosures": [
+              {
+                "corpCode": "00126380",
+                "name": "Mock benchmark",
+                "report": "Mock annual report",
+                "receipt": "20260101000001",
+                "date": "20260101",
+                "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260101000001"
+              }
+            ]
+          },
+          "provenance": {
+            "provider": "dart",
+            "origin": "mock",
+            "sourceUrl": "https://opendart.fss.or.kr/api/list.json",
+            "fetchedAt": "2026-10-14T23:20:16.833Z",
+            "effectiveDate": null,
+            "rawSha256": "7f566ec8b77b0afcafc276692287f52650e783ec1026bf8adfcd2d3f7570a365",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": "2025-01-01/2025-12-31"
+          },
+          "warnings": [
+            "공시기업의 참고자료; 가상회사 장부 아님"
+          ]
+        },
+        "meta": {
+          "traceId": "54df8204-80df-42f8-aca0-d5bcd4321fee",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_financial_statements",
+        "arguments": {
+          "corpCode": "00126380",
+          "year": 2025
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "corpCode": "00126380",
+            "year": 2025,
+            "reportCode": "11011",
+            "fsDiv": "CFS",
+            "accounts": [
+              {
+                "accountId": "ifrs-full_Revenue",
+                "name": "ifrs-full_Revenue",
+                "statement": "IS",
+                "amount": "100000",
+                "cumulativeAmount": null,
+                "currency": "KRW"
+              },
+              {
+                "accountId": "dart_OperatingIncome",
+                "name": "dart_OperatingIncome",
+                "statement": "IS",
+                "amount": "10000",
+                "cumulativeAmount": null,
+                "currency": "KRW"
+              },
+              {
+                "accountId": "ifrs-full_Liabilities",
+                "name": "ifrs-full_Liabilities",
+                "statement": "IS",
+                "amount": "40000",
+                "cumulativeAmount": null,
+                "currency": "KRW"
+              },
+              {
+                "accountId": "ifrs-full_Equity",
+                "name": "ifrs-full_Equity",
+                "statement": "IS",
+                "amount": "60000",
+                "cumulativeAmount": null,
+                "currency": "KRW"
+              }
+            ]
+          },
+          "provenance": {
+            "provider": "dart",
+            "origin": "mock",
+            "sourceUrl": "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json",
+            "fetchedAt": "2026-10-14T23:20:17.086Z",
+            "effectiveDate": null,
+            "rawSha256": "25b7fdc3ac89b37d78a0c570fc7b28c9ea7da11dd9248a3be6fae075e2512dac",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": "2025/11011"
+          },
+          "warnings": [
+            "공시기업의 참고자료; 가상회사 장부 아님"
+          ]
+        },
+        "meta": {
+          "traceId": "72f29cfc-ff6a-4e4b-a054-5f4b34e290fc",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "compare_company_financials",
+        "arguments": {
+          "companies": [
+            "00126380",
+            "00164779"
+          ],
+          "year": 2025
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "comparisons": [
+              {
+                "corpCode": "00126380",
+                "operatingMargin": "10.0000",
+                "debtToEquity": "66.6667"
+              },
+              {
+                "corpCode": "00164779",
+                "operatingMargin": "10.0000",
+                "debtToEquity": "66.6667"
+              }
+            ],
+            "reports": [
+              {
+                "data": {
+                  "corpCode": "00126380",
+                  "year": 2025,
+                  "reportCode": "11011",
+                  "fsDiv": "CFS",
+                  "accounts": [
+                    {
+                      "accountId": "ifrs-full_Revenue",
+                      "name": "ifrs-full_Revenue",
+                      "statement": "IS",
+                      "amount": "100000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "dart_OperatingIncome",
+                      "name": "dart_OperatingIncome",
+                      "statement": "IS",
+                      "amount": "10000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "ifrs-full_Liabilities",
+                      "name": "ifrs-full_Liabilities",
+                      "statement": "IS",
+                      "amount": "40000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "ifrs-full_Equity",
+                      "name": "ifrs-full_Equity",
+                      "statement": "IS",
+                      "amount": "60000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "provider": "dart",
+                  "origin": "mock",
+                  "sourceUrl": "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json",
+                  "fetchedAt": "2026-10-14T23:20:17.086Z",
+                  "effectiveDate": null,
+                  "rawSha256": "25b7fdc3ac89b37d78a0c570fc7b28c9ea7da11dd9248a3be6fae075e2512dac",
+                  "cacheHit": true,
+                  "stale": false,
+                  "schemaVersion": "1",
+                  "referencePeriod": "2025/11011"
+                },
+                "warnings": [
+                  "공시기업의 참고자료; 가상회사 장부 아님"
+                ]
+              },
+              {
+                "data": {
+                  "corpCode": "00164779",
+                  "year": 2025,
+                  "reportCode": "11011",
+                  "fsDiv": "CFS",
+                  "accounts": [
+                    {
+                      "accountId": "ifrs-full_Revenue",
+                      "name": "ifrs-full_Revenue",
+                      "statement": "IS",
+                      "amount": "100000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "dart_OperatingIncome",
+                      "name": "dart_OperatingIncome",
+                      "statement": "IS",
+                      "amount": "10000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "ifrs-full_Liabilities",
+                      "name": "ifrs-full_Liabilities",
+                      "statement": "IS",
+                      "amount": "40000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    },
+                    {
+                      "accountId": "ifrs-full_Equity",
+                      "name": "ifrs-full_Equity",
+                      "statement": "IS",
+                      "amount": "60000",
+                      "cumulativeAmount": null,
+                      "currency": "KRW"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "provider": "dart",
+                  "origin": "mock",
+                  "sourceUrl": "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json",
+                  "fetchedAt": "2026-10-14T23:20:17.397Z",
+                  "effectiveDate": null,
+                  "rawSha256": "25b7fdc3ac89b37d78a0c570fc7b28c9ea7da11dd9248a3be6fae075e2512dac",
+                  "cacheHit": false,
+                  "stale": false,
+                  "schemaVersion": "1",
+                  "referencePeriod": "2025/11011"
+                },
+                "warnings": [
+                  "공시기업의 참고자료; 가상회사 장부 아님"
+                ]
+              }
+            ],
+            "derived": true
+          },
+          "provenance": [
+            {
+              "provider": "dart",
+              "origin": "mock",
+              "sourceUrl": "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json",
+              "fetchedAt": "2026-10-14T23:20:17.086Z",
+              "effectiveDate": null,
+              "rawSha256": "25b7fdc3ac89b37d78a0c570fc7b28c9ea7da11dd9248a3be6fae075e2512dac",
+              "cacheHit": true,
+              "stale": false,
+              "schemaVersion": "1",
+              "referencePeriod": "2025/11011"
+            },
+            {
+              "provider": "dart",
+              "origin": "mock",
+              "sourceUrl": "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json",
+              "fetchedAt": "2026-10-14T23:20:17.397Z",
+              "effectiveDate": null,
+              "rawSha256": "25b7fdc3ac89b37d78a0c570fc7b28c9ea7da11dd9248a3be6fae075e2512dac",
+              "cacheHit": false,
+              "stale": false,
+              "schemaVersion": "1",
+              "referencePeriod": "2025/11011"
+            }
+          ],
+          "warnings": [
+            "사전 선택 비교기업; 업종 자동 분류 아님",
+            "단일 계정/동일 통화 확인 불가 시 비율 null"
+          ]
+        },
+        "meta": {
+          "traceId": "b07ce8ba-7817-4578-9497-66c3e77171ef",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "search_tax_law",
+        "arguments": {
+          "query": "법인세법",
+          "limit": 1
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "versions": [
+              {
+                "mst": "123456",
+                "lawId": "000001",
+                "name": "법인세법",
+                "effectiveDate": "20260101",
+                "promulgatedDate": "20251231",
+                "status": "3"
+              }
+            ]
+          },
+          "provenance": {
+            "provider": "law",
+            "origin": "mock",
+            "sourceUrl": "https://www.law.go.kr/DRF/lawSearch.do",
+            "fetchedAt": "2026-10-14T23:20:17.622Z",
+            "effectiveDate": null,
+            "rawSha256": "125c7a9324070f4d224fea65493046fb0b5a3f4b5125d78ba6de9d05583d5647",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": null
+          },
+          "warnings": []
+        },
+        "meta": {
+          "traceId": "ad1bff51-96c7-471a-a5d5-770e3b6db25c",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_law_article",
+        "arguments": {
+          "mst": "123456",
+          "effectiveDate": "2026-01-01",
+          "article": "000100",
+          "transactionDate": "2026-01-10"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "name": "Mock 법령",
+            "mst": "123456",
+            "effectiveDate": "2026-01-01",
+            "articles": [
+              {
+                "조문번호": "1",
+                "조문내용": "테스트용 가상 조문. 실제 법령이 아닙니다."
+              }
+            ],
+            "transactionDate": "2026-01-10",
+            "applicationStatus": "needs_review",
+            "legalConclusion": false
+          },
+          "provenance": {
+            "provider": "law",
+            "origin": "mock",
+            "sourceUrl": "https://www.law.go.kr/DRF/lawService.do",
+            "fetchedAt": "2026-10-14T23:20:17.851Z",
+            "effectiveDate": "2026-01-01",
+            "rawSha256": "bb59eaa4d1dec3c25e07694e7e2faf31c4fc8f6a891691efedb1940b5567e318",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": null
+          },
+          "warnings": [
+            "후속 개정·조문별 시행일·부칙 검토 필요; 세무·회계 처리 확정 아님"
+          ]
+        },
+        "meta": {
+          "traceId": "cf00f3b6-683e-4ebe-87c4-69e1901cece8",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "check_law_amendment",
+        "arguments": {
+          "query": "법인세법",
+          "knownMst": "123456"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "versions": [
+              {
+                "mst": "123456",
+                "lawId": "000001",
+                "name": "법인세법",
+                "effectiveDate": "20260101",
+                "promulgatedDate": "20251231",
+                "status": "3"
+              }
+            ],
+            "changed": false,
+            "legalConclusion": false
+          },
+          "provenance": {
+            "provider": "law",
+            "origin": "mock",
+            "sourceUrl": "https://www.law.go.kr/DRF/lawSearch.do",
+            "fetchedAt": "2026-10-14T23:20:18.016Z",
+            "effectiveDate": null,
+            "rawSha256": "125c7a9324070f4d224fea65493046fb0b5a3f4b5125d78ba6de9d05583d5647",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": null
+          },
+          "warnings": []
+        },
+        "meta": {
+          "traceId": "b7fe723a-6018-4312-b771-ed4c30d3b4a9",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_exchange_rate",
+        "arguments": {
+          "currency": "JPY",
+          "date": "2026-10-14"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "requestedDate": "2026-10-14",
+            "observedDate": "2026-10-14",
+            "lagDays": 0,
+            "value": "1400.00",
+            "unit": "원",
+            "currency": "JPY",
+            "quotedUnits": 100,
+            "valuationApproved": false
+          },
+          "provenance": {
+            "provider": "ecos",
+            "origin": "mock",
+            "sourceUrl": "https://ecos.bok.or.kr/api/StatisticSearch",
+            "fetchedAt": "2026-10-14T23:20:18.183Z",
+            "effectiveDate": "2026-10-14",
+            "rawSha256": "aa7049d23fcedf37911b811cba17e08761b59968ed2026585f1c71f4907628a6",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": "2026-10-14",
+            "observationCycle": "D"
+          },
+          "warnings": [
+            "경제 통계 참고자료; 개정 가능",
+            "관측 최대 100건; truncated=true면 기간을 나누어 조회"
+          ]
+        },
+        "meta": {
+          "traceId": "29339b07-0e51-4aac-ac6c-856c87f59099",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_interest_rate",
+        "arguments": {
+          "from": "2026-01-01",
+          "to": "2026-09-30"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "label": "한국은행 기준금리",
+            "observations": [
+              {
+                "time": "202609",
+                "value": "3.00",
+                "unit": "연%"
+              }
+            ],
+            "total": 1,
+            "truncated": false
+          },
+          "provenance": {
+            "provider": "ecos",
+            "origin": "mock",
+            "sourceUrl": "https://ecos.bok.or.kr/api/StatisticSearch",
+            "fetchedAt": "2026-10-14T23:20:18.370Z",
+            "effectiveDate": null,
+            "rawSha256": "44bce4635912fba004823c0a8966016cc3e57edc88e098078a6aa13f0e4b01af",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": "202601/202609",
+            "observationCycle": "M"
+          },
+          "warnings": [
+            "경제 통계 참고자료; 개정 가능",
+            "관측 최대 100건; truncated=true면 기간을 나누어 조회"
+          ]
+        },
+        "meta": {
+          "traceId": "2362c07d-38ad-4118-8253-95aabd8047bf",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    },
+    {
+      "request": {
+        "name": "get_economic_indicator",
+        "arguments": {
+          "series": "gdp",
+          "from": "2020",
+          "to": "2023"
+        }
+      },
+      "response": {
+        "ok": true,
+        "data": {
+          "data": {
+            "label": "명목 국내총생산",
+            "observations": [
+              {
+                "time": "2023",
+                "value": "1000000",
+                "unit": "십억원"
+              }
+            ],
+            "total": 1,
+            "truncated": false
+          },
+          "provenance": {
+            "provider": "ecos",
+            "origin": "mock",
+            "sourceUrl": "https://ecos.bok.or.kr/api/StatisticSearch",
+            "fetchedAt": "2026-10-14T23:20:18.549Z",
+            "effectiveDate": null,
+            "rawSha256": "f3b56dbaf1b31583c6dcfe637715616cd8fab95516245d53162ea76ba556b7e6",
+            "cacheHit": false,
+            "stale": false,
+            "schemaVersion": "1",
+            "referencePeriod": "2020/2023",
+            "observationCycle": "A"
+          },
+          "warnings": [
+            "경제 통계 참고자료; 개정 가능",
+            "관측 최대 100건; truncated=true면 기간을 나누어 조회"
+          ]
+        },
+        "meta": {
+          "traceId": "901abf6f-9f8b-4d34-8c5c-9c1daffbd5da",
+          "origin": "public_reference",
+          "schemaVersion": "1"
+        }
+      }
+    }
+  ]
+}

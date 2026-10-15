@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-10-14T23:01:44.565Z",
+  "fixtureHash": "7b39cbe1ca5695767702c02b61b4222799f2df8a08a38a22151cd1bd1e9f0820",
+  "transactions": 1000,
+  "deterministicProcessingSuccess": {
+    "numerator": 1000,
+    "denominator": 1000,
+    "rate": 1
+  },
+  "classificationAccuracy": {
+    "numerator": 1000,
+    "denominator": 1000,
+    "rate": 1
+  },
+  "handAuthoredJournalExactMatch": {
+    "numerator": 10,
+    "denominator": 10,
+    "rate": 1
+  },
+  "injectedErrorDetection": {
+    "normalCases": 10,
+    "errorCases": 5,
+    "precision": 1,
+    "recall": 1
+  },
+  "deterministicDraftRatio": 1,
+  "postingApprovalPolicy": "100% of postings require separate human approval",
+  "wallTimeMs": 59,
+  "paidModelApiCalls": 0,
+  "paidModelApiCost": 0,
+  "nativeAppInferenceCost": null,
+  "nativeAppReasoningQualityEvaluated": false,
+  "limits": [
+    "10 hand-authored exact examples; remaining 990 rows test classifications, not independent line-level gold",
+    "5 injected fault cases are small synthetic holdout, not production accounting precision/recall",
+    "DB approval/post/duplicate/close/HTTP tool metrics are verified separately in integration tests"
+  ]
+}

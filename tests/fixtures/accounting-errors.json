@@ -1,0 +1,10 @@
+{
+  "sourceExternalRef":"LF26-SAL-0101",
+  "cases":[
+    {"id":"unbalanced","field":"debit","line":0,"value":"3081","expectedError":"UNBALANCED"},
+    {"id":"unknown_account","field":"accountCode","line":0,"value":"9999","expectedError":"ACCOUNT_INVALID"},
+    {"id":"wrong_period","field":"recognitionOn","value":"2026-02-01","expectedError":"PERIOD_MISMATCH"},
+    {"id":"missing_evidence","field":"sourceDocumentIds","value":["00000000-0000-0000-0000-000000000000"],"expectedError":"EVIDENCE_MISMATCH"},
+    {"id":"zero_line","field":"debit","line":0,"value":"0","expectedError":"LINE_INVALID"}
+  ]
+}
