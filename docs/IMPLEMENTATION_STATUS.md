@@ -1,6 +1,6 @@
 # Implementation and verification status
 
-2026-10-15 KST. 사용자가 요청한 기존 프로젝트 유지·미구현 회계 기능 추가 작업의 결과다. 실제 장부 운영을 수행한 보고가 아니라 소스 개발과 합성 fixture 테스트 결과다.
+2026-10-16 KST. 사용자가 요청한 기존 프로젝트 유지·미구현 회계 기능 추가 작업의 결과다. 실제 장부 운영을 수행한 보고가 아니라 소스 개발과 합성 fixture 테스트 결과다.
 
 ## 구현 완료
 
@@ -40,7 +40,7 @@
 | native 설정 | 두 앱 동일 endpoint·현재 allowlist, role/skill 동기화 |
 | `pnpm mcp:doctor` | 실행 서버 41개 도구·회사 범위 1건 조회, 두 프로젝트 설정 일치, Codex CLI의 enabled HTTP 등록 일치 |
 | 기존 PostgreSQL runtime | 3개 통합 검사: Draft/hash 재기동 보존, 미완성 schema 무변경 거절, 익명 승인/회사 위조 거절과 실패 시 pool 정리 |
-| `pnpm deploy:check` | 로컬 준비 확인; GitHub 로그아웃·commit/remote 없음·Docker 미발견·Supabase 미설정을 담당자별로 출력 |
+| `pnpm deploy:check` | 로컬 준비 명령 구현; 최초에는 commit/remote 없음으로 진단, 이후 로컬 commit/origin 준비 완료. GitHub CLI·Docker·hosted Supabase 검증은 남음 |
 | `pnpm container:smoke` | Windows 호스트의 테스트 소유 DB/mock에서 health·41개 도구·회사 내 1건 읽기 후 정상 종료; 실제 Docker 검증 아님 |
 | CI/Compose 파일 | YAML 파싱 확인, Windows/Linux matrix·contents:read·단일 host-network 서비스; 원격 실행 아님 |
 | PostgreSQL 세션 집중 검사 | 5개 통합 테스트: runtime 재연결·같은 Cookie/CSRF, 암호문 비노출, 회사/해시 복사·변조·만료·직접 접근·잘못된 RLS 거절; Auth는 stub |
@@ -118,6 +118,8 @@ pnpm mcp:catalog
 Aside용 [독립 명령 5개](ASIDE_TASKS.md)와 [선택적 세션 저장 설계](SECURITY_SESSIONS.md)를 추가했다. 세션 관련 기존 source/doc 11개를 실제 키 없이 백업한 뒤 006만 새로 추가했다. 이 구현은 로그인 UI/API·자동 승인·전기·새 MCP 서버·스케줄러를 추가하지 않았으며 실제 사용자 환경의 DB/키 설정도 변경하지 않았다.
 
 GitHub 초기 공개 점검에서 native 역할 frontmatter의 LF와 기존 migration/generator의 원본 bytes를 Git 속성으로 고정했다. CI는 main push와 PR만 대상으로 같은 변경의 중복 branch-push 실행을 줄였다. Windows의 임시 DB 정리 `EBUSY`를 재현해 소유한 임시 경로의 삭제에만 제한된 재시도를 적용했다. 계정 저장소 push 권한과 연결 앱의 실제 쓰기 권한은 구분하며, 403 이후 다른 API로 우회하지 않았다.
+
+2026-10-16 후속 확인: 공개 대상 169개 파일의 로컬 초기 커밋 `7a0bc6d`와 origin을 준비했다. 서버를 다시 기동한 뒤 `mcp:doctor`에서 41개 도구와 회사 범위 1건 읽기를 확인했다. 실제 앱 호출과 hosted Supabase는 미확인이며, GitHub CLI의 사용자 인증 전까지 원격 업로드와 CI 실행도 미수행이다. Aside 안내에는 기존 `회계자동화` 재사용과 로컬 Docker 설치 생략 결정을 반영했다.
 
 아래 이미지는 로그인 제거 전의 검증 기록이다.
 

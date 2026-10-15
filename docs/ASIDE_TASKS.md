@@ -17,6 +17,8 @@ LedgerFlow 포트폴리오용 GitHub 저장소를 준비해 줘.
 
 GitHub 저장소 생성은 완료했다. 현재 Codex 연결 앱의 파일 생성이 403으로 거절되어, 코드 업로드에는 아래 CLI 인증 단계가 필요하다.
 
+Codex가 이미 기기 인증을 시작했다면 전달받은 GitHub 인증 화면에서 사용자가 완료한다. 같은 로그인을 중복 실행하지 않는다. 일회용 코드는 이 문서에 저장하지 않는다.
+
 ```text
 LedgerFlow 업로드를 위한 GitHub CLI 로그인만 준비해 줘.
 내 PC 터미널에서 gh --version을 확인하고 gh auth login --web --git-protocol https --scopes workflow를 실행해 줘. workflow 권한은 CI 파일 업로드용이야.
@@ -26,16 +28,18 @@ CLI나 내 터미널에 접근할 권한이 없으면 설치/로그인 상태를
 완료하면 gh auth status의 성공 여부만 알려줘.
 ```
 
-## 2. Supabase 개발 프로젝트 준비
+## 2. 기존 Supabase 프로젝트 설정
+
+사용자는 기존 `회계자동화` 프로젝트를 재사용하기로 했다. 아래 안내로 새 프로젝트를 만들지 않는다. Healthy/Free/싱가포르 상태는 사용자가 전달한 결과이며 Codex가 hosted 연결로 검증한 결과가 아니다.
 
 ```text
-LedgerFlow의 Supabase 개발 프로젝트를 준비해 줘.
-로그인된 내 Supabase 계정에서 ledgerflow-dev라는 별도 개발 프로젝트가 있는지 확인하고, 없으면 무료 범위에서 생성해 줘. 기존 프로젝트는 변경하지 마.
+LedgerFlow는 기존 Supabase 프로젝트 회계자동화를 그대로 쓸 거야.
+프로젝트 URL은 https://tbmdjifuqnnevduhbagd.supabase.co 야. 로그인한 계정에서 이 프로젝트가 맞는지 확인하고, 보이지 않으면 이유만 알려줘. 새 프로젝트는 만들지 마.
 유료 요금제 변경·결제·기존 DB 초기화·migration·SQL 실행·사용자 권한 부여·샘플 데이터 적재는 하지 마. 그 작업은 Codex가 준비할 거야.
 SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, LEDGERFLOW_DATABASE_URL을 확인/입력하는 위치를 안내해 줘. 비밀번호·DB 연결 문자열·키의 실제 값은 읽거나 채팅에 출력하지 말고 내가 직접 입력하게 해 줘.
 입력할 로컬 파일은 C:\Users\eric5\Documents\Codex\2026-10-14\ledgerflow-ai-mcp-ai-1-api\.env.local 이야. 기존 공공 API 키 4개를 덮어쓰거나 파일 전체를 출력하지 마.
 LEDGERFLOW_USER_ID와 LEDGERFLOW_COMPANY_ID는 아직 임의로 채우지 마. 실제 사용자/회사 준비 후 Codex가 안내할 거야.
-완료하면 프로젝트 준비 여부와 세 설정의 입력 완료 여부만 알려줘. 무료 생성이 불가능하면 유료로 진행하지 말고 이유만 알려줘.
+완료하면 기존 프로젝트 확인 여부와 세 설정의 입력 완료 여부만 알려줘. 실제 값을 열람하거나 연결을 시험하지 못했다면 입력·접속 성공을 추정하지 마.
 ```
 
 ## 3. 두 앱 연결 확인
@@ -61,14 +65,16 @@ Aside를 포함한 AI는 승인·반려 버튼을 누르거나 승인 API·전�
 해당 전표가 없거나 서버가 꺼져 있으면 현재 상태만 알려줘.
 ```
 
-## 5. 선택: Docker 실행 환경 준비
+## 5. GitHub Linux CI 확인
+
+사용자는 로컬 Docker 설치를 생략하고 GitHub Linux CI를 이용하기로 했다. 코드는 Codex가 업로드하며 CI 성공 전에는 Docker 검증 완료라고 보고하지 않는다.
 
 ```text
-LedgerFlow의 로컬 Docker 테스트를 위한 실행 환경만 준비해 줘.
-Docker가 이미 설치되어 있으면 새로 설치하지 말고 엔진 실행 여부를 확인해 줘. 없으면 공식 Docker Desktop 설치 경로로 준비해 줘.
-유료 구독 변경·결제는 하지 말고 관리자 인증·라이선스 선택·재부팅이 필요한 단계는 내가 직접 처리하게 넘겨줘.
-Codex가 작업 중인 소스·DB·Node 서버·기존 컨테이너는 변경/중지/삭제하지 마. 이미지 build·compose 실행은 Codex가 할 거야.
-완료하면 Docker 설치 여부, 엔진 실행 여부, 재부팅 필요 여부만 알려줘. 로컬 설치를 원하지 않으면 GitHub Linux CI로 검증할 수 있다고 알려줘.
+LedgerFlow는 로컬 Docker 설치 없이 GitHub Linux CI로 검증할 거야.
+https://github.com/osh3772-star/ledgerflow-ai/actions 에서 Codex가 업로드한 커밋의 LedgerFlow checks 실행 상태만 확인해 줘.
+업로드나 실행 기록이 없으면 미실행으로 알려줘. Windows·Ubuntu check와 Linux container 작업을 구분하고, 실패하면 실행 링크와 실패한 단계만 알려줘.
+소스·workflow·저장소 설정을 수정하거나 별도 실행 환경·Docker를 설치하지 마. 실패 수정과 재실행은 Codex가 할 거야.
+계정 로그인·2단계 인증은 내가 직접 처리하게 넘겨줘. 인증 정보는 조회하거나 출력하지 마.
 ```
 
 Cloudflare/원격 공개는 OAuth·HTTPS·영속 세션과 실제 배포 대상 검증이 끝난 뒤 별도 명령으로 진행한다. 현재 localhost demo를 인터넷에 노출하지 않는다.
