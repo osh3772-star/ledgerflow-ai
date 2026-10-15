@@ -17,7 +17,7 @@
 - 두 앱 각각 native agent/skill 6역할, Zod terminal Result 영속 기록과 허위 Posted 주장 거절.
 - Astro React 대시보드, 실제 전표·근거·귀속일·버전·hash·증빙 원문 검토.
 - Supabase Auth/Storage 연결 코드, private evidence bucket/회사 RLS, 인간 JWT·canonical JSON/hash 보관과 멱등 재시도.
-- 공개용 아키텍처/계획/연결/역할/도구 명세, 41개 도구의 전체 schema와 합성 요청/응답 예시, CI/Docker 실행 초안.
+- 공개용 아키텍처/계획/연결/역할/도구 명세, 41개 도구의 전체 schema와 합성 요청/응답 예시, 실제 GitHub CI/Linux 이미지 검증.
 - 사용자/Codex 담당표와 `deploy:check`, 비관리자 Docker/단일 Compose/health/foreground smoke 코드, Windows/Linux CI와 이미지 내부 smoke 단계.
 - Aside AI용 단계별 명령 5개, 소스/DB 병행 수정 방지와 인간 승인 경계.
 - 외부 JWT profile의 선택적 PostgreSQL 세션: 006 private/RLS·AES-GCM·토큰 해시·회사 AAD·재기동 복원·JWT 재검증.
@@ -27,7 +27,7 @@
 
 | 검사 | 결과 |
 | --- | --- |
-| `pnpm check` | Windows 임시 DB 정리 재시도 보강 후 전체 192 tests / 26 files 통과, 약 223초 |
+| `pnpm check` | 현재 소스의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
 | `pnpm web:build` | Astro static build 통과 |
 | `pnpm evaluate` | Draft 성공 1,000/1,000, 계정 set 분류 1,000/1,000 |
 | 수기 분개 gold | 10/10 line exact match, 기존 매출 gold 유지 |
@@ -40,13 +40,14 @@
 | native 설정 | 두 앱 동일 endpoint·현재 allowlist, role/skill 동기화 |
 | `pnpm mcp:doctor` | 실행 서버 41개 도구·회사 범위 1건 조회, 두 프로젝트 설정 일치, Codex CLI의 enabled HTTP 등록 일치 |
 | 기존 PostgreSQL runtime | 3개 통합 검사: Draft/hash 재기동 보존, 미완성 schema 무변경 거절, 익명 승인/회사 위조 거절과 실패 시 pool 정리 |
-| `pnpm deploy:check` | 로컬 준비 명령 구현; 최초에는 commit/remote 없음으로 진단, 이후 로컬 commit/origin 준비 완료. GitHub CLI·Docker·hosted Supabase 검증은 남음 |
+| `pnpm deploy:check` | 로컬 준비 통과, GitHub CLI 인증·commit/origin·웹 build·앱 설정 일치 확인. 로컬 Docker 미설치·hosted Supabase 미설정 |
 | `pnpm container:smoke` | Windows 호스트의 테스트 소유 DB/mock에서 health·41개 도구·회사 내 1건 읽기 후 정상 종료; 실제 Docker 검증 아님 |
-| CI/Compose 파일 | YAML 파싱 확인, Windows/Linux matrix·contents:read·단일 host-network 서비스; 원격 실행 아님 |
+| 실제 GitHub CI | [실행 #3](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38819739533): Windows/Linux check·평가·웹 build, Linux Docker build/이미지 내부 smoke 모두 성공 |
+| CI/Compose 파일 | YAML·PowerShell 파싱 확인, Windows/Linux matrix·contents:read·단일 host-network 서비스; Compose 실행은 별도 미검증 |
 | PostgreSQL 세션 집중 검사 | 5개 통합 테스트: runtime 재연결·같은 Cookie/CSRF, 암호문 비노출, 회사/해시 복사·변조·만료·직접 접근·잘못된 RLS 거절; Auth는 stub |
 | 세션 단위 검사 | TTL/삭제/암호화·키·JWT 철회·저장소 장애·CSRF·HTTPS Cookie·키 파일 보존/lock 검증 |
 | skill validator | 12/12 유효 |
-| 키 노출 검사 | 공개 대상 169개 파일에서 실제 API/서버 키 raw/encoded 노출 0 |
+| 키 노출 검사 | 공개 대상 170개 파일에서 실제 API/서버 키 raw/encoded 노출 0 |
 | 수정 전 백업 | 99개 source/doc, SHA mismatch 0, 키 미포함 |
 | 원본 보존 재검사 | migration 001~003과 ERP 생성 코드 2개가 기존 백업의 SHA와 일치 |
 
@@ -83,8 +84,7 @@ Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유
 | Storage RLS SQL | PostgreSQL stand-in 테이블에서 policy 검증, 실제 Storage 서비스/JWT 검증과 구분 |
 | 외부 지속 PostgreSQL runtime | 기존 DB profile의 재연결·보존을 테스트 소유 native DB로 검증; 실제 외부 서버 연결값 미설정 |
 | 원격 MCP OAuth·HTTPS·외부 세션 저장소 | 암호화 PostgreSQL 세션은 구현/로컬 검증; 실제 provider·MCP OAuth/HTTPS는 미구현/미검증, loopback 유지 |
-| GitHub 공개/CI 실행 | 공개 `osh3772-star/ledgerflow-ai`·origin 준비; 앱 초기 파일 생성이 403으로 거절됐으며 CLI 미인증, 원격 업로드/CI 미수행 |
-| Docker 이미지 실행 | 비관리자 이미지·Compose·health·smoke 작성; Windows source smoke 통과, Docker 미설치 환경에서 실제 build/run 미검증 |
+| 로컬 Docker Desktop/Compose | Linux 이미지의 실제 CI build/run 통과. 로컬 설치는 생략했으며 Desktop·host-network Compose는 미검증 |
 | Cloudflare backend | 미배포; native DB/fs/Node HTTP/session 때문에 Workers 전체 호환 미입증 |
 | 전문 회계/세무 범위 | 세금 산출·현금흐름표·주석·전문가 K-IFRS 검토·실제 은행/정부 세금계산서 연동 미구현 |
 
@@ -119,7 +119,9 @@ Aside용 [독립 명령 5개](ASIDE_TASKS.md)와 [선택적 세션 저장 설계
 
 GitHub 초기 공개 점검에서 native 역할 frontmatter의 LF와 기존 migration/generator의 원본 bytes를 Git 속성으로 고정했다. CI는 main push와 PR만 대상으로 같은 변경의 중복 branch-push 실행을 줄였다. Windows의 임시 DB 정리 `EBUSY`를 재현해 소유한 임시 경로의 삭제에만 제한된 재시도를 적용했다. 계정 저장소 push 권한과 연결 앱의 실제 쓰기 권한은 구분하며, 403 이후 다른 API로 우회하지 않았다.
 
-2026-10-16 후속 확인: 공개 대상 169개 파일의 로컬 초기 커밋 `7a0bc6d`와 origin을 준비했다. 서버를 다시 기동한 뒤 `mcp:doctor`에서 41개 도구와 회사 범위 1건 읽기를 확인했다. 실제 앱 호출과 hosted Supabase는 미확인이며, GitHub CLI의 사용자 인증 전까지 원격 업로드와 CI 실행도 미수행이다. Aside 안내에는 기존 `회계자동화` 재사용과 로컬 Docker 설치 생략 결정을 반영했다.
+2026-10-16 초기 준비: 공개 대상 169개 파일의 로컬 초기 커밋 `7a0bc6d`와 origin을 준비했다. 서버를 다시 기동한 뒤 `mcp:doctor`에서 41개 도구와 회사 범위 1건 읽기를 확인했다. Aside 안내에는 기존 `회계자동화` 재사용과 로컬 Docker 설치 생략 결정을 반영했다.
+
+2026-10-16 공개 검증 완료: 사용자의 CLI 인증 후 코드를 업로드했다. 초기 Windows CI의 임시 폴더 권한과 직접 `postgres.exe` 기동 문제를 수정한 소스 `7b3b4ba`에서 Windows/Linux 각각 192개 테스트와 Docker 비관리자 이미지 내부 41개 도구·회사 내 1건 읽기가 통과했다. [실패·수정·실행 증거](CI_VALIDATION.md). 실제 앱 호출과 hosted Supabase는 여전히 미확인이며 사용자 장부 승인·전기는 수행하지 않았다. 기존 migration과 ERP 생성 코드는 초기 공개 커밋과 동일하다.
 
 아래 이미지는 로그인 제거 전의 검증 기록이다.
 

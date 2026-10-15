@@ -2,7 +2,9 @@
 
 아래 블록을 한 번에 하나씩 실행한다. Aside는 계정/설치 준비를 맡고 Codex는 같은 프로젝트의 소스 구현과 테스트를 계속한다. Aside에게 저장소 소스·DB·회계 상태를 동시에 수정시키지 않는다. 전표 승인/반려 결정은 사용자가 화면에서 직접 수행한다.
 
-## 1. GitHub 저장소 준비
+## 1. GitHub 저장소 준비 — 완료
+
+`osh3772-star/ledgerflow-ai` 공개 저장소 생성과 Codex의 코드 업로드를 완료했다. 아래 블록은 최초 준비 기록이며 현재 다시 실행할 필요가 없다.
 
 ```text
 LedgerFlow 포트폴리오용 GitHub 저장소를 준비해 줘.
@@ -13,9 +15,9 @@ LedgerFlow 포트폴리오용 GitHub 저장소를 준비해 줘.
 완료하면 저장소 URL, 새로 만들었는지 여부, 공개 여부만 알려줘.
 ```
 
-## 1-1. GitHub CLI 인증
+## 1-1. GitHub CLI 인증 — 완료
 
-GitHub 저장소 생성은 완료했다. 현재 Codex 연결 앱의 파일 생성이 403으로 거절되어, 코드 업로드에는 아래 CLI 인증 단계가 필요하다.
+초기 연결 앱의 파일 생성은 403으로 거절됐으며, 2026-10-16 사용자가 GitHub CLI 인증을 완료했다. Codex가 코드를 업로드하고 Windows/Linux·Docker CI 통과를 확인했다. 아래 블록은 새 PC 등에서 재인증이 필요한 경우에만 사용한다.
 
 Codex가 이미 기기 인증을 시작했다면 전달받은 GitHub 인증 화면에서 사용자가 완료한다. 같은 로그인을 중복 실행하지 않는다. 일회용 코드는 이 문서에 저장하지 않는다.
 
@@ -65,9 +67,9 @@ Aside를 포함한 AI는 승인·반려 버튼을 누르거나 승인 API·전�
 해당 전표가 없거나 서버가 꺼져 있으면 현재 상태만 알려줘.
 ```
 
-## 5. GitHub Linux CI 확인
+## 5. GitHub Linux CI 확인 — 완료
 
-사용자는 로컬 Docker 설치를 생략하고 GitHub Linux CI를 이용하기로 했다. 코드는 Codex가 업로드하며 CI 성공 전에는 Docker 검증 완료라고 보고하지 않는다.
+사용자는 로컬 Docker 설치를 생략하고 GitHub Linux CI를 이용하기로 했다. [실제 실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38819739533)에서 Windows/Linux check와 Linux container가 모두 통과했다. 아래 블록은 추후 실행 확인이 필요한 경우에만 사용한다. 실제 앱 연결과 Supabase 접속은 이 결과로 완료 처리하지 않는다.
 
 ```text
 LedgerFlow는 로컬 Docker 설치 없이 GitHub Linux CI로 검증할 거야.
