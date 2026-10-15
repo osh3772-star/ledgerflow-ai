@@ -25,6 +25,17 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # initdb drops the Administrators SID on Windows. Explicitly allow the
+      # runner user on our disposable data only, rather than changing the repo ACL.
+      - name: Prepare Windows temporary PostgreSQL permissions
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $taskData = Join-Path $env:GITHUB_WORKSPACE '.ledgerflow/tmp'
+          New-Item -ItemType Directory -Path $taskData -Force | Out-Null
+          $taskSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+          icacls $taskData /grant "*${taskSid}:(OI)(CI)F"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: pnpm check
       - run: pnpm evaluate
       - run: pnpm web:build
