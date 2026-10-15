@@ -1,10 +1,15 @@
-import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
 import { createServer } from 'node:net';
 import { resolve, sep } from 'node:path';
 import EmbeddedPostgres from 'embedded-postgres';
 import pg from 'pg';
 const { Pool } = pg;
+const run = promisify(execFile);
 
 async function freePort(): Promise<number> {
   const server = createServer();
@@ -43,10 +48,30 @@ export async function startLocalPostgres(options: { throughMigration?: string } 
     host: '127.0.0.1', port, user: 'postgres', password,
     database: 'postgres', max: 4, connectionTimeoutMillis: 10_000,
   });
+  let pgCtl: string | undefined;
+  async function stopCluster() {
+    if (!pgCtl) { await cluster.stop(); return; }
+    // pg_ctl can reject after spawning a server. Check only our owned pid file
+    // before cleanup, including the failed-start path; never stop a shared DB.
+    try { await stat(resolve(directory, 'postmaster.pid')); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
+    await run(pgCtl, ['stop', '-D', directory, '-m', 'fast', '-w', '-t', '15'],
+      { windowsHide: true, timeout: 20_000, maxBuffer: 65_536 });
+  }
   let started = false;
   try {
     await cluster.initialise();
-    await cluster.start();
+    if (process.platform === 'win32') {
+      // Use the binary dependency resolved by the pinned embedded-postgres
+      // package. pg_ctl starts postgres with a restricted Windows token, which
+      // direct postgres.exe invocation cannot do on an elevated CI runner.
+      const nativeRequire = createRequire(createRequire(import.meta.url).resolve('embedded-postgres'));
+      const binary = await import(pathToFileURL(nativeRequire.resolve('@embedded-postgres/windows-x64')).href) as { pg_ctl: string };
+      pgCtl = binary.pg_ctl;
+      await run(pgCtl, ['start', '-D', directory, '-l', resolve(directory, 'server.log'),
+        '-o', '-h 127.0.0.1 -p ' + port, '-w', '-t', '30'],
+      { windowsHide: true, timeout: 35_000, maxBuffer: 65_536 });
+    } else await cluster.start();
     started = true;
     const client = await pool.connect();
     try {
@@ -61,14 +86,14 @@ export async function startLocalPostgres(options: { throughMigration?: string } 
       pool,
       async stop() {
         await pool.end();
-        await cluster.stop();
+        await stopCluster();
         assertOwnedTempDirectory(base, directory);
         await rm(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
       },
     };
   } catch (error) {
     await pool.end();
-    if (started) await cluster.stop();
+    if (started || pgCtl) await stopCluster();
     assertOwnedTempDirectory(base, directory);
     await rm(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     throw error;
