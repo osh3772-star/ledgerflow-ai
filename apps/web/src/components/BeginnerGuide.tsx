@@ -25,6 +25,19 @@ const firstRequest=`현재 프로젝트의 get_system_status와 get_company_cont
 전표에 첨부된 공공자료의 실제/샘플 구분, 시행일, 조회 실패·제외 사유도 설명해 줘.
 전표 ID, 버전, hash와 차변·대변 합계를 알려주고 사용자 승인 대기에서 멈춰 줘.
 도구가 연결되지 않았거나 증빙이 부족하면 그 상태를 알려줘.`;
+const monthRequest=`현재 프로젝트의 get_system_status와 get_company_context로 MCP 연결과 회사를 먼저 확인해 줘.
+기존 ERP에 있는 2026-01-01~2026-01-31 미처리 거래를 모든 페이지에서 조회해 줘.
+docs/CLIENT_ROLES.md에 따라 필요한 역할의 스킬을 현재 대화에서 순서대로 적용해 줘.
+증빙과 공공 참고자료를 확인하고 분개 초안 생성 → 검증 → 사용자 승인 요청까지 준비해 줘.
+이미 장부에 반영한 거래는 제외하고, 기존 초안이 있으면 먼저 확인해 중복을 피해 줘.
+자료가 부족한 건은 검토 필요로 남겨 줘. 처리 건수, 검토 필요 건수, 전표별 ID·버전·hash·차변/대변 합계를 정리해 줘.
+사용자 승인 대기에서 멈춰 줘. 병렬 하위 에이전트 실행과 회계기간 마감은 하지 마.`;
+const monthPostRequest=`현재 프로젝트의 get_system_status와 get_company_context를 먼저 확인해 줘.
+방금 준비한 2026년 1월 처리 목록 중 내가 사이트에서 승인한 전표만 대상으로 해 줘.
+각 전표의 승인 상태·버전·hash를 다시 확인한 뒤 조건을 충족하는 전표를 장부에 반영해 줘.
+DB에서 Posted를 확인한 전표와 미승인·반려·실패한 전표를 나눠 알려줘.
+2026년 1월 시산표와 재무제표를 작성하고 남은 미처리 거래·결산 검토 항목을 보여 줘.
+회계기간 마감은 별도로 요청할 때 진행해 줘.`;
 const postRequest=`현재 프로젝트의 get_system_status와 get_company_context를 먼저 확인해 줘.
 내가 사이트에서 승인한 전표 [전표 ID]의 승인 상태와 버전·hash를 다시 확인해 줘.
 승인 조건이 맞으면 장부에 반영하고 DB 상태가 Posted인지 확인해 줘.
@@ -73,8 +86,8 @@ function RequestBox({title,prompt,hint,destination='chat'}:{title:string;prompt:
 
 export function GuideWelcome({onOpen}:{onOpen:()=>void}){
   return <section className="guide-welcome" aria-labelledby="guide-welcome-title">
-    <div><span className="guide-kicker">처음 방문하셨나요?</span><h2 id="guide-welcome-title">회계를 몰라도, 거래 한 건부터 따라 해보세요.</h2>
-      <p>앱에 말로 요청하고, 이 화면에서 확인한 뒤 승인합니다. 다른 PC의 설치·연결 방법과 이 사이트를 만든 이유도 함께 살펴보세요.</p></div>
+    <div><span className="guide-kicker">어디서 시작하나요?</span><h2 id="guide-welcome-title">ERP에 있는 1월 거래를 앱에 분개해 달라고 요청하세요.</h2>
+      <p>연습용 거래 1,000건은 이미 준비되어 있습니다. 코덱스·클로드 코드에 초안 작성을 요청하고, 사이트에서 승인한 뒤 앱에 장부 반영을 요청합니다. 복사용 월별 요청문과 설치 안내를 확인하세요.</p></div>
     <button type="button" className="guide-primary-button" onClick={onOpen}>사용 방법과 제작 목적 보기 <span aria-hidden="true">→</span></button>
   </section>;
 }
@@ -90,6 +103,21 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
         <div><span className="guide-role-icon" aria-hidden="true">02</span><h3>앱과 엔진이 준비합니다</h3><p>앱이 자료를 확인하고, 회계 엔진이 금액을 계산해 기록을 검증합니다.</p></div>
         <div><span className="guide-role-icon" aria-hidden="true">03</span><h3>나는 보고 결정합니다</h3><p>전표와 증빙이 맞는지 확인하고 승인하거나 반려합니다.</p></div>
       </div>
+    </section>
+
+    <section className="guide-section" aria-labelledby="guide-month-title">
+      <div className="guide-section-heading"><span className="guide-kicker">설치·MCP 연결을 마쳤다면 여기서 시작</span><h2 id="guide-month-title">기존 ERP의 2026년 1월 거래부터 분개를 요청하세요.</h2></div>
+      <p>기본 시연의 한빛유통에는 1년치 <strong>가상 원천 거래 1,000건</strong>이 들어 있습니다. 새로 거래를 입력하지 않고 그중 1월분을 정리하면 됩니다. 원천 거래가 있다는 것과 회계 장부에 반영되었다는 것은 다른 상태입니다.</p>
+      <div className="guide-role-table"><table><thead><tr><th>지금 있는 것</th><th>앱이 준비할 것</th><th>승인·장부 반영 후 생기는 것</th></tr></thead><tbody><tr><td>ERP의 매출·매입·입출금·급여 등 원천 거래와 증빙</td><td>거래별 분개 초안, 검증 결과, 승인 요청</td><td>장부에 반영된 전표와 그 금액을 집계한 원장·시산표·재무제표</td></tr></tbody></table></div>
+      <ol className="guide-steps">
+        <li><span className="guide-step-number" aria-hidden="true">1</span><div><h3>코덱스 또는 클로드 코드에 요청</h3><p>서버를 켜 둔 상태에서 이 프로젝트의 앱 대화창에 아래 첫 요청문을 보냅니다. ‘1월’은 샘플 자료의 연도인 2026년 1월입니다.</p></div></li>
+        <li><span className="guide-step-number" aria-hidden="true">2</span><div><h3>사이트에서 전표를 직접 승인</h3><p>‘새로고침 → 사용자 승인 → 전표 보기’에서 증빙·금액·근거를 검토합니다. 맞는 전표는 승인하고 수정이 필요한 전표는 반려합니다.</p><button type="button" className="guide-link-button" onClick={()=>onNavigate('approval')}>사용자 승인 화면 열기 →</button></div></li>
+        <li><span className="guide-step-number" aria-hidden="true">3</span><div><h3>앱에 승인한 전표의 장부 반영 요청</h3><p>검토를 마치면 같은 대화창에 두 번째 요청문을 보냅니다. 승인만 누른 상태에서는 장부에 반영되지 않습니다.</p></div></li>
+        <li><span className="guide-step-number" aria-hidden="true">4</span><div><h3>1월 보고서 확인</h3><p>앱이 ‘장부 반영 완료’를 확인한 뒤 ‘재무 보고서’에서 2026-01을 선택하고 새로고침합니다. 반영한 전표만 금액에 포함됩니다.</p><button type="button" className="guide-link-button" onClick={()=>onNavigate('reports')}>재무 보고서 열기 →</button></div></li>
+      </ol>
+      <RequestBox title="첫 요청 · 기존 ERP의 1월 거래를 승인 대기까지" prompt={monthRequest} hint="이 문장은 사이트 입력란이 아닌 코덱스·클로드 코드의 프로젝트 대화창에 보냅니다. 월 전체 분개 초안을 준비하는 요청이며, 지금 이 설명 화면이 거래를 처리하는 것은 아닙니다."/>
+      <RequestBox title="두 번째 요청 · 사이트에서 직접 승인한 뒤" prompt={monthPostRequest} hint="같은 대화에서 첫 요청의 처리 목록을 이어 사용합니다. 승인하지 않은 전표는 장부에 반영할 수 없습니다."/>
+      <p><strong>1월 거래의 분개와 월말 결산·기간 마감은 별개입니다.</strong> 감가상각·선급비용 등 결산 수정분개도 검토와 사용자 승인이 필요합니다. 먼저 기존 거래를 처리하고 앱이 알려 주는 남은 결산 항목을 확인하세요. 처음에는 아래의 매출 1건 연습으로 흐름을 익혀도 됩니다.</p>
     </section>
 
     <section className="guide-section" aria-labelledby="guide-why-title">
@@ -143,7 +171,7 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
     </section>
 
     <section className="guide-section" aria-labelledby="guide-steps-title">
-      <div className="guide-section-heading"><span className="guide-kicker">거래 한 건으로 따라 하기</span><h2 id="guide-steps-title">요청 → 검토 → 승인 → 장부 확인</h2></div>
+      <div className="guide-section-heading"><span className="guide-kicker">선택 · 처음이라면 매출 한 건으로 연습</span><h2 id="guide-steps-title">월 전체 요청 전에 한 건만 체험해도 됩니다.</h2></div>
       <ol className="guide-steps">
         <li><span className="guide-step-number" aria-hidden="true">1</span><div><h3>앱에 정리를 요청하세요</h3><p>아래 첫 요청문을 앱에 붙여 넣습니다. 앱이 거래와 증빙을 찾아 전표 초안을 만들고 검증합니다.</p></div></li>
         <li><span className="guide-step-number" aria-hidden="true">2</span><div><h3>사이트에서 직접 검토하세요</h3><p>상단의 ‘새로고침’을 누른 뒤 ‘사용자 승인’에서 ‘전표 보기’를 누릅니다. 날짜·금액·증빙·기록 근거를 확인하고 맞으면 승인, 잘못되었으면 반려합니다.</p><button type="button" className="guide-link-button" onClick={()=>onNavigate('approval')}>승인 화면 열기 →</button></div></li>
