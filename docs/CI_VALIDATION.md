@@ -2,6 +2,18 @@
 
 2026-10-16 KST. [공개 저장소](https://github.com/osh3772-star/ledgerflow-ai)의 실제 GitHub Actions 실행을 로컬 테스트 및 실제 앱 수용 테스트와 구분해 기록한다.
 
+## 최신 실행: 로컬 포트폴리오 실행판
+
+- 검증 소스: `1b944ef5733a0808f02eea8acadb018034f58fa5`
+- 실행: [LedgerFlow checks](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756), 전체 성공.
+- Windows/Linux: 각각 211/211 tests, 30/30 files와 타입 검사·합성 평가·Astro build 통과. 테스트 본문은 91.89초/56.75초였다.
+- Linux container: 실제 Docker build와 이미지 내부 `passed: true`, `toolCount: 41`, 회사 범위 1건 조회, `nonRoot: true` 확인.
+- 이미지 smoke의 장부 변경·공공 API·유료 모델 API 호출은 0, 실제 앱 추론·외부 Supabase 검증은 false다.
+
+아래 192개 기록은 이전 소스의 이력을 보존한다. 최신 CI 성공도 실제 공공 API 실조회나 hosted Supabase 연결 성공을 뜻하지 않는다.
+
+## 이전 실행: 초기 공개 기준
+
 - 검증 대상 소스: `7b3b4baf0bee588685afe2a513dcc8de4495d986`
 - 실행: [LedgerFlow checks #3](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38819739533)
 - 결과: 전체 성공. Windows/Linux check와 Linux container 세 작업이 모두 완료됐다.

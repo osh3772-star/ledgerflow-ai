@@ -4,12 +4,12 @@ Node 24 / pnpm 11.25 환경에서 실행한다. 발급받은 4개 API 키는 프
 
 ```powershell
 pnpm install --frozen-lockfile
-pnpm check
-pnpm web:build
-pnpm mcp:start
+pnpm start
 ```
 
 localhost `http://127.0.0.1:8787/`가 대시보드, `/mcp`가 두 앱의 공유 endpoint다. `stop` 입력 후 Enter로 종료하면 임시 DB도 정상 정리된다. demo는 종료 시 장부가 제거되고 동일 fixture로 재생성된다.
+
+`pnpm start`는 저장된 Supabase 설정을 보존하며 해당 프로세스에만 demo를 명시적으로 선택한다. 사용자가 업무를 요청하는 실제 순서와 API 연결 상태표는 [사용 안내](USER_GUIDE.md)에 정리했다. 아래 설정 문서는 앱/지속 DB 연결을 상세히 다룬다.
 
 ## 두 앱 HTTP 연결
 

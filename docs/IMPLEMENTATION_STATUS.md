@@ -30,6 +30,7 @@
 | 공개 기준 소스의 `pnpm check` | `7b3b4ba`의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
 | Supabase 진단 개발 브랜치의 로컬 `pnpm check` | Windows 205 tests / 28 files 통과, 243.66초. 신규 12개 단위/1개 metadata 통합 포함; 새 원격 CI 결과는 아님 |
 | 로컬 실행판 최종 `pnpm check` | Windows 211 tests / 30 files 통과, 359.19초. 단일 명령 launcher 추가 후 전체 재검사 |
+| 최신 소스의 실제 GitHub CI | `1b944ef`, [실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756) 전체 성공. Windows/Linux 각각 211 tests / 30 files, 평가·웹 build, Linux 이미지 build/smoke 통과 |
 | `pnpm web:build` | Astro static build 통과 |
 | `pnpm evaluate` | Draft 성공 1,000/1,000, 계정 set 분류 1,000/1,000 |
 | 수기 분개 gold | 10/10 line exact match, 기존 매출 gold 유지 |

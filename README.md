@@ -8,6 +8,10 @@
 
 **ERP 1,000건 → 결정론적 분개 → 독립 검증 → 인간 화면 승인 → 원자적 전기 → 원장·시산표·BS/IS**를 구현했다. 결산 수정분개·역분개·기간 마감·반려 전표 폐기·은행 대사, 무료 공공 API 4종의 11개 도구, Astro React 대시보드를 포함한다. MCP 도구는 41개다.
 
+**처음 사용한다면 [사용 안내](docs/USER_GUIDE.md)부터 읽으세요.** API 연결 상태표, 현재 Mock/Live 구분, 사용 순서, 앱에 복사할 요청문, 사용자 승인과 자동화 범위를 한 문서로 정리했다.
+
+현재 공공 API 4종은 실제 응답 검증 이력이 있으며 기본 시연은 `mock`다. 로컬 DB/MCP는 동작하고 Supabase는 DB 인증 오류로 보류 중이다. 앱에서 업무를 요청하고 웹에서 직접 승인한 뒤 앱에 전기를 요청한다.
+
 ## 실행
 
 Node 24, pnpm 11.25.
@@ -59,11 +63,11 @@ ECOS_API_KEY=
 | 단일 MCP HTTP/stdio, 두 앱 설정 / 각 6역할 | 두 SDK 연결·공유 Draft·정적 config/skill 검사 |
 | 연결 자가진단·기존 PostgreSQL profile | 읽기 연결·현재 Codex 등록, Draft 재기동 보존·미완성 schema 거절 |
 | Astro React 화면, Supabase Auth/Storage 연결 코드·정책 | 정적 build·브라우저 검토, JWT adapter 테스트 |
-| Windows/Linux CI + Linux Docker 이미지 | 각 OS의 192 tests, 실제 이미지 내부 비관리자 MCP 41개 도구·회사 범위 조회 |
+| Windows/Linux CI + Linux Docker 이미지 | [최신 실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756)에서 각 OS 211 tests, 실제 이미지 내부 비관리자 MCP 41개 도구·회사 범위 조회 |
 
 최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 원격/Cloudflare 배포는 외부 수용 검증이 남아 있다.
 
-로컬 타입 검사와 **211개 테스트 / 30개 파일**이 통과했다. 기존 공개 기준 CI의 192개와 새 로컬 검증 수를 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
+로컬 및 Windows/Linux CI에서 **211개 테스트 / 30개 파일**이 통과했다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
 
 ![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
 
