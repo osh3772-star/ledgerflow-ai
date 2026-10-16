@@ -1,13 +1,14 @@
 import {useEffect,useState} from 'react';
 import '../styles/dashboard.css';
 import '../styles/bilingual.css';
+import BeginnerGuide,{GuideWelcome} from './BeginnerGuide.js';
 type Row=Record<string,unknown>;
 type Company={companyId:string;name:string;periods:{id:string;from:string;to:string;status:string}[]};
 type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
 const money=(value:unknown)=>{try{return BigInt(String(value??'0')).toLocaleString('ko-KR');}catch{return String(value??'—');}};
 async function api(path:string,init?:RequestInit){const r=await fetch(path,{...init,credentials:'same-origin'}),j=await r.json();
   if(!r.ok)throw new Error(String(j.error??'요청 실패'));return j;}
-const tabs=[['overview','개요','◈'],['transactions','거래','↗'],['journals','분개전표','▤'],['approval','사용자 승인','✓'],['reports','재무 보고서','▥'],['audit','감사 점검','◎']] as const;
+const tabs=[['overview','개요','◈'],['guide','처음 사용하기','?'],['transactions','거래','↗'],['journals','분개전표','▤'],['approval','사용자 승인','✓'],['reports','재무 보고서','▥'],['audit','감사 점검','◎']] as const;
 const koreanLabels:Record<string,string>={
   Draft:'초안',Validated:'검증 완료',Approval:'승인 요청',Posted:'장부 반영 완료',
   pending:'검토 대기',approved:'승인됨',rejected:'반려됨',Discarded:'폐기됨',
@@ -74,6 +75,8 @@ export default function Dashboard(){
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
+      {tab==='overview'&&<GuideWelcome onOpen={()=>{setTab('guide');setSelected(undefined);}}/>}
+      {tab==='guide'&&<BeginnerGuide onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
       {(tab==='overview'||tab==='reports')&&<>
         <div className="kpis"><Kpi label="기간 매출" value={money(is?.revenue)} hint="게시된 전표 기준"/><Kpi label="기간 순이익" value={money(is?.profit)} hint="세전 · 가상 시나리오"/>
           <Kpi label="승인 대기" value={String(pending.length)} hint="전표 목록 최대 100건" unit="건"/><Kpi label="게시된 전표" value={String(posted.length)} hint="전표 목록 최대 100건" unit="건"/></div>
