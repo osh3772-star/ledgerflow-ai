@@ -49,6 +49,8 @@ MCP 서버 제품은 정확히 하나다. 기본 foreground 프로세스의 `htt
 | `apps/mcp-server` | SDK v2 도구 registry, HTTP/stdio, MCP 인증, 인간 인증 route, Storage |
 | `apps/web` | Astro 정적 출력 + React 화면, 동일 출처 API 호출 |
 | `apps/public-api-gateway` | 선택 Cloudflare HTTP 중계, 4기관 키 서버 보관·인증·지역 호출 제한·Cache API; MCP 아님 |
+| `scripts/prepare-public-site.ts` | 별도 임시 fixture DB의 공통 서비스 조회 결과를 공개 허용 목록으로 내보냄. 사용자 장부 접근·승인·전기 없음 |
+| `apps/public-api-gateway/src/public-site.ts` | 생성된 합성 자료만 조회하는 공개 웹 API. 인간 세션·변경 요청 차단. 실제 장부 backend와 별도 |
 | `scripts/check-connections.ts` | 기존 서버·두 앱 설정/현재 Codex 등록의 읽기 진단, 추론/승인/전기 없음 |
 | `scripts/database-readiness.ts` | 기존 PostgreSQL의 필수 schema 읽기 점검, 자동 migration/seed 없음 |
 | `scripts/postgres-connection.ts` | 지속 runtime/진단 공통 연결 설정, Supabase TLS CA·hostname 검증과 선택 CA 파일 |

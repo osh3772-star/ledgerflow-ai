@@ -2,7 +2,7 @@
 
 회계 프로그램은 각 사용자의 PC에서 실행하고, 공공 API 키 4개는 운영자의 Cloudflare Worker가 보관한다. **기존 MCP 서버는 하나**다. Worker는 MCP 서버가 아니라 11개 공공 조회만 중계하는 HTTP 서비스다. AI 추론·장부·사용자 승인·DB를 클라우드 중계기에 올리지 않는다.
 
-**2026-10-16 실제 배포 완료:** `https://ledgerflow-public-reference-gateway.eric5833.workers.dev`. 주소는 `config/public-gateway.json`에 포함되어 있다. 인증된 네 기관의 주요 조회 6개와 과거 거래일 근거 수집을 확인했다. 접속 토큰은 저장소에 포함하지 않는다. 이 URL은 공공자료 API 주소이며 회계 대시보드 주소가 아니다.
+**2026-10-16 실제 배포 완료:** `https://ledgerflow-public-reference-gateway.eric5833.workers.dev`. 주소는 `config/public-gateway.json`에 포함되어 있다. 인증된 네 기관의 주요 조회 6개와 과거 거래일 근거 수집을 확인했다. 접속 토큰은 저장소에 포함하지 않는다. 루트에는 [조회용 공개 사이트](PUBLIC_SITE.md)를 제공하고, 인증된 공공 중계 요청은 계속 `/v1/query`를 사용한다. 실제 작업 장부·승인은 각자의 로컬 서버에 남는다.
 
 ## 처음 사용하는 사람
 
@@ -51,6 +51,7 @@ Node 24와 고정 Wrangler 4.151.0을 사용한다. 기존 프로젝트의 환�
 
 ```sh
 pnpm check
+pnpm web:build
 pnpm gateway:build
 pnpm --filter @ledgerflow/public-api-gateway exec wrangler login
 pnpm gateway:deploy

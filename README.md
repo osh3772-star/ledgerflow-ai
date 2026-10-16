@@ -1,5 +1,7 @@
 # LedgerFlow AI
 
+**[Cloudflare에서 한빛유통 공개 미리보기 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — 설치 없이 가상 거래 1,000건·공공자료 예시·사용법을 봅니다. 실제 분개·승인·장부 반영은 내 PC의 프로젝트와 연결된 앱에서 진행합니다. [공개/로컬 기능 구분](docs/PUBLIC_SITE.md)
+
 공개 저장소: [osh3772-star/ledgerflow-ai](https://github.com/osh3772-star/ledgerflow-ai)
 
 **공유받아 처음 설치한다면 [새 PC 설치·MCP 연결·회계 역할 시작하기](docs/GETTING_STARTED.md)를 따라 하세요.** MCP 설정과 6개 역할·스킬이 저장소에 포함되어 있습니다. 기본 시연은 공공 API 키·Supabase·Docker 없이 시작합니다. 다른 사람에게는 이 저장소 링크를 보내세요. `127.0.0.1` 주소는 각자의 PC 안에서만 열립니다.
@@ -74,7 +76,7 @@ ECOS_API_KEY=
 
 2026-10-16 **Cloudflare 공공자료 중계는 실제 배포와 네 기관 주요 조회를 확인했다.** 수신자는 저장소 설치 후 `pnpm gateway:connect`로 운영자에게 받은 전용 토큰을 입력하면 된다. 원본 API 키 4개는 전달하지 않는다. 장부 backend의 원격 배포·native 앱 추론·hosted Supabase 검증은 별도다.
 
-현재 로컬 검사는 **237개 테스트 / 34개 파일**이 통과했다. 공공근거·중계 20개와 기존 재무 화면·회계 검사를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스는 211개/30개이며 이번 변경의 새 CI 결과와 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
+현재 로컬 검사는 **242개 테스트 / 35개 파일**이 통과했다. 공개 사이트의 조회/변경 차단 5개, 공공근거·중계 20개와 기존 재무 화면·회계 검사를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스와 이번 변경의 새 CI 결과는 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
 
 ![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
 

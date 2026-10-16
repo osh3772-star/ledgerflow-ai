@@ -3,7 +3,7 @@ import '../styles/dashboard.css';
 import '../styles/bilingual.css';
 import BeginnerGuide,{GuideWelcome} from './BeginnerGuide.js';
 import {FinancialMetrics,BalanceSheetPanel,TrialBalancePanel} from './FinancialReports.js';
-import {PublicApiStatus,PublicReferences} from './PublicReferences.js';
+import {PublicApiStatus,PublicReferences,PublicSiteNotice} from './PublicReferences.js';
 type Row=Record<string,unknown>;
 type Company={companyId:string;name:string;periods:{id:string;from:string;to:string;status:string}[]};
 type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;publicReferences?:unknown;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
@@ -38,12 +38,14 @@ export default function Dashboard(){
   const [publicConfiguration,setPublicConfiguration]=useState<unknown>(),[referenceReport,setReferenceReport]=useState<unknown>();
   const [referenceLoading,setReferenceLoading]=useState(false);
   const [referenceTransactionId,setReferenceTransactionId]=useState('');
+  const [publicPreview,setPublicPreview]=useState(false),[snapshotAt,setSnapshotAt]=useState(''),[previewReference,setPreviewReference]=useState<unknown>();
   const referenceRequest=useRef(0);
   const current=company?.periods[period],query=current?'from='+current.from+'&to='+current.to:'from=2026-01-01&to=2026-01-31';
   async function refresh(){
     setLoading(true);setError('');
     try{
       const context=await api('/api/context');setCompany(context.company);setStorageConfigured(context.evidenceStorageConfigured);setPublicConfiguration(context.publicApi);
+      setPublicPreview(context.publicPreview===true);setSnapshotAt(String(context.snapshotAt??''));setPreviewReference(context.publicReferenceExample?.report);
       if(context.humanApprovalMode!=='unavailable'){
         try{const session=await api('/api/human/session');setCsrf(session.csrf);}catch{setCsrf(undefined);}
       }else setCsrf(undefined);
@@ -88,10 +90,12 @@ export default function Dashboard(){
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
+      {publicPreview&&<PublicSiteNotice snapshotAt={snapshotAt}/>}
       {(tab==='overview'||tab==='transactions')&&<section className="notice data-origin-note" aria-label="거래 데이터 안내"><strong>처음부터 보이는 거래는 연습용 샘플입니다.</strong><p>기본 시연 데이터는 미리 만든 가상 거래 1,000건입니다. 실제 회사 거래나 은행에서 자동 수집한 내역이 아닙니다. 거래 조회와 장부 반영은 별개이며, 검증·사용자 승인·장부 반영을 거친 전표만 재무 보고서에 집계됩니다.</p></section>}
       {tab==='overview'&&<GuideWelcome onOpen={()=>{setTab('guide');setSelected(undefined);}}/>}
       {(tab==='overview'||tab==='references')&&<PublicApiStatus configuration={publicConfiguration}/>}
-      {tab==='references'&&<><section className="panel"><div className="panel-title"><h2>거래와 공공자료 함께 확인</h2><button className="secondary" disabled={loading||referenceLoading||!rows.length} onClick={()=>void inspectReferences()}>{referenceLoading?'조회 중…':'선택한 거래의 참고자료 조회'}</button></div><label htmlFor="reference-transaction">참고자료를 확인할 거래</label> <select id="reference-transaction" value={referenceTransactionId||String(rows[0]?.id??'')} disabled={loading||referenceLoading} onChange={e=>{setReferenceTransactionId(e.target.value);clearReference();}}>{rows.map(row=><option key={String(row.id)} value={String(row.id)}>{String(row.externalRef)} · {String(row.recognitionOn)}</option>)}</select><p className="muted">현재 페이지의 거래를 선택해 조회합니다. 거래·전표 생성이나 승인·장부 반영은 하지 않습니다. 분개 초안 생성에서도 같은 공통 서비스가 실행됩니다.</p></section>{referenceReport!==undefined&&<PublicReferences report={referenceReport}/>}</>}
+      {tab==='references'&&publicPreview&&<><section className="panel"><h2>공공자료 예시 · 2026-01-10 매출</h2><p>이 가상 거래를 기준으로 미리 수집한 자료입니다. 상단 회계기간 선택과 별개인 예시이며 공개 사이트 방문 시 기관 API를 새로 호출하지 않습니다. 다른 거래의 실조회는 내 PC에서 프로젝트를 실행해 요청하세요.</p></section><PublicReferences report={previewReference}/></>}
+      {tab==='references'&&!publicPreview&&<><section className="panel"><div className="panel-title"><h2>거래와 공공자료 함께 확인</h2><button className="secondary" disabled={loading||referenceLoading||!rows.length} onClick={()=>void inspectReferences()}>{referenceLoading?'조회 중…':'선택한 거래의 참고자료 조회'}</button></div><label htmlFor="reference-transaction">참고자료를 확인할 거래</label> <select id="reference-transaction" value={referenceTransactionId||String(rows[0]?.id??'')} disabled={loading||referenceLoading} onChange={e=>{setReferenceTransactionId(e.target.value);clearReference();}}>{rows.map(row=><option key={String(row.id)} value={String(row.id)}>{String(row.externalRef)} · {String(row.recognitionOn)}</option>)}</select><p className="muted">현재 페이지의 거래를 선택해 조회합니다. 거래·전표 생성이나 승인·장부 반영은 하지 않습니다. 분개 초안 생성에서도 같은 공통 서비스가 실행됩니다.</p></section>{referenceReport!==undefined&&<PublicReferences report={referenceReport}/>}</>}
       {tab==='guide'&&<BeginnerGuide onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
       {(tab==='overview'||tab==='reports')&&<>
         <FinancialMetrics financial={financial} loading={loading} error={error} pendingCount={pending.length} postedCount={posted.length}/>

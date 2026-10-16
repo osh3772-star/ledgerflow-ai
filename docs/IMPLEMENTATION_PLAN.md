@@ -14,6 +14,7 @@
 | M8 배포 검증 | 기존 PostgreSQL 재기동 보존·schema gate, Supabase Auth/Storage 코드·RLS, 비관리자 Docker/Compose·Windows/Linux CI·deploy:check | 실제 Windows/Linux CI와 Linux Docker smoke 통과. hosted Supabase 인증/Storage/RLS·Desktop/Compose는 별도 후속 검증 |
 | M9 공공자료 회계 근거 | 공통 AccountingReferenceService, 거래일 법령·DART·ECOS·국세청 제외 사유, 선택 JSONB snapshot | 실제 과거 거래일 조회, 기존 gold 금액 불변, hash 결합·동시 멱등·인간 승인 통합 테스트 |
 | M10 공유 API 중계 | Cloudflare 읽기 전용 Worker, 로컬 gateway client, 토큰 연결/비밀값 등록 CLI | 실제 Wrangler dry build, 인증·쿼터·입력·캐시 테스트, 실제 배포 후 origin 확인. MCP 1개·원본 키 비공개 유지 |
+| M11 공개 웹 미리보기 | 기존 Worker Assets, 공통 서비스의 합성 자료 export, 공개 읽기 전용 route·화면 안내 | 1,000건·12개월 조회, 공개 세션/변경 차단, 배포 파일 비밀값 검사, 실제 HTTPS 페이지/API 확인. 장부 운영은 로컬에 유지 |
 
 ## 테스트 전략
 

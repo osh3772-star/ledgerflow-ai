@@ -2,8 +2,10 @@ import {createHash,timingSafeEqual} from 'node:crypto';
 import {z} from 'zod';
 import {DomainError} from '@ledgerflow/contracts';
 import {API_TOOLS,PublicDataService,PublicProviderRejection,publicInputs,type ApiCache,type CacheRecord} from '@ledgerflow/public-data';
+import {createPublicSiteRouter,type WebAssets} from './public-site.js';
 
 export interface GatewayEnvironment{
+  WEB_ASSETS?:WebAssets;
   NTS_SERVICE_KEY:string;DART_API_KEY:string;LAW_OC:string;ECOS_API_KEY:string;GATEWAY_ACCESS_TOKEN:string;
   REFERENCE_RATE_LIMITER:{limit(input:{key:string}):Promise<{success:boolean}>};
 }
@@ -61,7 +63,9 @@ export function createReferenceGateway(options:{cache:ApiCache;fetcher?:typeof f
   }};
 }
 let gateway:ReturnType<typeof createReferenceGateway>|undefined;
+const publicSite=createPublicSiteRouter();
 export default {async fetch(request:Request,environment:GatewayEnvironment){
+  if(new URL(request.url).pathname.startsWith('/api/')&&environment.WEB_ASSETS)return publicSite(request,environment.WEB_ASSETS);
   if(!gateway){const cache=(globalThis as unknown as {caches:{default:EdgeCache}}).caches.default;
     gateway=createReferenceGateway({cache:new EdgeApiCache(cache),log:event=>console.log(JSON.stringify(event))});}
   return gateway.fetch(request,environment);

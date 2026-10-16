@@ -47,6 +47,8 @@ Compose는 기존 `.env.local`을 컨테이너 실행 환경으로 전달하며 
 
 ## 원격/Cloudflare 후속 범위
 
+Cloudflare 루트에 정적 대시보드·읽기 전용 합성 데이터 route를 추가했다. 이 [공개 미리보기](PUBLIC_SITE.md)는 설치 없이 열어 볼 수 있으나 원격 장부 운영과는 구분한다. 데이터는 별도 임시 fixture DB에서 기존 공통 서비스로 내보내며 사용자 장부·인증정보를 내보내지 않는다. 공개 승인·세션·변경 route는 제공하지 않고 기존 로컬 승인 경계를 보존한다.
+
 공공자료만 공유하기 위한 Cloudflare Worker와 로컬 gateway client는 별도로 구현했다. **장부 backend 원격 배포와 다른 범위**다. Worker에는 MCP endpoint·회계 도구·DB·인간 세션이 없고 기존 공공 Adapter만 재사용한다. 빌드, 인증·쿼터 검증, 배포·비밀값 등록·수신자 연결 명령은 [공유 중계 안내](PUBLIC_GATEWAY.md)를 따른다. 실제 배포 여부는 [구현 상태](IMPLEMENTATION_STATUS.md)에 구분한다.
 
 선택적 [암호화 PostgreSQL 인간 세션](SECURITY_SESSIONS.md)은 구현했다. 원격 운영 전에는 외부 인증 발급자·클라이언트별 MCP 신원/회사 scope, HTTPS/허용 Origin과 실제 provider/세션을 검증해야 한다. localhost 고정 MCP 신원과 로그인 없는 demo 운영자를 원격 환경에 그대로 적용하지 않는다. 원격 OAuth/HTTPS 부분은 아직 구현하지 않았다. 컨테이너 재기동 사이에 세션을 보존하려면 동일한 서버 전용 암호화 키와 기존 DB profile을 사용한다.
