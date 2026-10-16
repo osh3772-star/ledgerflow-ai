@@ -1,6 +1,23 @@
 import {useId,useRef,useState} from 'react';
 import '../styles/beginner-guide.css';
 
+const repositoryUrl='https://github.com/osh3772-star/ledgerflow-ai';
+const downloadCommands=`git clone https://github.com/osh3772-star/ledgerflow-ai.git
+cd ledgerflow-ai`;
+const startCommands=`pnpm install --frozen-lockfile
+pnpm start`;
+const roleRequest=`이 프로젝트의 docs/CLIENT_ROLES.md와 ledgerflow-sales 스킬을 확인하고 현재 대화에서 매출 역할을 사용해 줘.
+LedgerFlow의 get_system_status와 get_company_context를 실제 호출해 회사 이름과 연결 결과를 알려줘.
+스킬이나 도구를 찾지 못하면 찾지 못했다고 알려줘.
+거래 생성·승인·장부 반영과 병렬 에이전트 실행은 하지 마.`;
+const roles=[
+  ['총괄','할 일과 처리 순서를 정리합니다.','supervisor'],
+  ['매출','판매 증빙을 확인하고 매출 기록을 준비합니다.','sales'],
+  ['매입','매입 증빙·거래처·중복 후보를 확인합니다.','purchase'],
+  ['자금','은행 내역과 받을 돈·줄 돈을 맞춰 봅니다.','treasury'],
+  ['결산','월말 수정 기록과 보고서·마감을 검토합니다.','closing'],
+  ['감사','중복·증빙 누락·기간 오류를 점검합니다. 전표를 생성하거나 반영하지 않습니다.','audit'],
+] as const;
 const firstRequest=`LedgerFlow의 get_system_status와 get_company_context로 연결과 회사 정보를 먼저 확인해 줘.
 매출 역할로 2026년 1월의 미처리 매출 거래 1건을 찾아 증빙을 확인해 줘.
 어떤 거래인지, 어떤 계정에 왜 기록하는지 회계 초보자도 이해할 수 있게 설명해 줘.
@@ -32,21 +49,22 @@ function AppName({english,korean}:{english:string;korean:string}){
   return <span className="guide-app-name"><span lang="en">{english}</span><small lang="ko">{korean}</small></span>;
 }
 
-function RequestBox({title,prompt,hint}:{title:string;prompt:string;hint:string}){
+function RequestBox({title,prompt,hint,destination='chat'}:{title:string;prompt:string;hint:string;destination?:'chat'|'terminal'}){
   const id=useId(),field=useRef<HTMLTextAreaElement>(null),[message,setMessage]=useState('');
+  const isCommand=destination==='terminal';
   async function copy(){
     try{
       if(!navigator.clipboard?.writeText)throw new Error('CLIPBOARD_UNAVAILABLE');
       await navigator.clipboard.writeText(prompt);
-      setMessage('복사했습니다. 연결된 앱의 대화창에 붙여 넣으세요.');
+      setMessage(isCommand?'복사했습니다. 터미널에 붙여 넣어 실행하세요.':'복사했습니다. 연결된 앱의 대화창에 붙여 넣으세요.');
     }catch{
       field.current?.focus();field.current?.select();
       setMessage('요청문을 선택했습니다. Ctrl+C 또는 기기의 복사 기능을 이용해 주세요.');
     }
   }
-  return <div className="guide-request-box">
-    <div className="guide-request-heading"><label htmlFor={id}>{title}</label><button type="button" className="guide-copy-button" onClick={()=>void copy()}>요청문 복사</button></div>
-    <textarea id={id} ref={field} readOnly rows={7} value={prompt} spellCheck={false} aria-describedby={id+'-hint'}/>
+  return <div className={'guide-request-box'+(isCommand?' guide-command-box':'')}>
+    <div className="guide-request-heading"><label htmlFor={id}>{title}</label><button type="button" className="guide-copy-button" onClick={()=>void copy()}>{isCommand?'명령어 복사':'요청문 복사'}</button></div>
+    <textarea id={id} ref={field} readOnly rows={isCommand?prompt.split('\n').length+1:7} value={prompt} spellCheck={false} aria-describedby={id+'-hint'}/>
     <p id={id+'-hint'} className="guide-field-hint">{hint}</p>
     <p className="guide-copy-status" role="status">{message}</p>
   </div>;
@@ -55,7 +73,7 @@ function RequestBox({title,prompt,hint}:{title:string;prompt:string;hint:string}
 export function GuideWelcome({onOpen}:{onOpen:()=>void}){
   return <section className="guide-welcome" aria-labelledby="guide-welcome-title">
     <div><span className="guide-kicker">처음 방문하셨나요?</span><h2 id="guide-welcome-title">회계를 몰라도, 거래 한 건부터 따라 해보세요.</h2>
-      <p>앱에 말로 요청하고, 이 화면에서 확인한 뒤 승인합니다. 사용 순서와 이 사이트를 만든 이유를 함께 살펴보세요.</p></div>
+      <p>앱에 말로 요청하고, 이 화면에서 확인한 뒤 승인합니다. 다른 PC의 설치·연결 방법과 이 사이트를 만든 이유도 함께 살펴보세요.</p></div>
     <button type="button" className="guide-primary-button" onClick={onOpen}>사용 방법과 제작 목적 보기 <span aria-hidden="true">→</span></button>
   </section>;
 }
@@ -80,17 +98,47 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
       <div className="guide-principles"><span>가상 거래 1,000건으로 연습</span><span>계산·검증은 규칙 엔진</span><span>장부 반영 전 사용자 승인</span></div>
     </section>
 
+    <section className="guide-section" aria-labelledby="guide-install-title">
+      <div className="guide-section-heading"><span className="guide-kicker">다른 사람에게 공유하거나 새 PC에서 시작할 때</span><h2 id="guide-install-title">공개 저장소에서 받아, 내 PC에서 실행하세요.</h2></div>
+      <p>다른 사람에게는 아래 <strong>GitHub 저장소 링크</strong>를 보내세요. 처음 설치하는 사람도 저장소의 설치 안내를 먼저 읽을 수 있습니다. <code>127.0.0.1</code>은 각자의 PC를 뜻하므로, 지금 사이트 주소를 보내는 것만으로 상대방이 접속할 수는 없습니다.</p>
+      <div className="guide-share-links"><a href={repositoryUrl} target="_blank" rel="noopener noreferrer">공개 저장소 열기 ↗</a><a href={repositoryUrl+'/blob/main/docs/GETTING_STARTED.md'} target="_blank" rel="noopener noreferrer">처음 설치하는 사람의 안내서 ↗</a></div>
+      <p className="guide-repository-url"><a href={repositoryUrl} target="_blank" rel="noopener noreferrer">{repositoryUrl}</a></p>
+      <details className="guide-details"><summary>처음이라면 필요한 프로그램부터 준비하세요</summary>
+        <ul className="guide-setup-list"><li><a href="https://nodejs.org/en/download" target="_blank" rel="noopener noreferrer">Node.js 공식 다운로드</a>에서 <strong>24.x</strong>를 설치합니다. 이 프로젝트의 실행 환경입니다.</li>
+          <li><a href="https://git-scm.com/downloads" target="_blank" rel="noopener noreferrer">Git 공식 다운로드</a>에서 운영체제에 맞게 설치합니다. 아래 저장소 받기 명령에 사용합니다.</li>
+          <li>설치 후 터미널을 새로 열고 아래 명령으로 <strong>pnpm 11.25.0</strong>을 준비합니다. 터미널은 명령어를 입력하는 창이며 Windows에서는 PowerShell을 사용할 수 있습니다.</li></ul>
+        <RequestBox title="터미널 · 실행 도구 준비 및 버전 확인" prompt={'npm install --global pnpm@11.25.0\nnode --version\npnpm --version'} destination="terminal" hint="Node는 v24.x, pnpm은 11.25.0인지 확인하세요. 이미 맞는 버전이 있으면 재설치할 필요가 없습니다. 명령 복사만으로 설치되지 않습니다."/>
+        <p>Claude Code 또는 Codex 중 하나를 설치하고 본인 계정으로 로그인합니다. 앱별 설치 도움말은 아래에 있습니다. 이 프로젝트는 별도 유료 모델 API 키를 요구하지 않으며, 앱의 이용 가능 여부와 사용 한도는 본인 계정에 따릅니다.</p>
+      </details>
+      <h3 className="guide-install-step">1. 프로젝트 전체 받기</h3>
+      <RequestBox title="터미널 · 저장소 받기" prompt={downloadCommands} destination="terminal" hint="프로젝트를 저장할 폴더에서 실행하세요. 처음 받는 PC용입니다. 이미 받은 사람은 기존 폴더를 열면 됩니다. 숨김 폴더인 .codex·.claude·.agents도 함께 받아야 합니다."/>
+      <h3 className="guide-install-step">2. 서버 한 번 실행하기</h3>
+      <RequestBox title="터미널 · 설치 후 실행" prompt={startCommands} destination="terminal" hint="방금 받은 ledgerflow-ai 폴더에서 실행합니다. 처음에는 패키지 다운로드가 필요합니다. 서버가 준비되면 이 터미널을 켜 둔 채 브라우저와 앱을 사용하세요."/>
+      <p>준비 완료 후 브라우저에서 <code>http://127.0.0.1:8787/</code>을 엽니다. 웹 화면과 두 앱은 <strong>같은 서버 한 개</strong>를 사용합니다. 종료할 때는 서버 터미널에 <code>stop</code>을 입력하고 Enter를 누르세요.</p>
+      <div className="guide-install-note"><strong>기본 체험은 API 키·Supabase·Docker 준비 없이 가능합니다.</strong><p>가상 거래 1,000건과 샘플 공공자료로 시작합니다. PostgreSQL은 프로젝트가 임시로 실행합니다. 공유할 때 자신의 <code>.env.local</code>이나 API 키를 보내지 마세요. 실제 공공자료 조회와 장부 영구 보관은 별도 설정입니다.</p></div>
+    </section>
+
     <section className="guide-section" aria-labelledby="guide-connect-title">
-      <div className="guide-section-heading"><span className="guide-kicker">시작 전 한 번만 확인</span><h2 id="guide-connect-title">사용 중인 앱 하나에서 이 프로젝트를 여세요.</h2></div>
+      <div className="guide-section-heading"><span className="guide-kicker">3. 앱 연결 · 서버를 켠 다음 진행하세요</span><h2 id="guide-connect-title">사용 중인 앱 하나에서 이 프로젝트를 여세요.</h2></div>
       <p>사이트가 열렸다면 웹 서버는 실행 중입니다. 다음으로 앱이 같은 회계 도구에 연결되어 있는지 확인합니다. 두 앱을 모두 사용할 필요는 없습니다.</p>
       <div className="guide-app-grid">
-        <article><h3><AppName english="Claude Code" korean="클로드 코드"/></h3><p>LedgerFlow 프로젝트 폴더에서 시작하고 프로젝트 신뢰와 회계 도구 연결을 허용합니다. 대화창에서 <code>/mcp</code>로 연결 상태를 확인하세요.</p><a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">클로드 코드 공식 연결 도움말 ↗</a></article>
-        <article><h3><AppName english="Codex" korean="코덱스"/></h3><p>LedgerFlow 프로젝트를 열고 신뢰한 프로젝트의 기존 회계 도구 연결을 확인합니다. 설정의 도구 연결 목록에서 서버를 확인한 뒤 이 프로젝트의 대화창에 요청하세요.</p><a href="https://learn.chatgpt.com/docs/extend/mcp" target="_blank" rel="noopener noreferrer">OpenAI 공식 연결 도움말 ↗</a></article>
+        <article><h3><AppName english="Claude Code" korean="클로드 코드"/></h3><p>서버와 다른 터미널에서 같은 프로젝트 폴더를 열고 <code>claude</code>로 시작합니다. 프로젝트 신뢰와 기존 <code>.mcp.json</code>의 연결을 허용한 뒤, 대화창에서 <code>/mcp</code>로 확인하세요.</p><div className="guide-app-links"><a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noopener noreferrer">앱 설치 도움말 ↗</a><a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">회계 도구 연결 도움말 ↗</a></div><p className="guide-app-detail">일반 클로드 대화창이나 클로드 데스크톱의 설치만으로 이 프로젝트가 연결되는 것은 아닙니다. 여기서는 클로드 코드를 사용합니다.</p></article>
+        <article><h3><AppName english="Codex" korean="코덱스"/></h3><p>로컬 Codex에서 받은 <code>ledgerflow-ai</code> 폴더를 프로젝트로 열고 신뢰합니다. 기존 <code>.codex/config.toml</code>의 서버를 확인하고, 도구가 보이지 않으면 설정에서 연결을 재시작한 뒤 새 대화에서 확인하세요.</p><div className="guide-app-links"><a href="https://learn.chatgpt.com/docs/quickstart?setup=app" target="_blank" rel="noopener noreferrer">앱 시작 도움말 ↗</a><a href="https://learn.chatgpt.com/docs/extend/mcp" target="_blank" rel="noopener noreferrer">회계 도구 연결 도움말 ↗</a></div><p className="guide-app-detail">프로젝트를 신뢰해야 해당 설정을 읽습니다. 일반 웹 대화창이 PC의 서버와 설정을 자동으로 읽는 것은 아닙니다.</p></article>
       </div>
       <details className="guide-details"><summary>앱 연결 확인용 문장과 서버 정보 보기</summary>
         <p>서버 이름은 <code>ledgerflow-accounting-mcp</code>, 주소는 <code>http://127.0.0.1:8787/mcp</code>입니다. 프로젝트에는 기존 연결 설정이 있습니다. 새 서버를 중복으로 만들지 않고 그 연결을 사용합니다.</p>
         <RequestBox title="앱에 연결 확인 요청하기" prompt={connectionRequest} hint="앱이 실제 도구를 호출한 결과로 확인합니다. 이 화면에서 연결 성공을 대신 판정하지 않습니다."/>
       </details>
+    </section>
+
+    <section className="guide-section" aria-labelledby="guide-agents-title">
+      <div className="guide-section-heading"><span className="guide-kicker">4. 회계 역할 사용하기</span><h2 id="guide-agents-title">6개 역할은 프로젝트에 이미 들어 있습니다.</h2></div>
+      <p>에이전트는 회계 담당 역할이고, 스킬은 그 역할이 따를 업무 지침입니다. 저장소에 앱별 파일이 포함되어 있으므로 별도의 에이전트 서버나 유료 모델 API를 설치하지 않습니다. 프로젝트를 열어 스킬이 표시되는지 확인하고 필요한 역할 하나부터 사용하세요.</p>
+      <div className="guide-role-table"><table><thead><tr><th>역할</th><th>도와주는 일</th><th>스킬 이름</th></tr></thead><tbody>{roles.map(([label,work,role])=><tr key={role}><td>{label}</td><td>{work}</td><td><code>{'ledgerflow-'+role}</code></td></tr>)}</tbody></table></div>
+      <div className="guide-app-grid"><article><h3>클로드 코드에서 선택</h3><p>대화창에 <code>/ledgerflow-sales</code>를 입력하면 매출 스킬을 요청할 수 있습니다. 스킬 목록에서 이름을 확인하세요.</p><a href="https://code.claude.com/docs/en/skills" target="_blank" rel="noopener noreferrer">공식 스킬 사용 안내 ↗</a></article>
+        <article><h3>코덱스에서 선택</h3><p>대화창에서 <code>$ledgerflow-sales</code>로 매출 스킬을 지정하거나 스킬 선택 메뉴에서 고르세요. 보이지 않으면 프로젝트 폴더와 스킬 목록을 확인하고 앱을 다시 여세요.</p><a href="https://learn.chatgpt.com/docs/build-skills" target="_blank" rel="noopener noreferrer">공식 스킬 사용 안내 ↗</a></article></div>
+      <RequestBox title="두 앱 공통 · 역할과 연결 확인하기" prompt={roleRequest} hint="매출 역할만 확인하는 요청입니다. 역할 파일이 포함됐다는 것과 앱에서 실제로 발견·호출됐다는 것은 구분해서 확인하세요."/>
+      <details className="guide-details"><summary>포함된 설정 파일과 역할 파일 위치</summary><dl className="guide-glossary"><div><dt>클로드 코드</dt><dd><code>.mcp.json</code> · <code>.claude/skills/</code> · <code>.claude/agents/</code></dd></div><div><dt>코덱스</dt><dd><code>.codex/config.toml</code> · <code>.agents/skills/</code> · <code>.codex/agents/</code></dd></div></dl><p>기본 사용은 현재 대화에서 필요한 스킬을 적용하는 방식입니다. 별도 하위 에이전트에 위임하거나 병렬로 실행하는 것은 사용자가 명시적으로 요청할 때만 진행합니다. 역할 선택이 승인 권한을 주지는 않습니다.</p></details>
     </section>
 
     <section className="guide-section" aria-labelledby="guide-steps-title">

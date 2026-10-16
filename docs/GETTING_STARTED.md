@@ -1,0 +1,146 @@
+# 공유받은 사람의 첫 설치와 사용법
+
+이 문서는 다른 PC에서 LedgerFlow를 처음 실행하는 사람을 위한 안내입니다. 웹사이트를 열기 전부터 따라 할 수 있습니다.
+
+공유할 주소: [LedgerFlow 공개 저장소](https://github.com/osh3772-star/ledgerflow-ai).
+`http://127.0.0.1:8787/`은 각자의 PC를 뜻하는 로컬 주소입니다. 다른 사람에게 이 주소만 보내면 작성자의 화면에 접속할 수 없습니다. 현재 제공 방식은 소스를 받아 자기 PC에서 실행하는 방식이며, 공용 원격 서버 설치는 포함하지 않습니다.
+
+## 1. 필요한 프로그램 준비
+
+| 준비물 | 준비 방법 |
+| --- | --- |
+| Node.js 24.x | [공식 다운로드](https://nodejs.org/en/download)에서 24.x를 선택해 설치합니다. 이 프로젝트는 Node 24를 사용합니다. |
+| Git | [공식 다운로드](https://git-scm.com/downloads)에서 설치합니다. 아래 `git clone` 명령으로 프로젝트 전체를 받습니다. |
+| pnpm 11.25.0 | Node 설치 후 새 터미널에서 아래 명령으로 준비합니다. 이미 같은 버전이 있으면 재설치할 필요가 없습니다. |
+| Claude Code 또는 로컬 Codex | 둘 중 하나를 설치하고 본인의 이용 가능한 계정으로 로그인합니다. [Claude Code 설치](https://code.claude.com/docs/en/setup), [Codex 시작](https://learn.chatgpt.com/docs/quickstart?setup=app). |
+
+터미널은 명령어를 입력하는 창입니다. Windows에서는 PowerShell을 열면 됩니다.
+
+```powershell
+npm install --global pnpm@11.25.0
+node --version
+pnpm --version
+```
+
+Node가 `v24.x`, pnpm이 `11.25.0`인지 확인합니다. pnpm의 [공식 설치 안내](https://pnpm.io/installation)를 참고하되, 이 저장소에서는 `packageManager`에 고정된 11.25.0을 사용합니다.
+
+기본 시연에는 **공공 API 키, Supabase 계정, Docker, 별도 PostgreSQL 설치가 필요하지 않습니다.** 프로젝트가 임시 PostgreSQL과 가상 거래 1,000건을 준비하며, 공공자료는 샘플 응답을 사용합니다. 프로젝트가 별도 유료 LLM API를 호출하지는 않지만 Claude Code·Codex의 이용 가능 여부와 사용 한도는 본인 계정에 따릅니다.
+
+## 2. 프로젝트 전체 받기
+
+프로젝트를 보관할 폴더에서 실행합니다.
+
+```powershell
+git clone https://github.com/osh3772-star/ledgerflow-ai.git
+cd ledgerflow-ai
+```
+
+이미 받은 사람은 기존 프로젝트 폴더를 엽니다. `package.json`, `.mcp.json`, `.codex`, `.claude`, `.agents`가 들어 있는 폴더가 기준입니다. 설정과 스킬을 포함한 **전체 저장소**를 받아야 합니다. 개별 HTML 파일만 받으면 서버와 회계 도구는 실행되지 않습니다.
+
+## 3. 서버 한 번 실행
+
+받은 `ledgerflow-ai` 폴더에서 실행합니다.
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm start
+```
+
+처음 설치할 때는 인터넷으로 패키지와 해당 운영체제의 PostgreSQL 실행 파일을 내려받습니다. 새 PC에서 별도 `.env.local`을 만들지 않아도 기본 mock 시연을 시작할 수 있습니다.
+
+빌드와 초기화가 끝나면 `ready: true` 메시지가 나옵니다. **이 터미널을 켜 둔 채** 다음 단계를 진행합니다.
+
+- 화면: `http://127.0.0.1:8787/`
+- 두 앱의 MCP 주소: `http://127.0.0.1:8787/mcp`
+- 서버 이름: `ledgerflow-accounting-mcp`
+
+웹 화면과 두 앱이 하나의 서버를 함께 사용합니다. 앱별로 서버를 추가 실행하지 않습니다. 종료할 때는 서버 터미널에 `stop`을 입력하고 Enter를 누릅니다. 종료하면 임시 장부가 정리되며 다음 실행에는 같은 가상 거래로 다시 시작합니다.
+
+자신의 `.env.local`, API 키, DB 비밀번호는 공유하지 않습니다. 공공 API 실조회와 영구 장부는 선택 사항이며 [상세 연결 안내](CLIENT_SETUP.md)에서 별도로 다룹니다.
+
+## 4. 앱 하나를 선택해서 연결
+
+### Claude Code — 클로드 코드
+
+1. 서버를 켠 터미널은 그대로 둡니다. **다른 터미널**에서 같은 `ledgerflow-ai` 폴더를 엽니다.
+2. `claude`를 실행하고 본인 계정으로 로그인합니다.
+3. 프로젝트 신뢰와 기존 `.mcp.json`의 `ledgerflow-accounting-mcp` 연결을 검토·허용합니다.
+4. 대화창에서 `/mcp`를 입력해 연결 상태를 확인합니다.
+
+프로젝트 `.mcp.json`은 공식 지원되는 프로젝트 연결 설정입니다. 별도 `claude mcp add`로 같은 서버를 중복 등록할 필요가 없습니다. [Claude Code MCP 공식 문서](https://code.claude.com/docs/en/mcp).
+
+일반 Claude 웹 대화나 Claude 데스크톱 설치만으로 Claude Code의 프로젝트 설정이 적용되는 것은 아닙니다. 이 안내는 **Claude Code** 기준입니다.
+
+### Codex — 코덱스
+
+1. 로컬 Codex 앱 또는 로컬 CLI에서 받은 `ledgerflow-ai` 폴더를 엽니다.
+2. 프로젝트를 신뢰하고 기존 `.codex/config.toml`의 MCP 연결을 확인합니다.
+3. 설정의 MCP 서버 목록에서 `ledgerflow-accounting-mcp`가 연결되는지 확인합니다. 도구가 보이지 않으면 해당 연결을 다시 시작하고 새 대화에서 확인합니다. CLI에서는 `/mcp`로 현재 서버를 볼 수 있습니다.
+
+Codex는 신뢰한 프로젝트의 `.codex/config.toml`을 읽습니다. 일반 웹 대화창이 PC의 설정이나 localhost 서버에 자동으로 연결되는 것은 아닙니다. [OpenAI 공식 MCP 문서](https://learn.chatgpt.com/docs/extend/mcp).
+
+### 실제 연결 확인 요청
+
+선택한 앱의 **이 프로젝트 대화창**에 보냅니다.
+
+```text
+LedgerFlow의 get_system_status와 get_company_context를 실제 MCP 도구로 호출해 줘.
+서버 이름, 도구 수, 회사 이름과 호출 성공 여부를 알려줘.
+도구가 보이지 않거나 실패하면 연결 성공으로 추정하지 말고 알려줘.
+거래 생성, 승인, 장부 반영은 하지 마.
+```
+
+현재 저장소의 도구는 41개이고 회사 이름은 `LedgerFlow Trading Co., Ltd.`입니다. 파일에 적힌 내용이나 서버 목록을 읽은 것만으로 실제 도구 호출 성공을 대신하지 않습니다.
+
+## 5. 회계 에이전트·스킬 사용
+
+에이전트는 담당 역할이고, 스킬은 그 역할이 따를 지침입니다. 6개 역할의 설정 파일은 저장소에 이미 포함되어 있습니다. 별도 에이전트 서버나 유료 모델 API를 설치할 필요가 없습니다. **현재 대화에서 필요한 역할 하나의 스킬을 적용하는 것**부터 시작합니다.
+
+| 역할 | 하는 일 | 스킬 이름 |
+| --- | --- | --- |
+| 총괄 | 작업 범위와 순서 정리 | `ledgerflow-supervisor` |
+| 매출 | 판매 증빙·매출 기록 준비 | `ledgerflow-sales` |
+| 매입 | 매입 증빙·거래처·중복 후보 확인 | `ledgerflow-purchase` |
+| 자금 | 은행 내역과 채권·채무 대사 | `ledgerflow-treasury` |
+| 결산 | 월말 수정분개·보고서·마감 검토 | `ledgerflow-closing` |
+| 감사 | 중복·증빙 누락·기간 오류 점검. 전표 생성·승인·전기는 하지 않음 | `ledgerflow-audit` |
+
+- Claude Code: 대화창의 `/ledgerflow-sales` 또는 스킬 목록으로 매출 역할을 요청합니다. `.claude/skills/`가 저장소에 포함되어 있습니다. [공식 스킬 문서](https://code.claude.com/docs/en/skills).
+- Codex: 대화창의 `$ledgerflow-sales` 또는 스킬 선택 메뉴로 매출 역할을 지정합니다. 프로젝트의 `.agents/skills/`를 읽으며, 목록에 없으면 프로젝트 폴더와 앱 정책을 확인하고 다시 엽니다. [OpenAI 공식 스킬 문서](https://learn.chatgpt.com/docs/build-skills).
+
+두 앱 공통으로 아래처럼 요청해도 됩니다.
+
+```text
+이 프로젝트의 docs/CLIENT_ROLES.md와 ledgerflow-sales 스킬을 확인하고 현재 대화에서 매출 역할을 사용해 줘.
+LedgerFlow의 get_system_status와 get_company_context를 실제 호출해 회사 이름과 연결 결과를 알려줘.
+스킬이나 도구를 찾지 못하면 찾지 못했다고 알려줘.
+거래 생성·승인·장부 반영과 병렬 에이전트 실행은 하지 마.
+```
+
+역할 파일 위치는 Claude Code의 `.claude/agents/`, Codex의 `.codex/agents/`입니다. 파일이 포함됐다는 사실과 각 앱이 실제로 발견·실행했다는 사실은 구분합니다. 이 역할들은 항상 켜져 있는 6개 프로세스가 아닙니다. 별도 하위 에이전트 위임이나 병렬 실행은 사용자가 요청할 때만 하며, 역할 이름이 DB 권한이나 승인 권한을 부여하지 않습니다. [역할 계약](CLIENT_ROLES.md), [Codex 하위 에이전트 공식 문서](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+
+## 6. 거래 한 건 따라 하기
+
+화면의 **처음 사용하기** 메뉴에서 복사용 요청문을 사용합니다.
+
+1. 앱에 2026년 1월 매출 거래 1건의 증빙 확인·분개 초안·검증·승인 요청을 맡깁니다. 사용자 승인 대기에서 멈추게 합니다.
+2. 사이트의 **새로고침 → 사용자 승인 → 전표 보기**에서 전표·증빙을 직접 확인한 뒤 승인하거나 반려합니다.
+3. 승인했다면 앱에 해당 전표 ID를 주고 승인 상태·버전·hash 확인 후 장부 반영을 요청합니다.
+4. 앱이 DB의 `Posted` 상태를 확인한 뒤 **재무 보고서**에서 `2026-01`을 선택하고 새로고침합니다.
+
+앱의 도구 실행 허용은 장부 승인이 아닙니다. 승인 버튼을 누르는 것은 사용자의 결정이며 승인만으로 자동 전기되지 않습니다. [자세한 업무 사용 안내](USER_GUIDE.md).
+
+## 막히면 확인할 것
+
+| 증상 | 확인 |
+| --- | --- |
+| `node`, `pnpm`, `git`, `claude`를 찾지 못함 | 해당 프로그램 설치와 PATH를 확인하고 터미널을 새로 엽니다. |
+| 화면이 안 열림 | `pnpm start`의 `ready: true`를 확인하고 서버 터미널을 켜 둡니다. |
+| 포트 사용 중 | 이미 실행 중인 LedgerFlow 서버가 있는지 확인합니다. 같은 서버를 중복으로 실행하지 않습니다. |
+| 앱에 회계 도구가 없음 | 받은 프로젝트 폴더·신뢰·MCP 허용·기존 연결의 재시작을 확인합니다. |
+| 매출 스킬이 없음 | 전체 저장소에 숨김 폴더가 포함됐는지, 올바른 프로젝트를 열었는지 확인하고 앱을 다시 엽니다. |
+| 아직 보고서가 0원 | 승인 후 장부 반영이 끝났는지, 기간이 맞는지 확인하고 새로고침합니다. |
+
+서버가 켜진 상태에서 **다른 터미널**의 프로젝트 폴더에서 `pnpm mcp:doctor`를 실행하면 설정·MCP 통신을 진단할 수 있습니다. 이 진단은 실제 앱의 추론·역할 실행을 대신하는 증거는 아닙니다. OS별 회귀 검사와 Linux 컨테이너 실행 증거는 [CI 검증 기록](CI_VALIDATION.md)에 있습니다. 이 문서 수정으로 새로운 PC에서의 설치가 검증됐다고 주장하지 않습니다.
+
+공유할 때는 **공개 저장소 링크와 이 설치 안내 링크**만 보내면 됩니다. 상대방은 자신의 PC에서 기본 시연으로 시작하고, 역할과 실제 도구 호출을 직접 확인합니다.

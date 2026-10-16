@@ -2,6 +2,8 @@
 
 공개 저장소: [osh3772-star/ledgerflow-ai](https://github.com/osh3772-star/ledgerflow-ai)
 
+**공유받아 처음 설치한다면 [새 PC 설치·MCP 연결·회계 역할 시작하기](docs/GETTING_STARTED.md)를 따라 하세요.** MCP 설정과 6개 역할·스킬이 저장소에 포함되어 있습니다. 기본 시연은 공공 API 키·Supabase·Docker 없이 시작합니다. 다른 사람에게는 이 저장소 링크를 보내세요. `127.0.0.1` 주소는 각자의 PC 안에서만 열립니다.
+
 [![LedgerFlow checks](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml)
 
 한국 가상 도소매 법인의 회계 자동화 포트폴리오다. Claude Code와 Codex가 **단일 foreground MCP 서버**를 공유하고 앱의 6역할 agent·skill로 사용자 요청을 수행한다. 유료 LLM API·자체 오케스트레이터·무인 스케줄러를 사용하지 않는다.

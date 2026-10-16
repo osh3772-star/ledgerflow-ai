@@ -28,6 +28,21 @@
 .guide-app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 20px; }
 .guide-app-grid article { padding: 23px; border: 1px solid #e0e8e3; border-radius: 9px; }
 .guide-app-grid a { font-size: 12px; }
+.guide-app-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.guide-app-grid .guide-app-detail { margin: 15px 0 0; color: #657c6c; font-size: 12px; }
+.guide-share-links { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 12px; }
+.guide-share-links a { padding: 10px 16px; border: 1px solid #bed8c9; border-radius: 7px; background: #edf7f1; font-weight: 600; text-decoration: none; }
+.guide-repository-url { font-size: 12px; overflow-wrap: anywhere; }
+.guide-setup-list { padding-left: 21px; }
+.guide-setup-list li { margin: 12px 0; }
+.beginner-guide .guide-install-step { margin: 28px 0 0; }
+.guide-install-note { padding: 18px 22px; border-radius: 8px; background: #f0f7f3; }
+.guide-install-note p { margin: 8px 0 0; font-size: 13px; }
+.guide-role-table { margin-top: 20px; overflow-x: auto; }
+.guide-role-table table { white-space: normal; }
+.guide-role-table th, .guide-role-table td { padding: 13px 15px; font-size: 13px; line-height: 1.8; }
+.guide-role-table td:first-child { min-width: 65px; }
+.guide-role-table td:last-child { min-width: 190px; }
 .guide-app-name { display: inline-flex; flex-direction: column; gap: 2px; }
 .guide-app-name > small { color: #637d6d; font-size: 12px; font-weight: 400; }
 .guide-details { margin-top: 22px; border-top: 1px solid #e0e8e3; padding-top: 16px; }
@@ -48,6 +63,7 @@
   background: #fff; color: #344f3e; font: inherit; font-size: 13px; line-height: 1.9; white-space: pre-wrap;
 }
 .guide-request-box textarea:focus-visible { outline: 3px solid #7bb7a9; outline-offset: -3px; }
+.guide-command-box textarea { min-height: 105px; font-family: ui-monospace, Consolas, monospace; }
 .guide-request-box .guide-field-hint, .guide-request-box .guide-copy-status { margin: 0; padding: 12px 20px; font-size: 12px; line-height: 1.7; }
 .guide-request-box .guide-field-hint { color: #657c6c; }
 .guide-request-box .guide-copy-status { min-height: 0; padding-top: 0; color: #126b57; }

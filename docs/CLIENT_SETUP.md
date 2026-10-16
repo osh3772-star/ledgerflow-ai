@@ -1,5 +1,7 @@
 # Shared MCP and approval setup
 
+다른 사람에게 공유하거나 새 PC에 처음 설치하는 경우 [처음 설치 안내](GETTING_STARTED.md)부터 진행한다. 아래는 이미 프로젝트를 받은 사용자의 연결·권한 상세 설정이다.
+
 Node 24 / pnpm 11.25 환경에서 실행한다. 발급받은 4개 API 키는 프로젝트 루트의 ignored `.env.local`에만 둔다. 실제 값을 앱 config/문서/채팅에 복사하지 않는다.
 
 ```powershell
