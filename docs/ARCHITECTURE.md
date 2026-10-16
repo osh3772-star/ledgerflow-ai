@@ -44,6 +44,7 @@ flowchart TD
 | `scripts/database-readiness.ts` | 기존 PostgreSQL의 필수 schema 읽기 점검, 자동 migration/seed 없음 |
 | `scripts/postgres-connection.ts` | 지속 runtime/진단 공통 연결 설정, Supabase TLS CA·hostname 검증과 선택 CA 파일 |
 | `scripts/check-supabase.ts` / `supabase-readiness.ts` | 명시적 Auth health·read-only catalog 진단, 비밀값 없는 결과와 연결/schema 준비 상태 분리 |
+| `scripts/initialize-supabase.ts` / `supabase-initialization.ts` | 최초 설치 전용, 기본 읽기 계획·명시적 project/hash 적용, 원본 6개 migration의 원자적 적용·private receipt; Auth/ERP/전표 적재 없음 |
 | `scripts/check-deployment.ts` | 계정·도구·설정의 존재와 담당자별 후속 작업 출력, 비밀값/장부 변경 없음 |
 | `scripts/container-smoke.ts` | 소유한 폐기형 DB/mock의 foreground MCP 프로토콜 검사, 승인/전기 없음 |
 | `apps/mcp-server/src/*human-session*` | memory/선택적 PostgreSQL 세션, JWT/CSRF 암호화·토큰 해시·회사별 AAD, 승인 권한과 분리 |

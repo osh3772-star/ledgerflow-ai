@@ -14,15 +14,12 @@ Node 24, pnpm 11.25.
 
 ```powershell
 pnpm install --frozen-lockfile
-pnpm check
-pnpm evaluate
-pnpm web:build
-pnpm mcp:start
+pnpm start
 ```
 
 화면: `http://127.0.0.1:8787/`. 두 앱 MCP: `http://127.0.0.1:8787/mcp`. 프로젝트 `.mcp.json`과 `.codex/config.toml`이 같은 endpoint를 사용한다. 앱 신뢰/허용 설정 후 재로드한다. 서버 종료는 `stop` + Enter.
 
-demo DB는 종료 시 정리되고 같은 합성 1,000건으로 재생성된다. 지속 장부는 기존 PostgreSQL profile을 사용한다. [연결·stdio·인간 승인·DB 설정](docs/CLIENT_SETUP.md)
+`pnpm start`는 웹을 build하고 단일 로컬 demo 서버를 연다. `.env.local`의 Supabase 설정을 보존하면서 이 프로세스에는 폐기형 demo DB를 명시적으로 선택한다. 추가 로그인/클라우드 설정 없이 실행하며, 종료하면 DB가 정리되고 다음 실행에 같은 합성 1,000건으로 재생성된다. 지속 장부의 `pnpm mcp:start`/postgres 경로와 기존 안전 검사는 유지한다. [시연 순서와 완료 범위](docs/PORTFOLIO_READY.md), [연결·stdio·인간 승인·DB 설정](docs/CLIENT_SETUP.md).
 
 서버 실행 후 다른 터미널에서 `pnpm mcp:doctor`로 두 앱 설정·현재 Codex 등록·MCP 41개 도구·회사 범위 읽기를 점검한다. 결과는 `.ledgerflow/readiness/latest.json`에 저장하며 실제 앱 추론과 인간 승인은 별도로 확인한다.
 
@@ -31,6 +28,8 @@ demo DB는 종료 시 정리되고 같은 합성 1,000건으로 재생성된다.
 사용자 준비를 Aside AI로 진행할 때는 [한 번에 하나씩 전달하는 명령](docs/ASIDE_TASKS.md)을 사용한다. 외부 인증 DB의 선택적 [암호화 세션 저장](docs/SECURITY_SESSIONS.md)도 제공하며 기본 로컬 demo는 로그인 없이 유지한다.
 
 기존 Supabase 연결을 준비할 때는 [단계별 설정](docs/SUPABASE_SETUP.md)에 따라 세 연결값만 먼저 입력한다. `pnpm supabase:check`가 TLS·Auth health·DB schema metadata를 읽기 전용으로 점검하며, 자동 migration/seed·사용자 인증·Storage 검증을 수행한 것으로 표시하지 않는다.
+
+초기 schema 설치의 `pnpm supabase:init`도 기본은 읽기 계획이다. `--offline`은 로컬 migration manifest만 생성하고, 명시적인 `--apply --project=... --hash=...`만 빈 namespace에 6개 원본 migration을 한 트랜잭션으로 적용한다. 실제 Auth 사용자·ERP hosted 적재·서버 profile 전환은 후속 단계다.
 
 ## 키와 인간 승인
 
@@ -64,7 +63,7 @@ ECOS_API_KEY=
 
 최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 원격/Cloudflare 배포는 외부 수용 검증이 남아 있다.
 
-최종 타입 검사와 **192개 테스트 / 26개 파일**이 통과했다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
+로컬 타입 검사와 **211개 테스트 / 30개 파일**이 통과했다. 기존 공개 기준 CI의 192개와 새 로컬 검증 수를 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
 
 ![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
 

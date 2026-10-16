@@ -134,6 +134,7 @@ export async function checkSupabaseConnection(environment:NodeJS.ProcessEnv,
   else report.authHealth.errorCode='AUTH_HEALTH_REQUEST_FAILED';
   report.connectionChecksPassed=report.database.connected&&report.authHealth.healthy;
   report.nextAction=report.connectionChecksPassed?(report.ledgerflowSchemaReady?'provision_real_identities':'prepare_migrations')
-    :report.database.errorCode==='TLS_CERTIFICATE_ERROR'?'configure_database_ca':'resolve_connection_failure';
+    :report.database.errorCode==='TLS_CERTIFICATE_ERROR'?'configure_database_ca'
+    :report.database.errorCode==='DATABASE_AUTHENTICATION_FAILED'?'check_database_credentials':'resolve_connection_failure';
   return report;
 }

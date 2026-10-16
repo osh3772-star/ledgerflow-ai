@@ -39,7 +39,7 @@ function assertOwnedTempDirectory(base: string, directory: string) {
     throw new Error('Refusing to delete a directory outside LedgerFlow temporary data.');
   }
 }
-export async function startLocalPostgres(options: { throughMigration?: string } = {}) {
+export async function startLocalPostgres(options: { throughMigration?: string | null } = {}) {
   const base = resolve('.ledgerflow/tmp');
   await mkdir(base, { recursive: true });
   const directory = await mkdtemp(base + sep + 'pg-');
@@ -86,8 +86,9 @@ export async function startLocalPostgres(options: { throughMigration?: string } 
       await client.query(await readFile(resolve('tests/support/auth-bootstrap.sql'), 'utf8'));
       const migrationDirectory = resolve('supabase/migrations');
       const migrations = (await readdir(migrationDirectory)).filter((name) => /^\d+_.+\.sql$/u.test(name)).sort();
-      const stopIndex=options.throughMigration?migrations.indexOf(options.throughMigration):migrations.length-1;
-      if(stopIndex<0)throw new Error('Requested local migration checkpoint was not found.');
+      // null is a fresh, test-owned Auth harness for initial migration tests.
+      const stopIndex=options.throughMigration===null?-1:options.throughMigration?migrations.indexOf(options.throughMigration):migrations.length-1;
+      if(options.throughMigration!==null&&stopIndex<0)throw new Error('Requested local migration checkpoint was not found.');
       for (const migration of migrations.slice(0,stopIndex+1)) await client.query(await readFile(resolve(migrationDirectory, migration), 'utf8'));
     } finally { client.release(); }
     return {

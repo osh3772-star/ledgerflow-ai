@@ -47,6 +47,8 @@
 
 ## 다음 최소 단위
 
+최신 사용자 지시에 따라 추가 Supabase 설정 요청을 보류하고 [로컬 포트폴리오 실행판](PORTFOLIO_READY.md)을 마무리한다. `pnpm start`로 웹 build와 기존 단일 demo 서버를 켜며 저장된 클라우드 설정과 지속 DB 통제를 보존한다. 아래 hosted 계획은 향후 재개 범위이며 현재 사용자의 선행 작업이 아니다.
+
 핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 사용자 지시에 따라 현재 최소 단위는 **기존 Supabase 연결값 3개 준비 → TLS/Auth health/DB metadata 읽기 전용 진단**이다. [단계별 연결 계획](SUPABASE_SETUP.md)을 따른다. 실제 Claude Code/Codex 공유 Draft·인간 승인·Posted 수용 테스트도 남아 있으며 DB 접속만으로 완료 처리하지 않는다.
 
 2026-10-15 연결 진단에서는 Codex CLI의 동일 HTTP 서버 등록과 실행 서버의 41개 도구·회사 범위 읽기를 확인했다. Claude Code 실행 파일과 외부 DB/Auth 연결값은 현재 환경에서 발견되지 않았다. 설정/프로토콜 검증이 통과해도 실제 앱 추론 수용 테스트는 완료로 바꾸지 않는다.
@@ -57,6 +59,6 @@
 
 첫 단위는 배포 준비 진단과 Docker/CI 코드 보강이다. `deploy:check`는 구성 여부만 확인하고 실제 외부 검증은 항상 별도로 남긴다. `container:smoke`는 소유한 폐기형 DB/mock만 사용해 단일 MCP의 health/status/context/catalog/읽기를 검증한다. Dockerfile은 비관리자·직접 Node 기동·health check를 제공하고 Compose는 host network의 서비스 하나다. CI는 Windows/Linux 회귀 후 Linux 이미지 내부 smoke를 실행하도록 작성했다. 현재 Windows 호스트에서 이 smoke를 실행한 결과를 실제 이미지/Linux 검증으로 표시하지 않는다. [실행 방법](DEPLOYMENT.md)
 
-사용자의 CLI 인증과 GitHub 업로드를 완료하고 Windows/Linux·이미지 CI를 통과했다. [실행 증거](CI_VALIDATION.md). Supabase는 기존 `회계자동화`를 재사용한다. 세 연결값 입력과 Auth health HTTP 200을 확인했으나 DB는 인증서 오류로 미연결이다. 현재 Aside 작업은 공개 DB CA 등록 한 가지다. 이후 연결 재진단 → migration 사전 계획 → 실제 Auth 신원/회사 scope → hosted 초기 적재 → Auth/Storage/RLS → 단일 서버 profile 전환을 검증 단위로 진행한다. 준비가 필요한 사용자 작업은 그때 한 가지씩 전달한다. 원격 OAuth/HTTPS는 별도 후속 범위다.
+사용자의 CLI 인증과 GitHub 업로드를 완료하고 Windows/Linux·이미지 CI를 통과했다. [실행 증거](CI_VALIDATION.md). Supabase는 기존 `회계자동화`를 재사용한다. 세 연결값·공개 CA 등록을 완료했으며 Auth health HTTP 200을 확인했다. DB는 현재 인증정보 거절로 미연결이다. Aside 작업은 Connect 대조와 DB 비밀번호 직접 입력 한 가지다. `supabase:init`의 offline manifest·기본 read-only 계획·명시적 project/hash 최초 설치 코드는 구현했다. 이후 연결 재진단 → 기존 객체 검토/최초 schema 적용 → 실제 Auth 신원/회사 scope → hosted fixture 적재 구현/검증 → Auth/Storage/RLS → 단일 서버 profile 전환을 진행한다. 준비가 필요한 사용자 작업은 그때 한 가지씩 전달한다. 원격 OAuth/HTTPS는 별도 후속 범위다.
 
 다음 원격 보안 단위로 선택적 PostgreSQL 인간 세션 저장을 구현했다. 006 migration을 기존 DB에서 명시적으로 적용하고 외부 JWT/서버 암호화 키가 있을 때만 선택한다. 완료 기준은 Node/MCP 재기동 후 동일 세션 복원, 회사/토큰 해시 결합, 변조·만료·직접 DB 접근·JWT 철회 거절, 키 생성 시 기존 설정 보존과 비출력이다. 실제 provider/OAuth/HTTPS는 별도 후속 단위다. 사용자 준비는 [Aside용 단계별 명령](ASIDE_TASKS.md)으로 전달하며 Aside가 사용자 장부 승인을 대신하지 않는다.

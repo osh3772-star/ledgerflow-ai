@@ -73,6 +73,13 @@ describe('explicit read-only hosted connection checks',()=>{
     expect(result.connectionChecksPassed).toBe(false);expect(result.authHealth.errorCode).toBe('API_KEY_REJECTED');
     expect(JSON.stringify(result)).not.toContain('private-provider-text');
   });
+  it('distinguishes rejected DB credentials from certificate failures without leaking provider errors',async()=>{
+    const database=vi.fn(async()=>{throw Object.assign(new Error('private-password-rejected'),{code:'28P01'});});
+    const result=await checkSupabaseConnection(environment,{database,fetcher:healthy});
+    expect(result).toMatchObject({connectionChecksPassed:false,nextAction:'check_database_credentials',
+      database:{connected:false,errorCode:'DATABASE_AUTHENTICATION_FAILED'},authHealth:{healthy:true}});
+    expect(database).toHaveBeenCalledOnce();expect(JSON.stringify(result)).not.toContain('private-password-rejected');
+  });
   it('bounds untrusted health responses and redacts request errors',async()=>{
     for(const fetcher of [
       async()=>Response.json({name:'GoTrue',extra:'x'.repeat(8193)}),

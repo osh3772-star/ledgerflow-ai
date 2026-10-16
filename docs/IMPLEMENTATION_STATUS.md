@@ -29,6 +29,7 @@
 | --- | --- |
 | 공개 기준 소스의 `pnpm check` | `7b3b4ba`의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
 | Supabase 진단 개발 브랜치의 로컬 `pnpm check` | Windows 205 tests / 28 files 통과, 243.66초. 신규 12개 단위/1개 metadata 통합 포함; 새 원격 CI 결과는 아님 |
+| 로컬 실행판 최종 `pnpm check` | Windows 211 tests / 30 files 통과, 359.19초. 단일 명령 launcher 추가 후 전체 재검사 |
 | `pnpm web:build` | Astro static build 통과 |
 | `pnpm evaluate` | Draft 성공 1,000/1,000, 계정 set 분류 1,000/1,000 |
 | 수기 분개 gold | 10/10 line exact match, 기존 매출 gold 유지 |
@@ -48,11 +49,11 @@
 | PostgreSQL 세션 집중 검사 | 5개 통합 테스트: runtime 재연결·같은 Cookie/CSRF, 암호문 비노출, 회사/해시 복사·변조·만료·직접 접근·잘못된 RLS 거절; Auth는 stub |
 | 세션 단위 검사 | TTL/삭제/암호화·키·JWT 철회·저장소 장애·CSRF·HTTPS Cookie·키 파일 보존/lock 검증 |
 | skill validator | 12/12 유효 |
-| 키 노출 검사 | 공개 대상 176개 파일에서 실제 API/서버 키·DB URI·Supabase publishable key raw/encoded 노출 0 |
+| 키 노출 검사 | 공개 대상 182개 파일에서 실제 API/서버 키·DB URI·Supabase publishable key raw/encoded 노출 0 |
 | 수정 전 백업 | 99개 source/doc, SHA mismatch 0, 키 미포함 |
 | 원본 보존 재검사 | migration 001~003과 ERP 생성 코드 2개가 기존 백업의 SHA와 일치 |
 
-최근 evaluation은 약 59ms였으며 메모리 내 합성 Draft 생성/분류만 측정한다. DB round trip·앱 AI 추론·인간 승인 대기 시간을 포함하지 않는다. 이전 측정 70~191ms와 같은 환경에서도 변동하므로 운영 처리량 보장으로 사용하지 않는다. [측정 JSON](EVALUATION.json)
+최근 로컬 evaluation은 202ms였으며 메모리 내 합성 Draft 생성/분류만 측정한다. DB round trip·앱 AI 추론·인간 승인 대기 시간을 포함하지 않는다. 이전 측정 약 59~191ms와 같은 환경에서도 변동하므로 운영 처리량 보장으로 사용하지 않는다. [측정 JSON](EVALUATION.json)
 
 MCP 도구 호출의 duration/outcome/errorCode는 `mcp_tool_calls`와 ignored JSONL에 기록한다. 고의적인 validation/권한 거절과 정상 처리 실패를 분리해 성공률을 계산해야 한다. 프로젝트가 호출한 유료 모델 API는 0회/0원이며 구독 앱의 추론량·비용은 미측정(null)이다.
 
@@ -68,8 +69,25 @@ Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유
 - 진단과 기존 postgres runtime의 Supabase TLS 설정을 공통화했다. CA·hostname 검증, 선택 CA 파일, URL SSL 옵션의 검증 우회 거절을 적용했다.
 - 집중 단위 테스트 12개와 신규 읽기 metadata 통합 검사를 포함한 로컬 `pnpm check` 205개/28 files 통과(243.66초). 기존 회계 assertion과 제한 시간은 유지했다.
 - 첫 전체 실행은 204개 통과/기존 upgrade 테스트 1개 60초 초과였다. Windows `pg_ctl`의 상속된 stdout pipe가 명령 종료를 지연시키는 것을 분리 측정했다(기존 35.027초, `spawn`/`stdio: ignore` 0.892초). readiness `-w`와 시작/종료 제한은 유지하고 pipe를 분리했다. 해당 upgrade 테스트는 수정 후 19.16초에 통과했고, 이어 위 전체 검사를 통과했다. Linux 기동 경로와 소유한 임시 DB만 정리하는 경계는 유지했다.
-- 실제 세 연결값 입력과 프로젝트 일치 검사를 통과했다. Auth health HTTP 200/GoTrue를 확인했으며 DB는 `TLS_CERTIFICATE_ERROR`로 미연결이다. 다음 사용자 작업은 공개 DB CA 파일 등록 한 가지다. 실제 Auth 사용자, Storage, 데이터 초기화, profile 전환은 아직 미검증/미수행이다.
+- 실제 세 연결값과 공개 CA를 등록했다. 재검사에서 Auth health HTTP 200/GoTrue를 확인했으며 DB는 인증서 오류 대신 `DATABASE_AUTHENTICATION_FAILED`로 미연결이다. 설정 중복/상속/활성값·파일 일치/사용자명/포트/드라이버 decode의 비출력 검사는 정상이다. 사용자가 시연판 마무리를 우선해 추가 재입력 요청을 보류했다. 실제 Auth 사용자, Storage, 데이터 초기화, profile 전환은 아직 미검증/미수행이다.
 - 이 단위의 개발 브랜치는 `codex/supabase-connection-check`다. 기존 공개 기준 CI 기록의 192개 결과를 새 진단 소스의 원격 CI 결과로 바꾸지 않는다.
+
+## Supabase 최초 schema 설치 단위
+
+`supabase:init --offline`은 네트워크 없이 원본 6개 migration의 순서/bytes/SHA256과 transaction framing을 검증하고 ignored manifest를 만든다. 기본 `supabase:init`은 실제 연결 후 읽기 전용으로 기존 객체와 Auth/Storage 제공 여부를 확인한다. `--apply --project=... --hash=...`만 명시적 최초 설치를 허용한다. 한 트랜잭션·제한된 advisory lock·private/RLS receipt를 사용하며 기존 객체/다른 hash/로컬 Auth emulator를 거절한다. 이미 완료한 같은 설치는 쓰지 않고 반환한다. 기존 schema upgrade나 CLI history repair 도구는 아니다.
+
+- 집중 테스트 14개 통과(새 최초 설치 5개 + 진단 9개). 후기 DDL 장애에서 앞선 테이블/receipt까지 rollback, unrelated 데이터 보존, 재실행 멱등성, Auth 사용자/ERP/전표 0행을 테스트 소유 native DB에서 확인했다.
+- 최초 설치 소스의 전체 `pnpm check` 211개/30 files 통과(301.64초). 후속 단일 명령 로컬 launcher를 추가했으며 최종 전체 검사는 별도 기록한다. 기존 205개 로컬/192개 CI 기록과 구분한다.
+- 실제 hosted 적용은 DB 인증정보 거절로 수행하지 않았다. 인증서가 있는 것만으로 DB 연결 성공이나 초기화를 완료 처리하지 않는다.
+- 새 hosted fixture 적재·실제 Auth UUID 매핑은 아직 미구현이다. 기존 native seed의 bootstrap 전용 제한을 보존했고 Auth 사용자 직접 INSERT로 우회하지 않는다. 실제 Auth/Storage/RLS·서버 전환·두 앱의 사용자 승인 후 Posted 수용 검증도 남아 있다.
+
+## 로컬 포트폴리오 실행판
+
+사용자가 추가 클라우드 설정보다 실행판 마무리를 우선했다. `pnpm start`를 추가해 웹 build → 기존 단일 foreground demo 서버를 한 번에 실행한다. 해당 프로세스에만 `demo`/빈 DB URL/`memory` session을 명시적으로 선택한다. 파일의 Supabase/API 키·CA를 변경하지 않고 지속 profile의 URL 충돌 거절·외부 JWT 통제도 그대로 유지한다.
+
+실제 `pnpm start` 기동과 Astro build를 통과했다. 기존 소유 서버를 `stop`으로 종료한 뒤 새 서버 하나를 `127.0.0.1:8787`에 기동했다. 이어 `mcp:doctor`에서 41개 도구·회사 범위·합성 거래 1건 읽기·두 프로젝트 설정/Codex CLI 등록 일치를 확인했다. 장부 변경·공공 API 호출·유료 추론은 0회다. 실제 앱 추론은 여전히 별도 미검증이며 이번에 새로운 브라우저 시각 검토를 수행한 것은 아니다.
+
+단일 명령 추가 후 최종 전체 `pnpm check` 211개/30 files가 통과했다(359.19초). `pnpm evaluate` 1,000건·수기 gold 10개·오류 5개, 웹 build, 실행 중인 MCP의 읽기 진단도 통과했다. 공개 대상 182개 파일의 실제 키 노출은 0건이다. [실행/시연 순서와 제한](PORTFOLIO_READY.md). 현재 사용자가 수행할 새 Aside 작업은 없다.
 
 ## 실제 공공 API 확인 범위
 
@@ -94,7 +112,8 @@ Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유
 | 실제 Claude Code와 Codex의 연결·역할 추론 | 설정/SDK/자가진단 완료, Codex CLI 등록 일치; Claude Code 실행 파일 미발견, 실제 앱 추론 수용 테스트 미수행 |
 | 실제 Supabase Auth/Storage/PostgREST | Auth health HTTP 200 확인; 사용자 JWT·Storage·PostgREST 동작은 미검증 |
 | Storage RLS SQL | PostgreSQL stand-in 테이블에서 policy 검증, 실제 Storage 서비스/JWT 검증과 구분 |
-| 외부 지속 PostgreSQL runtime | 테스트 소유 native DB 재연결·보존 검증; 실제 Supabase는 TLS 인증서 오류로 미연결, CA 등록 필요 |
+| 외부 지속 PostgreSQL runtime | 테스트 소유 native DB 재연결·보존 검증; 실제 Supabase는 CA 등록 후 DB 인증정보 거절로 미연결 |
+| hosted fixture 초기 적재 | native 1,000건 seed는 보존; 실제 Auth UUID 매핑과 hosted 전용 적재 절차는 미구현 |
 | 원격 MCP OAuth·HTTPS·외부 세션 저장소 | 암호화 PostgreSQL 세션은 구현/로컬 검증; 실제 provider·MCP OAuth/HTTPS는 미구현/미검증, loopback 유지 |
 | 로컬 Docker Desktop/Compose | Linux 이미지의 실제 CI build/run 통과. 로컬 설치는 생략했으며 Desktop·host-network Compose는 미검증 |
 | Cloudflare backend | 미배포; native DB/fs/Node HTTP/session 때문에 Workers 전체 호환 미입증 |

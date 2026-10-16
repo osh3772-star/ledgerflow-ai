@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T23:01:44.565Z",
+  "generatedAt": "2026-10-16T04:08:10.931Z",
   "fixtureHash": "7b39cbe1ca5695767702c02b61b4222799f2df8a08a38a22151cd1bd1e9f0820",
   "transactions": 1000,
   "deterministicProcessingSuccess": {
@@ -25,7 +25,7 @@
   },
   "deterministicDraftRatio": 1,
   "postingApprovalPolicy": "100% of postings require separate human approval",
-  "wallTimeMs": 59,
+  "wallTimeMs": 202,
   "paidModelApiCalls": 0,
   "paidModelApiCost": 0,
   "nativeAppInferenceCost": null,
