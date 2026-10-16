@@ -1,6 +1,6 @@
 # LedgerFlow architecture
 
-2026-10-15 현재 구현을 설명한다. 이전 Phase 기록은 당시 결과이며 현재 기능 목록은 이 문서와 MCP 카탈로그를 기준으로 한다.
+2026-10-16 현재 구현을 설명한다. 이전 Phase 기록은 당시 결과이며 현재 기능 목록은 이 문서와 MCP 카탈로그를 기준으로 한다.
 
 ## 실행 구조
 
@@ -42,6 +42,8 @@ flowchart TD
 | `apps/web` | Astro 정적 출력 + React 화면, 동일 출처 API 호출 |
 | `scripts/check-connections.ts` | 기존 서버·두 앱 설정/현재 Codex 등록의 읽기 진단, 추론/승인/전기 없음 |
 | `scripts/database-readiness.ts` | 기존 PostgreSQL의 필수 schema 읽기 점검, 자동 migration/seed 없음 |
+| `scripts/postgres-connection.ts` | 지속 runtime/진단 공통 연결 설정, Supabase TLS CA·hostname 검증과 선택 CA 파일 |
+| `scripts/check-supabase.ts` / `supabase-readiness.ts` | 명시적 Auth health·read-only catalog 진단, 비밀값 없는 결과와 연결/schema 준비 상태 분리 |
 | `scripts/check-deployment.ts` | 계정·도구·설정의 존재와 담당자별 후속 작업 출력, 비밀값/장부 변경 없음 |
 | `scripts/container-smoke.ts` | 소유한 폐기형 DB/mock의 foreground MCP 프로토콜 검사, 승인/전기 없음 |
 | `apps/mcp-server/src/*human-session*` | memory/선택적 PostgreSQL 세션, JWT/CSRF 암호화·토큰 해시·회사별 AAD, 승인 권한과 분리 |
@@ -51,6 +53,8 @@ flowchart TD
 서버 SDK `@modelcontextprotocol/server@2.3.1`와 Hono bridge `2.1.5`, 검증 클라이언트 SDK `2.3.1`을 고정했다. 웹은 Astro `7.3.8`, React integration `7.0.1`, React `19.3.0`다. Node `24`를 사용한다. 공식 v2 명세와 설치 패키지를 확인했다. [MCP SDK v2](https://ts.sdk.modelcontextprotocol.io/v2/)
 
 실행 profile은 폐기 가능한 native PostgreSQL `demo`와 사용자가 준비한 기존 DB의 `postgres`다. `postgres`는 기존 자료·권한을 초기화하지 않으며 필수 테이블/RPC/전표 컬럼을 확인한 뒤 회사 scope를 검사한다. 초기화 실패 시 pool을 닫고, 정상 종료 후 재기동해도 기존 DB의 Draft와 hash를 그대로 조회한다. 인간 승인은 이 profile에서 외부 검증 JWT가 필요하다. 로컬 demo의 로그인 없는 고정 운영자를 기존 DB에 적용하지 않는다.
+
+Supabase 연결은 [단계별 설정](SUPABASE_SETUP.md)으로 준비한다. 이 PC의 Session pooler/5432 문자열은 Connect 화면에서 가져오며 지역명으로 host를 추측하지 않는다. hosted 연결의 URI SSL 옵션이 명시적 검증 설정을 덮어쓰지 못하게 분리하고 `rejectUnauthorized: true`와 hostname 검증을 유지한다. `supabase:check`는 키를 서버 측에서만 사용하며 Auth health와 DB catalog만 읽는다. 사용자 JWT·Storage·장부 운영 검증과 연결 성공을 구분하며 migration/seed는 자동 수행하지 않는다. 실제 연결 진행 상태는 [검증 기록](IMPLEMENTATION_STATUS.md)에 별도로 남긴다.
 
 `pnpm mcp:doctor`는 status/context → catalog → 회사 범위 거래 최대 1건 순서의 SDK 검증이다. 서버를 추가로 띄우거나 모델 추론을 실행하지 않는다. 두 앱의 프로젝트 설정, Codex CLI 등록, 실제 프로토콜 읽기, 실제 앱의 추론 수용 테스트를 구분해서 기록하며 마지막 항목은 자가진단으로 증명하지 않는다.
 

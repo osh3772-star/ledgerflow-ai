@@ -1,6 +1,6 @@
 # Implementation plan
 
-2026-10-15 현재 사용자가 요청한 미구현 기능을 작은 검증 단위로 추가했다. 단일 공유 MCP, 앱 주도 추론, 기존 ERP/Decimal/PostgreSQL/공공 API probe를 유지한다. 수정 전 공개 소스 99개를 키 제외 백업했으며 이전 M1 백업 58개도 보존한다.
+2026-10-16 현재 사용자가 요청한 미구현 기능을 작은 검증 단위로 추가했다. 단일 공유 MCP, 앱 주도 추론, 기존 ERP/Decimal/PostgreSQL/공공 API probe를 유지한다. 수정 전 공개 소스 99개를 키 제외 백업했으며 이전 M1 백업 58개도 보존한다.
 
 | 단계 | 현재 코드 | 완료 기준 / 검증 방법 |
 | --- | --- | --- |
@@ -11,7 +11,7 @@
 | M5 API·대사 | 4 Adapter / 11 공공 도구, DB cache, 현금 대사 | 전체 mock + 일부 live, 오류 미캐시·timeout/retry·출처 분리, 금액/방향/날짜 match |
 | M6 native 역할 | 두 앱 각각 6 agent/skill, 구조화 Result 기록 | 설정·skill 유효성, 실제 DB Posted 근거 검사; 실제 앱 추론 실행은 별도 수동 검증 |
 | M7 결산·웹 | 상각·선급 차액 Draft, 마감 gate, Astro React | 완결된 월을 독립 승인 후 마감, 마감 후 전기 금지, UI build/브라우저 검토 |
-| M8 배포 검증 | 기존 PostgreSQL 재기동 보존·schema gate, Supabase Auth/Storage 코드·RLS, 비관리자 Docker/Compose·Windows/Linux CI·deploy:check | 로컬 기존 DB profile/foreground smoke 검증; 실제 hosted Supabase 인증/Storage/RLS 및 Docker/Linux/GitHub 실행은 외부 환경에서 검증해야 함 |
+| M8 배포 검증 | 기존 PostgreSQL 재기동 보존·schema gate, Supabase Auth/Storage 코드·RLS, 비관리자 Docker/Compose·Windows/Linux CI·deploy:check | 실제 Windows/Linux CI와 Linux Docker smoke 통과. hosted Supabase 인증/Storage/RLS·Desktop/Compose는 별도 후속 검증 |
 
 ## 테스트 전략
 
@@ -47,7 +47,7 @@
 
 ## 다음 최소 단위
 
-핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 다음 단위는 **실제 Claude Code와 Codex에서 같은 Draft 하나를 공유하고, 인간 화면 승인을 거쳐 Posted와 시산표를 확인하는 수동 수용 테스트**다. Supabase 연결 정보가 준비되면 동일 시나리오를 개발 프로젝트의 Auth/Storage에서 반복한다. 공개 GitHub remote와 배포 대상은 별도 외부 설정이다.
+핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 사용자 지시에 따라 현재 최소 단위는 **기존 Supabase 연결값 3개 준비 → TLS/Auth health/DB metadata 읽기 전용 진단**이다. [단계별 연결 계획](SUPABASE_SETUP.md)을 따른다. 실제 Claude Code/Codex 공유 Draft·인간 승인·Posted 수용 테스트도 남아 있으며 DB 접속만으로 완료 처리하지 않는다.
 
 2026-10-15 연결 진단에서는 Codex CLI의 동일 HTTP 서버 등록과 실행 서버의 41개 도구·회사 범위 읽기를 확인했다. Claude Code 실행 파일과 외부 DB/Auth 연결값은 현재 환경에서 발견되지 않았다. 설정/프로토콜 검증이 통과해도 실제 앱 추론 수용 테스트는 완료로 바꾸지 않는다.
 
@@ -57,6 +57,6 @@
 
 첫 단위는 배포 준비 진단과 Docker/CI 코드 보강이다. `deploy:check`는 구성 여부만 확인하고 실제 외부 검증은 항상 별도로 남긴다. `container:smoke`는 소유한 폐기형 DB/mock만 사용해 단일 MCP의 health/status/context/catalog/읽기를 검증한다. Dockerfile은 비관리자·직접 Node 기동·health check를 제공하고 Compose는 host network의 서비스 하나다. CI는 Windows/Linux 회귀 후 Linux 이미지 내부 smoke를 실행하도록 작성했다. 현재 Windows 호스트에서 이 smoke를 실행한 결과를 실제 이미지/Linux 검증으로 표시하지 않는다. [실행 방법](DEPLOYMENT.md)
 
-GitHub 앱의 프로필 조회는 성공했고 로컬 CLI는 로그아웃 상태다. 저장소가 준비되면 Codex가 공개 파일 검토·commit/연결/push·CI 결과 확인을 이어간다. CLI 경로를 선택할 때만 별도 로그인이 필요하다. Supabase 개발 프로젝트가 준비되면 migration/실제 Auth 사용자·회사 권한을 맞춘 뒤 Auth/Storage/RLS 실검증을 수행한다. 원격 보안은 클라이언트별 인증 발급자와 대상 환경을 확정하고 작은 검증 단위로 구현한다.
+사용자의 CLI 인증과 GitHub 업로드를 완료하고 Windows/Linux·이미지 CI를 통과했다. [실행 증거](CI_VALIDATION.md). Supabase는 기존 `회계자동화`를 재사용한다. 세 연결값 입력과 Auth health HTTP 200을 확인했으나 DB는 인증서 오류로 미연결이다. 현재 Aside 작업은 공개 DB CA 등록 한 가지다. 이후 연결 재진단 → migration 사전 계획 → 실제 Auth 신원/회사 scope → hosted 초기 적재 → Auth/Storage/RLS → 단일 서버 profile 전환을 검증 단위로 진행한다. 준비가 필요한 사용자 작업은 그때 한 가지씩 전달한다. 원격 OAuth/HTTPS는 별도 후속 범위다.
 
 다음 원격 보안 단위로 선택적 PostgreSQL 인간 세션 저장을 구현했다. 006 migration을 기존 DB에서 명시적으로 적용하고 외부 JWT/서버 암호화 키가 있을 때만 선택한다. 완료 기준은 Node/MCP 재기동 후 동일 세션 복원, 회사/토큰 해시 결합, 변조·만료·직접 DB 접근·JWT 철회 거절, 키 생성 시 기존 설정 보존과 비출력이다. 실제 provider/OAuth/HTTPS는 별도 후속 단위다. 사용자 준비는 [Aside용 단계별 명령](ASIDE_TASKS.md)으로 전달하며 Aside가 사용자 장부 승인을 대신하지 않는다.

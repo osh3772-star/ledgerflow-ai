@@ -4,6 +4,7 @@ import {generateFullErpSeed} from '@ledgerflow/test-data';
 import {startLocalPostgres} from '../../scripts/local-postgres.js';
 import {seedFullDatabase} from '../../scripts/seed-full-database.js';
 import {createMcpRuntime} from '../../scripts/mcp-runtime.js';
+import {readSupabaseMetadata} from '../../scripts/supabase-readiness.js';
 
 describe('existing PostgreSQL runtime preserves its database and fails closed',()=>{
  const seed=generateFullErpSeed(),companyId=seed.companies[0]!.id,writer=seed.identities.find(r=>r.companyId===companyId&&r.role==='preparer')!;
@@ -22,6 +23,16 @@ describe('existing PostgreSQL runtime preserves its database and fails closed',(
    await expect(createMcpRuntime(environment)).rejects.toMatchObject({code:'DATABASE_SCHEMA_INCOMPLETE'});
    expect((await db.pool.query("SELECT to_regclass('public.journal_entries') AS name")).rows[0]!.name).toBeNull();
    expect(await count()).toBe(1001);expect(await connections()).toBe(0);
+ });
+ it('reads hosted-setup metadata from an existing database without changing ERP rows or applying missing migrations',async()=>{
+   const before=await count();
+   const result=await readSupabaseMetadata({connectionString:environment.LEDGERFLOW_DATABASE_URL!});
+   expect(result.serverVersionNumber).toBeGreaterThanOrEqual(170000);
+   expect(result).toMatchObject({authSchemaPresent:true,storageTablesPresent:false,discardedColumnPresent:false,rlsDisabled:[]});
+   expect(result.missingTables).toContain('journal_entries');
+   expect(result.missingProcedures).toContain('public.accounting_command(uuid,text,jsonb)');
+   expect(await count()).toBe(before);
+   expect((await db.pool.query("SELECT count(*)::int AS n FROM pg_stat_activity WHERE application_name='ledgerflow-supabase-check'")).rows[0]!.n).toBe(0);
  });
  it('retains a Draft across two app runtimes without resetting rows or enabling anonymous approval',async()=>{
    for(const name of ['202610140004_accounting.sql','202610140005_controls.sql'])await db.pool.query(await readFile('supabase/migrations/'+name,'utf8'));

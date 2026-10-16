@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 실제 두 앱 수용 테스트 | Claude Code 설치/로그인, 두 앱 프로젝트 신뢰·MCP 허용·재로드 | 동일 endpoint/역할 설정 관리, 도구 실행 결과와 공유 전표 흐름 검증 | Codex CLI 등록/SDK 검증 완료; 실제 앱 추론 미검증 |
 | 전표 승인 | 화면에서 전표·증빙·version/hash를 검토하고 승인 또는 반려 | 승인 요청 생성·검증, 사용자 결정 후 MCP로 상태 확인·전기·시산표 검증 | 개발 테스트 완료; 실제 사용자의 승인은 대신 수행하지 않음 |
-| Supabase | 기존 `회계자동화` 프로젝트의 연결값을 `.env.local`에 직접 입력, 테스트 Auth 사용자 준비 | migration/회사·principal·scope 준비 지원, Auth/Storage/RLS·재연결 테스트 | 기존 프로젝트 재사용 결정; 연결 코드와 로컬 DB 검증 완료, hosted 연결 미설정 |
+| Supabase | 세 연결값 입력 완료. 지금은 Aside 2-1번으로 공개 DB 루트 CA 등록 | TLS/Auth health/읽기 metadata 재진단, 이후 migration·실제 신원/회사 scope·Auth/Storage/RLS 검증 | Auth health HTTP 200; DB는 TLS 인증서 오류로 미연결 |
 | GitHub | 저장소 생성·CLI 인증 완료, 추가 입력 없음 | 공개 파일/키 검사, push와 CI 실행 결과 확인 완료 | [공개 저장소](https://github.com/osh3772-star/ledgerflow-ai)에 업로드, Windows/Linux CI 통과 |
 | Docker | 로컬 설치 생략, 추가 설치 없음 | GitHub Linux CI 이미지 build·일반 사용자 foreground smoke 검증 완료 | 실제 Docker/CI 통과; Desktop·Compose 실행은 별도 미검증 |
 | 원격 배포 | 필요할 때 계정·도메인·비용 한도와 대상 선택 | HTTPS·클라이언트별 OAuth·영속 세션·배포/회귀 테스트 구현 | 선택적 암호화 PostgreSQL 세션 구현; OAuth/HTTPS·실제 provider/배포 검증 남음 |
@@ -15,7 +15,7 @@
 ## 지금 사용자가 준비할 최소 항목
 
 1. GitHub 저장소 생성·CLI 인증·코드 업로드·Windows/Linux CI·이미지 smoke 검증은 완료했다. [실행 결과](CI_VALIDATION.md). 사용자가 다시 로그인하거나 토큰을 전달할 필요는 없다.
-2. Supabase 실검증에는 기존 `회계자동화` 프로젝트의 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `LEDGERFLOW_DATABASE_URL`을 ignored `.env.local`에 직접 입력한다. 프로젝트 설정 후 테스트용 Auth 사용자를 준비한다. 실제 사용자 UUID와 회사 UUID가 준비된 다음 `LEDGERFLOW_USER_ID`/`LEDGERFLOW_COMPANY_ID`를 설정한다. 존재하지 않는 UUID나 테스트 fixture의 Auth UUID를 그대로 적용하지 않는다.
+2. 세 연결값 입력은 확인했다. 실제 진단의 DB 인증서 오류를 해결하기 위해 지금은 [Aside의 CA 등록 명령](ASIDE_TASKS.md#2-1-db-루트-ca-인증서-등록--현재-사용자-작업) 하나만 수행한다. 이후 Codex가 `supabase:check`를 다시 실행한다. Auth 사용자·회사 UUID 등은 다음 단계에 한 가지씩 전달하며 UUID/mode는 아직 바꾸지 않는다. [연결 계획](SUPABASE_SETUP.md).
 3. 실제 두 앱의 수용 테스트는 앱 로그인·프로젝트 허용·재로드 후 진행한다. 전표 승인 단계만 사용자가 화면에서 직접 결정한다.
 
 위 항목을 기다리는 동안 로컬 개발·문서·테스트는 계속할 수 있다. 기존 4개 공공 API 키를 다시 발급받거나 전송할 필요는 없다. Docker 설치와 유료 배포는 로컬 포트폴리오 실행의 필수 조건이 아니다.

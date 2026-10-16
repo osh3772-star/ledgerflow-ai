@@ -30,6 +30,8 @@ demo DB는 종료 시 정리되고 같은 합성 1,000건으로 재생성된다.
 
 사용자 준비를 Aside AI로 진행할 때는 [한 번에 하나씩 전달하는 명령](docs/ASIDE_TASKS.md)을 사용한다. 외부 인증 DB의 선택적 [암호화 세션 저장](docs/SECURITY_SESSIONS.md)도 제공하며 기본 로컬 demo는 로그인 없이 유지한다.
 
+기존 Supabase 연결을 준비할 때는 [단계별 설정](docs/SUPABASE_SETUP.md)에 따라 세 연결값만 먼저 입력한다. `pnpm supabase:check`가 TLS·Auth health·DB schema metadata를 읽기 전용으로 점검하며, 자동 migration/seed·사용자 인증·Storage 검증을 수행한 것으로 표시하지 않는다.
+
 ## 키와 인간 승인
 
 키는 루트 ignored `.env.local`에 둔다. 새 checkout은 `.env.example`을 복사한다.

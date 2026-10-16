@@ -40,6 +40,8 @@ demo MCP 신원은 fixture viewer에 accounting:write/close만 추가하며 인�
 
 ## 기존 PostgreSQL / Supabase
 
+처음 hosted 연결을 준비할 때는 [Supabase 단계별 설정](SUPABASE_SETUP.md)에 따라 세 연결값만 먼저 입력하고 `pnpm supabase:check`로 읽기 전용 진단을 수행한다. 실제 Auth 신원·회사를 준비하기 전에 UUID/mode를 임의로 바꾸지 않는다. 진단과 postgres runtime은 공통 TLS 설정을 사용하며, Supabase CA가 필요하면 ignored 인증서 경로를 `LEDGERFLOW_DATABASE_CA_FILE`에 지정한다.
+
 `LEDGERFLOW_MCP_MODE=postgres`, server-only `LEDGERFLOW_DATABASE_URL`, `LEDGERFLOW_USER_ID`, `LEDGERFLOW_COMPANY_ID`를 설정한다. 이 모드는 자동 migration·seed·권한 부여를 수행하지 않는다. 001~005 migration, 실제 Auth 사용자/membership/principal/scopes, 회사/계정/원천자료를 개발 프로젝트에서 준비해야 한다. 테스트용 auth-bootstrap과 seed UUID를 실제 Supabase Auth에 직접 적용하지 않는다.
 
 기동 시 필요한 테이블·제한 RPC·현재 전표 컬럼을 읽기 전용으로 점검한다. 누락되면 `DATABASE_SCHEMA_INCOMPLETE`로 종료하고 DB를 자동 수정하지 않는다. 기존 DB 연결 모드는 독립 PostgreSQL 통합 테스트에서 동일 Draft/hash의 재기동 후 보존, 합성 1,001행의 비변경, 익명 승인 거절과 초기화 실패 시 연결 정리를 검증했다. 이는 실제 hosted Supabase 인증·Storage 검증과 구분한다.
@@ -64,4 +66,4 @@ cwd는 프로젝트 루트로 설정한다. 같은 프로세스가 8787 HTTP 화
 
 현재는 loopback Node 서버다. 선택적 암호화 DB 세션은 구현했으며 외부 배포 전에 HTTPS/OAuth·실제 provider/서버 세션·Supabase 권한 검증이 필요하다. Cloudflare는 정적 Astro 출력만 적합성 검토했으며 이 Node/native DB backend를 Workers에 배포하지 않았다. [구현 결과](IMPLEMENTATION_STATUS.md)
 
-`pnpm deploy:check`는 GitHub/Docker/DB 설정의 준비 여부와 담당자를 확인한다. 계정 로그인·프로젝트/저장소 선택·인간 결정은 [사용자 담당표](WORK_ASSIGNMENTS.md), Node 이미지/Compose/CI 실행은 [배포 문서](DEPLOYMENT.md)에 정리했다. Docker 실제 실행과 Linux CI 결과는 아직 확인하지 않았다.
+`pnpm deploy:check`는 GitHub/Docker/DB 설정의 준비 여부와 담당자를 확인한다. 계정 로그인·프로젝트/저장소 선택·인간 결정은 [사용자 담당표](WORK_ASSIGNMENTS.md), Node 이미지/Compose/CI 실행은 [배포 문서](DEPLOYMENT.md)에 정리했다. Windows/Linux CI와 Linux 이미지 내부 smoke는 [실제 실행 기록](CI_VALIDATION.md)에 보존했으며 실제 Supabase/앱 검증과 구분한다.

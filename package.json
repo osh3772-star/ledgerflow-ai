@@ -13,6 +13,7 @@
     "test:unit": "vitest run tests/unit",
     "test:db": "vitest run tests/integration",
     "env:check": "tsx scripts/check-env.ts",
+    "supabase:check": "tsx scripts/check-supabase.ts",
     "api:check": "tsx scripts/check-public-apis.ts",
     "api:adapters": "tsx scripts/check-public-adapters.ts",
     "env:import": "tsx scripts/import-api-keys.ts",

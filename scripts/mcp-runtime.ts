@@ -15,6 +15,7 @@ import { seedFullDatabase } from './seed-full-database.js';
 import {assertDatabaseReady} from './database-readiness.js';
 import {validateSessionEncryptionKey} from '../apps/mcp-server/src/human-session-store.js';
 import {PostgresHumanSessionStore} from '../apps/mcp-server/src/postgres-human-session-store.js';
+import {databasePoolOptions} from './postgres-connection.js';
 
 export async function createMcpRuntime(environment: NodeJS.ProcessEnv = process.env) {
   const profile = environment.LEDGERFLOW_MCP_MODE ?? 'demo';
@@ -49,9 +50,7 @@ export async function createMcpRuntime(environment: NodeJS.ProcessEnv = process.
     const company = uuidSchema.safeParse(environment.LEDGERFLOW_COMPANY_ID), user = uuidSchema.safeParse(environment.LEDGERFLOW_USER_ID);
     if (!company.success || !user.success) throw new Error('postgres mode requires valid server-side company/user IDs.');
     companyId = company.data; userId = user.data;
-    pool = new pg.Pool({ connectionString: environment.LEDGERFLOW_DATABASE_URL, max:4,
-      application_name:'ledgerflow-mcp',
-      connectionTimeoutMillis:10_000, statement_timeout:10_000, query_timeout:15_000 });
+    pool = new pg.Pool(await databasePoolOptions(environment));
     stopDatabase = () => pool.end();
   }
   try {

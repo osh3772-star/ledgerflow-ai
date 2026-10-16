@@ -7,7 +7,7 @@ try {
   const environment=parseEnv(readFileSync('.env.local','utf8'));
   const keys = selectPublicKeys(environment);
   const names = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
-  const serverSecrets=['LEDGERFLOW_MCP_TOKEN','LEDGERFLOW_SESSION_ENCRYPTION_KEY','LEDGERFLOW_DATABASE_URL']
+  const serverSecrets=['LEDGERFLOW_MCP_TOKEN','LEDGERFLOW_SESSION_ENCRYPTION_KEY','LEDGERFLOW_DATABASE_URL','SUPABASE_PUBLISHABLE_KEY']
     .map(name=>environment[name]?.trim()).filter((value):value is string=>Boolean(value));
   const variants = [...Object.values(keys),...serverSecrets].flatMap((key) => {
     try { return [key, encodeURIComponent(key), decodeURIComponent(key)]; } catch { return [key]; }

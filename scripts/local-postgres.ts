@@ -1,15 +1,24 @@
 import { mkdir, mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
 import { createServer } from 'node:net';
 import { resolve, sep } from 'node:path';
 import EmbeddedPostgres from 'embedded-postgres';
 import pg from 'pg';
 const { Pool } = pg;
-const run = promisify(execFile);
+
+function runPgCtl(executable: string, args: string[], timeout: number): Promise<void> {
+  return new Promise((resolveCommand, reject) => {
+    // The background server can inherit pg_ctl pipes on Windows. Waiting for
+    // their EOF delays execFile completion until its timeout, after a healthy
+    // start. pg_ctl -w confirms readiness; logs go to the owned server.log.
+    const child = spawn(executable, args, { stdio: 'ignore', windowsHide: true, timeout });
+    child.once('error', () => reject(new Error('PG_CTL_FAILED')));
+    child.once('exit', (code) => code === 0 ? resolveCommand() : reject(new Error('PG_CTL_FAILED')));
+  });
+}
 
 async function freePort(): Promise<number> {
   const server = createServer();
@@ -55,8 +64,7 @@ export async function startLocalPostgres(options: { throughMigration?: string } 
     // before cleanup, including the failed-start path; never stop a shared DB.
     try { await stat(resolve(directory, 'postmaster.pid')); }
     catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
-    await run(pgCtl, ['stop', '-D', directory, '-m', 'fast', '-w', '-t', '15'],
-      { windowsHide: true, timeout: 20_000, maxBuffer: 65_536 });
+    await runPgCtl(pgCtl, ['stop', '-D', directory, '-m', 'fast', '-w', '-t', '15'], 20_000);
   }
   let started = false;
   try {
@@ -68,9 +76,9 @@ export async function startLocalPostgres(options: { throughMigration?: string } 
       const nativeRequire = createRequire(createRequire(import.meta.url).resolve('embedded-postgres'));
       const binary = await import(pathToFileURL(nativeRequire.resolve('@embedded-postgres/windows-x64')).href) as { pg_ctl: string };
       pgCtl = binary.pg_ctl;
-      await run(pgCtl, ['start', '-D', directory, '-l', resolve(directory, 'server.log'),
+      await runPgCtl(pgCtl, ['start', '-D', directory, '-l', resolve(directory, 'server.log'),
         '-o', '-h 127.0.0.1 -p ' + port, '-w', '-t', '30'],
-      { windowsHide: true, timeout: 35_000, maxBuffer: 65_536 });
+      35_000);
     } else await cluster.start();
     started = true;
     const client = await pool.connect();

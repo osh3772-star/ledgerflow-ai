@@ -27,7 +27,8 @@
 
 | 검사 | 결과 |
 | --- | --- |
-| `pnpm check` | 현재 소스의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
+| 공개 기준 소스의 `pnpm check` | `7b3b4ba`의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
+| Supabase 진단 개발 브랜치의 로컬 `pnpm check` | Windows 205 tests / 28 files 통과, 243.66초. 신규 12개 단위/1개 metadata 통합 포함; 새 원격 CI 결과는 아님 |
 | `pnpm web:build` | Astro static build 통과 |
 | `pnpm evaluate` | Draft 성공 1,000/1,000, 계정 set 분류 1,000/1,000 |
 | 수기 분개 gold | 10/10 line exact match, 기존 매출 gold 유지 |
@@ -40,14 +41,14 @@
 | native 설정 | 두 앱 동일 endpoint·현재 allowlist, role/skill 동기화 |
 | `pnpm mcp:doctor` | 실행 서버 41개 도구·회사 범위 1건 조회, 두 프로젝트 설정 일치, Codex CLI의 enabled HTTP 등록 일치 |
 | 기존 PostgreSQL runtime | 3개 통합 검사: Draft/hash 재기동 보존, 미완성 schema 무변경 거절, 익명 승인/회사 위조 거절과 실패 시 pool 정리 |
-| `pnpm deploy:check` | 로컬 준비 통과, GitHub CLI 인증·commit/origin·웹 build·앱 설정 일치 확인. 로컬 Docker 미설치·hosted Supabase 미설정 |
+| `pnpm deploy:check` | 당시 로컬 준비 통과, GitHub CLI 인증·commit/origin·웹 build·앱 설정 일치 확인. 로컬 Docker 미설치; 현재 hosted 연결 상태는 아래 별도 기록 |
 | `pnpm container:smoke` | Windows 호스트의 테스트 소유 DB/mock에서 health·41개 도구·회사 내 1건 읽기 후 정상 종료; 실제 Docker 검증 아님 |
 | 실제 GitHub CI | [실행 #3](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38819739533): Windows/Linux check·평가·웹 build, Linux Docker build/이미지 내부 smoke 모두 성공 |
 | CI/Compose 파일 | YAML·PowerShell 파싱 확인, Windows/Linux matrix·contents:read·단일 host-network 서비스; Compose 실행은 별도 미검증 |
 | PostgreSQL 세션 집중 검사 | 5개 통합 테스트: runtime 재연결·같은 Cookie/CSRF, 암호문 비노출, 회사/해시 복사·변조·만료·직접 접근·잘못된 RLS 거절; Auth는 stub |
 | 세션 단위 검사 | TTL/삭제/암호화·키·JWT 철회·저장소 장애·CSRF·HTTPS Cookie·키 파일 보존/lock 검증 |
 | skill validator | 12/12 유효 |
-| 키 노출 검사 | 공개 대상 170개 파일에서 실제 API/서버 키 raw/encoded 노출 0 |
+| 키 노출 검사 | 공개 대상 176개 파일에서 실제 API/서버 키·DB URI·Supabase publishable key raw/encoded 노출 0 |
 | 수정 전 백업 | 99개 source/doc, SHA mismatch 0, 키 미포함 |
 | 원본 보존 재검사 | migration 001~003과 ERP 생성 코드 2개가 기존 백업의 SHA와 일치 |
 
@@ -58,6 +59,17 @@ MCP 도구 호출의 duration/outcome/errorCode는 `mcp_tool_calls`와 ignored J
 수기 gold는 10개뿐이다. 나머지 990개는 독립 line-level 정답이 아닌 계정 분류 검증이다. 작은 합성 정상/오류 표본의 Precision/Recall=1을 실제 기업 회계 정확도나 AI 판단 정확도라고 주장하지 않는다.
 
 Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유효 preparer 조회 0, read-only writer·외국 회사 prefix·잘못된 UUID 경로 거절을 확인했다. PostgreSQL stand-in 테이블 검사이며 hosted Storage의 인증/업로드 서비스 검증은 아니다.
+
+## Supabase 연결 준비 단위
+
+2026-10-16 사용자 지시에 따라 기존 `회계자동화` 연결부터 진행한다. [Aside 첫 명령](ASIDE_TASKS.md#2-기존-supabase-프로젝트-설정)은 세 연결값만 직접 입력하도록 제한한다. [설정·검증 범위](SUPABASE_SETUP.md).
+
+- `pnpm supabase:check`: Auth의 공식 health endpoint와 한 개의 read-only DB 연결로 구조 metadata를 검사한다. 키/DB URI/응답 원문을 출력하지 않으며 missing schema의 migration/seed도 하지 않는다.
+- 진단과 기존 postgres runtime의 Supabase TLS 설정을 공통화했다. CA·hostname 검증, 선택 CA 파일, URL SSL 옵션의 검증 우회 거절을 적용했다.
+- 집중 단위 테스트 12개와 신규 읽기 metadata 통합 검사를 포함한 로컬 `pnpm check` 205개/28 files 통과(243.66초). 기존 회계 assertion과 제한 시간은 유지했다.
+- 첫 전체 실행은 204개 통과/기존 upgrade 테스트 1개 60초 초과였다. Windows `pg_ctl`의 상속된 stdout pipe가 명령 종료를 지연시키는 것을 분리 측정했다(기존 35.027초, `spawn`/`stdio: ignore` 0.892초). readiness `-w`와 시작/종료 제한은 유지하고 pipe를 분리했다. 해당 upgrade 테스트는 수정 후 19.16초에 통과했고, 이어 위 전체 검사를 통과했다. Linux 기동 경로와 소유한 임시 DB만 정리하는 경계는 유지했다.
+- 실제 세 연결값 입력과 프로젝트 일치 검사를 통과했다. Auth health HTTP 200/GoTrue를 확인했으며 DB는 `TLS_CERTIFICATE_ERROR`로 미연결이다. 다음 사용자 작업은 공개 DB CA 파일 등록 한 가지다. 실제 Auth 사용자, Storage, 데이터 초기화, profile 전환은 아직 미검증/미수행이다.
+- 이 단위의 개발 브랜치는 `codex/supabase-connection-check`다. 기존 공개 기준 CI 기록의 192개 결과를 새 진단 소스의 원격 CI 결과로 바꾸지 않는다.
 
 ## 실제 공공 API 확인 범위
 
@@ -80,9 +92,9 @@ Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유
 | 항목 | 상태 / 필요한 다음 작업 |
 | --- | --- |
 | 실제 Claude Code와 Codex의 연결·역할 추론 | 설정/SDK/자가진단 완료, Codex CLI 등록 일치; Claude Code 실행 파일 미발견, 실제 앱 추론 수용 테스트 미수행 |
-| 실제 Supabase Auth/Storage/PostgREST | 연결 코드·policy 구현, URL/publishable/DB 연결 정보 미설정으로 hosted 검증 미수행 |
+| 실제 Supabase Auth/Storage/PostgREST | Auth health HTTP 200 확인; 사용자 JWT·Storage·PostgREST 동작은 미검증 |
 | Storage RLS SQL | PostgreSQL stand-in 테이블에서 policy 검증, 실제 Storage 서비스/JWT 검증과 구분 |
-| 외부 지속 PostgreSQL runtime | 기존 DB profile의 재연결·보존을 테스트 소유 native DB로 검증; 실제 외부 서버 연결값 미설정 |
+| 외부 지속 PostgreSQL runtime | 테스트 소유 native DB 재연결·보존 검증; 실제 Supabase는 TLS 인증서 오류로 미연결, CA 등록 필요 |
 | 원격 MCP OAuth·HTTPS·외부 세션 저장소 | 암호화 PostgreSQL 세션은 구현/로컬 검증; 실제 provider·MCP OAuth/HTTPS는 미구현/미검증, loopback 유지 |
 | 로컬 Docker Desktop/Compose | Linux 이미지의 실제 CI build/run 통과. 로컬 설치는 생략했으며 Desktop·host-network Compose는 미검증 |
 | Cloudflare backend | 미배포; native DB/fs/Node HTTP/session 때문에 Workers 전체 호환 미입증 |

@@ -35,14 +35,38 @@ CLI나 내 터미널에 접근할 권한이 없으면 설치/로그인 상태를
 사용자는 기존 `회계자동화` 프로젝트를 재사용하기로 했다. 아래 안내로 새 프로젝트를 만들지 않는다. Healthy/Free/싱가포르 상태는 사용자가 전달한 결과이며 Codex가 hosted 연결로 검증한 결과가 아니다.
 
 ```text
-LedgerFlow는 기존 Supabase 프로젝트 회계자동화를 그대로 쓸 거야.
-프로젝트 URL은 https://tbmdjifuqnnevduhbagd.supabase.co 야. 로그인한 계정에서 이 프로젝트가 맞는지 확인하고, 보이지 않으면 이유만 알려줘. 새 프로젝트는 만들지 마.
-유료 요금제 변경·결제·기존 DB 초기화·migration·SQL 실행·사용자 권한 부여·샘플 데이터 적재는 하지 마. 그 작업은 Codex가 준비할 거야.
-SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, LEDGERFLOW_DATABASE_URL을 확인/입력하는 위치를 안내해 줘. 비밀번호·DB 연결 문자열·키의 실제 값은 읽거나 채팅에 출력하지 말고 내가 직접 입력하게 해 줘.
-입력할 로컬 파일은 C:\Users\eric5\Documents\Codex\2026-10-14\ledgerflow-ai-mcp-ai-1-api\.env.local 이야. 기존 공공 API 키 4개를 덮어쓰거나 파일 전체를 출력하지 마.
-LEDGERFLOW_USER_ID와 LEDGERFLOW_COMPANY_ID는 아직 임의로 채우지 마. 실제 사용자/회사 준비 후 Codex가 안내할 거야.
-완료하면 기존 프로젝트 확인 여부와 세 설정의 입력 완료 여부만 알려줘. 실제 값을 열람하거나 연결을 시험하지 못했다면 입력·접속 성공을 추정하지 마.
+LedgerFlow의 기존 Supabase 프로젝트 ‘회계자동화’ 연결 설정만 도와줘.
+프로젝트 URL은 https://tbmdjifuqnnevduhbagd.supabase.co 야. 새 프로젝트는 만들지 마.
+아래 파일에서 내가 직접 세 값을 입력하도록 설정 위치와 편집 화면을 준비해 줘.
+C:\Users\eric5\Documents\Codex\2026-10-14\ledgerflow-ai-mcp-ai-1-api\.env.local
+SUPABASE_URL: 위 프로젝트 URL
+SUPABASE_PUBLISHABLE_KEY: Project Settings → API Keys의 Publishable key
+LEDGERFLOW_DATABASE_URL: 상단 Connect → Session pooler, 포트 5432의 연결 문자열
+키·DB 비밀번호·연결 문자열의 실제 값은 읽거나 채팅에 출력하지 마.
+DB 비밀번호는 내가 직접 입력하고, 예약문자는 URL 인코딩해야 한다고 안내해 줘.
+기존 공공 API 키 4개와 다른 설정은 보존해.
+사용자/회사 UUID와 실행 모드는 바꾸지 말고 서버 재시작·SQL·migration·데이터 적재도 하지 마.
+파일에 접근할 수 없으면 내가 직접 편집하도록 안내해 줘.
+완료하면 세 항목 각각 ‘입력 완료/미완료/미확인’ 여부만 알려줘.
 ```
+
+2026-10-16 세 값 입력 확인 완료. 실제 `supabase:check`는 설정의 프로젝트 일치와 Auth health HTTP 200을 확인했고, DB는 인증서 검증에서 멈췄다. 이 블록을 다시 실행하지 않고 다음 한 단계만 수행한다. [연결 절차와 검증 범위](SUPABASE_SETUP.md)
+
+## 2-1. DB 루트 CA 인증서 등록 — 현재 사용자 작업
+
+```text
+기존 Supabase ‘회계자동화’ 프로젝트에서 DB 연결용 루트 CA 인증서 등록만 도와줘.
+프로젝트: tbmdjifuqnnevduhbagd
+프로젝트 폴더: C:\Users\eric5\Documents\Codex\2026-10-14\ledgerflow-ai-mcp-ai-1-api
+Database Settings → SSL Configuration에서 제공하는 공개 루트 CA 인증서를 내려받아 프로젝트의 .ledgerflow\certs\supabase-root.crt에 저장해 줘.
+.env.local의 LEDGERFLOW_DATABASE_CA_FILE에 그 인증서의 절대 경로를 등록해 줘.
+기존 키와 연결 문자열은 보존하고 비밀값은 읽거나 출력하지 마.
+SSL 검증을 끄거나 SSL enforcement 설정을 변경하지 마. 서버 재시작·SQL·마이그레이션·데이터 적재도 하지 마.
+인증서 다운로드 또는 파일 편집이 불가능하면 필요한 화면만 열고 내가 직접 하도록 안내해 줘.
+완료 여부와 인증서 파일 경로만 보고해 줘.
+```
+
+이 공개 CA 파일은 비밀번호가 아니다. 등록 후 Codex가 TLS peer 검증을 유지한 채 같은 진단을 다시 실행한다. 사용자/회사 UUID·profile 전환과 hosted 초기화는 아직 다음 작업으로 넘기지 않는다.
 
 ## 3. 두 앱 연결 확인
 
