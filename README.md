@@ -69,7 +69,7 @@ ECOS_API_KEY=
 
 최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 원격/Cloudflare 배포는 외부 수용 검증이 남아 있다.
 
-로컬 및 Windows/Linux CI에서 **211개 테스트 / 30개 파일**이 통과했다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
+현재 로컬 검사는 **217개 테스트 / 31개 파일**이 통과했다. 재무 화면의 빈 장부·실제 잔액 0원·누적/기간 구분 회귀 검사 6개를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스는 211개/30개다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
 
 ![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
 

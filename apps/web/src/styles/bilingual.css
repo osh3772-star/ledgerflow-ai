@@ -20,12 +20,18 @@
   opacity: .85;
 }
 .brand-wordmark { display: grid; gap: 7px; min-width: 0; }
-.brand-name .bilingual-ko { color: #697f72; font-size: 11px; }
-.brand-tagline { color: #798c82; font-size: 8px; letter-spacing: 1.1px; }
-.brand-tagline .bilingual-ko { font-size: 10px; }
+.brand-tagline { color: #798c82; font-size: 10px; font-weight: 400; letter-spacing: .5px; }
 .company-card > div { min-width: 0; }
 .company-meta { display: flex; align-items: flex-start; gap: 4px; margin-top: 8px; color: #7c8884; font-size: 10px; }
-.eyebrow .bilingual-ko { color: #718278; font-size: 11px; }
+.data-origin-note strong { display: block; margin-bottom: 6px; }
+.data-origin-note p { margin: 0; line-height: 1.8; }
+.financial-pending { grid-column: span 2; }
+.financial-pending h2 { font-size: 21px; }
+.financial-pending > span { display: block; max-width: 530px; line-height: 1.8; }
+.report-empty { padding: 30px 23px; color: #6b8074; text-align: center; }
+.report-empty > span { font-size: 25px; color: #9ab8a6; }
+.report-empty h3 { margin: 12px 0 9px; font-size: 16px; color: #3d6550; }
+.report-empty p { max-width: 500px; margin: 0 auto; font-size: 12px; line-height: 1.9; }
 .state, .kind { display: inline-flex; vertical-align: middle; }
 .state .bilingual-ko, .kind .bilingual-ko { font-size: 10px; font-weight: 500; opacity: 1; }
 .flow li strong { display: block; min-height: 32px; }
@@ -34,5 +40,4 @@
 footer { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 @media (max-width: 680px) {
   .brand-tagline { display: none; }
-  .brand .brand-name .bilingual-ko { display: block; }
 }

@@ -2,9 +2,12 @@ import {useEffect,useState} from 'react';
 import '../styles/dashboard.css';
 import '../styles/bilingual.css';
 import BeginnerGuide,{GuideWelcome} from './BeginnerGuide.js';
+import {FinancialMetrics,BalanceSheetPanel,TrialBalancePanel} from './FinancialReports.js';
 type Row=Record<string,unknown>;
 type Company={companyId:string;name:string;periods:{id:string;from:string;to:string;status:string}[]};
 type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
+// Korean presentation name for the synthetic demo; preserve fixture IDs and hashes.
+const companyDisplayName='한빛유통 주식회사';
 const money=(value:unknown)=>{try{return BigInt(String(value??'0')).toLocaleString('ko-KR');}catch{return String(value??'—');}};
 async function api(path:string,init?:RequestInit){const r=await fetch(path,{...init,credentials:'same-origin'}),j=await r.json();
   if(!r.ok)throw new Error(String(j.error??'요청 실패'));return j;}
@@ -61,33 +64,31 @@ export default function Dashboard(){
     try{for(const documentId of selected.payload.sourceDocumentIds)await api('/api/human/evidence',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
       body:JSON.stringify({companyId:company.companyId,transactionId:selected.payload.transactionId,documentId})});setArchived(true);}catch(e){setError(String(e));}
   }
-  const pending=journals.filter(j=>j.state==='Approval'&&!j.discardedAt),posted=journals.filter(j=>j.state==='Posted'),bs=financial.balanceSheet as Row|undefined,is=financial.incomeStatement as Row|undefined;
+  const pending=journals.filter(j=>j.state==='Approval'&&!j.discardedAt),posted=journals.filter(j=>j.state==='Posted');
   return <div className="workspace">
-    <aside><a className="brand" href="/"><span className="mark" aria-hidden="true">L</span><div className="brand-wordmark"><BilingualText english="LedgerFlow" korean="레저플로" className="brand-name"/><BilingualText english="ACCOUNTING WORKSPACE" korean="회계 업무 공간" className="brand-tagline"/></div></a>
-      <div className="company-card"><span className="company-icon" aria-hidden="true">LT</span><div><strong><BilingualText english="LedgerFlow Trading" korean="레저플로 트레이딩"/></strong><div className="company-meta">가상 도소매 법인 · <BilingualText english="KRW" korean="대한민국 원"/></div></div></div>
+    <aside><a className="brand" href="/"><span className="mark" aria-hidden="true">한</span><div className="brand-wordmark"><span className="brand-name">한빛유통</span><span className="brand-tagline">회계 업무 공간</span></div></a>
+      <div className="company-card"><span className="company-icon" aria-hidden="true">한빛</span><div><strong>{companyDisplayName}</strong><div className="company-meta">가상 도소매 법인 · <BilingualText english="KRW" korean="대한민국 원"/></div></div></div>
       <nav aria-label="주요 메뉴">{tabs.map(([key,title,icon])=><button key={key} className={tab===key?'active':''} onClick={()=>{setTab(key);setSelected(undefined);}}><span>{icon}</span>{title}{key==='approval'&&pending.length>0&&<b>{pending.length}</b>}</button>)}</nav>
       <div className="sidebar-footer"><span className="dot"/>사용자 주도 실행<small>거래는 모두 가상 데이터입니다.</small></div>
     </aside>
-    <main><header><div className="breadcrumb">워크스페이스 <span>/</span> {tabs.find(t=>t[0]===tab)?.[1]}</div><span className="synthetic">가상회사</span><span className="avatar">LF</span></header>
-      <section className="heading"><div><p className="eyebrow"><BilingualText english="LEDGERFLOW TRADING CO., LTD." korean="레저플로 트레이딩 주식회사"/></p><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1><p>거래의 근거부터 승인된 장부까지, 한 곳에서 확인하세요.</p></div><div className="toolbar">
+    <main><header><div className="breadcrumb">워크스페이스 <span>/</span> {tabs.find(t=>t[0]===tab)?.[1]}</div><span className="synthetic">가상회사</span><span className="avatar">한빛</span></header>
+      <section className="heading"><div><p className="eyebrow">{companyDisplayName} · 가상 한국회사</p><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1><p>거래의 근거부터 승인된 장부까지, 한 곳에서 확인하세요.</p></div><div className="toolbar">
         <label className="sr-only" htmlFor="period">회계기간</label><select id="period" value={period} onChange={e=>{setPeriod(Number(e.target.value));setSelected(undefined);}}>
           {company?.periods.map((p,index)=><option key={p.id} value={index}>{p.from.slice(0,7)} · {p.status==='closed'?'마감':'열림'}</option>)}</select>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
+      {(tab==='overview'||tab==='transactions')&&<section className="notice data-origin-note" aria-label="거래 데이터 안내"><strong>처음부터 보이는 거래는 연습용 샘플입니다.</strong><p>기본 시연 데이터는 미리 만든 가상 거래 1,000건입니다. 실제 회사 거래나 은행에서 자동 수집한 내역이 아닙니다. 거래 조회와 장부 반영은 별개이며, 검증·사용자 승인·장부 반영을 거친 전표만 재무 보고서에 집계됩니다.</p></section>}
       {tab==='overview'&&<GuideWelcome onOpen={()=>{setTab('guide');setSelected(undefined);}}/>}
       {tab==='guide'&&<BeginnerGuide onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
       {(tab==='overview'||tab==='reports')&&<>
-        <div className="kpis"><Kpi label="기간 매출" value={money(is?.revenue)} hint="게시된 전표 기준"/><Kpi label="기간 순이익" value={money(is?.profit)} hint="세전 · 가상 시나리오"/>
-          <Kpi label="승인 대기" value={String(pending.length)} hint="전표 목록 최대 100건" unit="건"/><Kpi label="게시된 전표" value={String(posted.length)} hint="전표 목록 최대 100건" unit="건"/></div>
-        <div className="two-column"><section className="panel"><div className="panel-title"><h2>재무상태표</h2><span>{current?.to}</span></div>
-          <div className="statement"><Statement label="자산" value={bs?.assets}/><Statement label="부채" value={bs?.liabilities}/><Statement label="자본" value={bs?.equity}/></div>
-          <div className={'balance-note '+(bs?.balanced?'balanced':'')}>{bs?.balanced?'✓ 자산 = 부채 + 자본':'계정 잔액을 확인하세요.'}</div></section>
+        <FinancialMetrics financial={financial} loading={loading} error={error} pendingCount={pending.length} postedCount={posted.length}/>
+        <div className="two-column"><BalanceSheetPanel financial={financial} loading={loading} error={error} asOf={current?.to}/>
         <section className="panel"><div className="panel-title"><h2>처리 흐름</h2><span>사용자 요청으로 진행</span></div>
           <ol className="flow">{['거래·증빙 조회','Draft','독립 규칙 검증','사용자 승인','장부 반영'].map((step,index)=><li key={step}><span>{index+1}</span><strong>{step==='Draft'?<BilingualText english="Draft" korean="분개 초안 생성"/>:step}</strong></li>)}</ol>
           <p className="muted"><BilingualText english="Claude Code · Codex" korean="클로드 코드 · 코덱스"/>에서 작업을 요청하고, 이 화면에서 전표를 검토·승인합니다.</p></section></div>
       </>}
-      {(tab==='overview'||tab==='transactions')&&<section className="panel"><div className="panel-title"><h2>거래 내역</h2><span>{current?.from} — {current?.to}</span></div>
+      {(tab==='overview'||tab==='transactions')&&<section className="panel"><div className="panel-title"><h2>연습용 거래 내역</h2><span>{current?.from} — {current?.to}</span></div>
         <div className="table-scroll"><table><thead><tr><th>거래일</th><th>거래 참조</th><th>거래 유형</th><th className="num">공급가액</th><th className="num">세액</th><th className="num">합계</th></tr></thead><tbody>
           {rows.slice(0,tab==='overview'?8:100).map(r=><tr key={String(r.id)}><td>{String(r.recognitionOn)}</td><td className="mono">{String(r.externalRef)}</td><td><span className="kind"><CodeLabel value={r.kind}/></span></td><td className="num">{money(r.net)}</td><td className="num">{money(r.tax)}</td><td className="num strong">{money(r.gross)}</td></tr>)}
         </tbody></table></div>{rows.length===0&&!loading&&<Empty text="선택한 기간에 거래가 없습니다."/>}
@@ -109,15 +110,11 @@ export default function Dashboard(){
             <button className="primary" disabled={!csrf} onClick={()=>void decide('approved')}>이 전표 승인</button>
             {!csrf&&<p className="muted">승인 화면 연결을 확인하세요. 지속 DB에서는 외부 인증 세션이 필요합니다.</p>}</div>
         </>}</section>}
-      {tab==='reports'&&<section className="panel"><div className="panel-title"><h2>시산표</h2><span>게시된 전표의 계정별 집계</span></div><table><thead><tr><th>계정 코드</th><th className="num">차변 합계</th><th className="num">대변 합계</th><th className="num">잔액</th></tr></thead><tbody>
-        {(trial.items as Row[]??[]).map(r=><tr key={String(r.accountCode)}><td>{String(r.accountCode)}</td><td className="num">{money(r.debit)}</td><td className="num">{money(r.credit)}</td><td className="num">{money(r.balance)}</td></tr>)}</tbody>
-        <tfoot><tr><td>합계</td><td className="num">{money(trial.totalDebit)}</td><td className="num">{money(trial.totalCredit)}</td><td/></tr></tfoot></table></section>}
+      {tab==='reports'&&<TrialBalancePanel trial={trial} loading={loading} error={error}/>}
       {tab==='audit'&&<section className="panel"><div className="panel-title"><h2>감사 점검 결과</h2><span>결정론적 검사</span></div><div className="audit-stats"><p>중복 증빙 후보 <strong>{(audit.duplicateEvidence as unknown[]??[]).length}</strong></p><p>차대변 불일치 전표 <strong>{(audit.unbalancedJournals as unknown[]??[]).length}</strong></p><p>미전기 거래 표시 <strong>{(audit.unpostedSources as unknown[]??[]).length}</strong></p></div>
         <p className="muted">{String(audit.note??'')}</p><table><thead><tr><th>미전기 거래 참조</th><th>유형</th></tr></thead><tbody>{(audit.unpostedSources as Row[]??[]).map(r=><tr key={String(r.id)}><td className="mono">{String(r.reference)}</td><td><CodeLabel value={r.kind}/></td></tr>)}</tbody></table></section>}
-      <footer><BilingualText english="LedgerFlow" korean="레저플로"/><span>합성 거래 데이터 · 전문가 검토 미완료 · 법정 신고 및 완전한 <BilingualText english="K-IFRS" korean="한국채택국제회계기준"/> 보고서가 아닙니다.</span></footer>
+      <footer><span>{companyDisplayName}</span><span>합성 거래 데이터 · 전문가 검토 미완료 · 법정 신고 및 완전한 <BilingualText english="K-IFRS" korean="한국채택국제회계기준"/> 보고서가 아닙니다.</span></footer>
     </main>
   </div>;
 }
-function Kpi({label,value,hint,unit='원'}:{label:string;value:string;hint:string;unit?:string}){return <section className="kpi"><p>{label}</p><h2>{value}<small>{unit}</small></h2><span>{hint}</span></section>;}
-function Statement({label,value}:{label:string;value:unknown}){return <div><span>{label}</span><strong>{money(value)} <small>원</small></strong></div>;}
 function Empty({text}:{text:string}){return <div className="empty"><span>▤</span><p>{text}</p></div>;}

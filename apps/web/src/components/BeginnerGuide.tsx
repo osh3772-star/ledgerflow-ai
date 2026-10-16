@@ -7,7 +7,7 @@ cd ledgerflow-ai`;
 const startCommands=`pnpm install --frozen-lockfile
 pnpm start`;
 const roleRequest=`이 프로젝트의 docs/CLIENT_ROLES.md와 ledgerflow-sales 스킬을 확인하고 현재 대화에서 매출 역할을 사용해 줘.
-LedgerFlow의 get_system_status와 get_company_context를 실제 호출해 회사 이름과 연결 결과를 알려줘.
+현재 프로젝트의 get_system_status와 get_company_context를 실제 호출해 회사 이름과 연결 결과를 알려줘.
 스킬이나 도구를 찾지 못하면 찾지 못했다고 알려줘.
 거래 생성·승인·장부 반영과 병렬 에이전트 실행은 하지 마.`;
 const roles=[
@@ -18,18 +18,18 @@ const roles=[
   ['결산','월말 수정 기록과 보고서·마감을 검토합니다.','closing'],
   ['감사','중복·증빙 누락·기간 오류를 점검합니다. 전표를 생성하거나 반영하지 않습니다.','audit'],
 ] as const;
-const firstRequest=`LedgerFlow의 get_system_status와 get_company_context로 연결과 회사 정보를 먼저 확인해 줘.
+const firstRequest=`현재 프로젝트의 get_system_status와 get_company_context로 연결과 회사 정보를 먼저 확인해 줘.
 매출 역할로 2026년 1월의 미처리 매출 거래 1건을 찾아 증빙을 확인해 줘.
 어떤 거래인지, 어떤 계정에 왜 기록하는지 회계 초보자도 이해할 수 있게 설명해 줘.
 분개 초안 생성 → 검증 → 사용자 승인 요청까지 진행해 줘.
 전표 ID, 버전, hash와 차변·대변 합계를 알려주고 사용자 승인 대기에서 멈춰 줘.
 도구가 연결되지 않았거나 증빙이 부족하면 그 상태를 알려줘.`;
-const postRequest=`LedgerFlow의 get_system_status와 get_company_context를 먼저 확인해 줘.
+const postRequest=`현재 프로젝트의 get_system_status와 get_company_context를 먼저 확인해 줘.
 내가 사이트에서 승인한 전표 [전표 ID]의 승인 상태와 버전·hash를 다시 확인해 줘.
 승인 조건이 맞으면 장부에 반영하고 DB 상태가 Posted인지 확인해 줘.
 2026년 1월 시산표와 재무제표를 보여 주고 각 숫자가 무엇을 뜻하는지 쉽게 설명해 줘.
 승인되지 않았거나 내용이 달라졌다면 이유를 알려주고 멈춰 줘.`;
-const connectionRequest=`LedgerFlow의 get_system_status와 get_company_context를 호출해서 연결 상태와 회사 이름을 알려줘.
+const connectionRequest=`현재 프로젝트의 get_system_status와 get_company_context를 호출해서 연결 상태와 회사 이름을 알려줘.
 실제 도구가 보이지 않거나 호출이 실패하면 연결되었다고 추정하지 말고 알려줘.
 거래 생성, 승인, 장부 반영은 하지 마.`;
 
@@ -157,10 +157,11 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
     <section className="guide-section" aria-labelledby="guide-terms-title">
       <div className="guide-section-heading"><span className="guide-kicker">어려운 말은 여기서 확인</span><h2 id="guide-terms-title">처음 만나는 회계 용어</h2></div>
       <dl className="guide-glossary">{glossary.map(([term,description])=><div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>
-      <details className="guide-details"><summary>처음에 재무 보고서가 0원으로 보이는 이유</summary><p>거래 자료가 있어도 아직 장부에 반영한 전표가 없으면 보고서가 0원일 수 있습니다. 이 화면은 장부 반영이 끝난 기록만 집계합니다. 첫 거래의 초안·검증·승인·반영까지 진행한 뒤 다시 확인하세요.</p></details>
+      <details className="guide-details"><summary>거래는 있는데 재무 보고서는 ‘장부 반영 전’인 이유</summary><p>거래 목록은 연습할 원천 자료이고, 재무 보고서는 장부에 반영된 전표의 집계입니다. 장부 기록이 없으면 금액 대신 대기 상태를 표시합니다. 첫 거래의 초안·검증·승인·반영을 진행하고 새로고침하면 보고서가 표시됩니다.</p></details>
     </section>
 
     <section className="guide-demo-note" aria-labelledby="guide-demo-title"><h2 id="guide-demo-title">지금은 가상회사로 연습하는 시연판입니다.</h2>
+      <p>화면의 가상 한국회사는 <strong>한빛유통 주식회사</strong>입니다. 처음부터 있는 거래 1,000건은 분개와 결산을 연습하도록 미리 준비한 샘플이며 실제 영업 내역이 아닙니다. 거래가 조회된다고 장부 반영까지 끝난 것은 아닙니다.</p>
       <p>기본 로컬 시연은 로그인 없이 사용하고, 서버를 종료하면 작업 데이터가 초기화됩니다. 공공 API는 기본적으로 샘플 응답을 사용하며 실제 공공자료를 조회해도 가상회사의 거래와 구분합니다. 실제 세금 신고나 완전한 회계기준 준수를 인증하는 서비스는 아닙니다.</p>
     </section>
   </div>;

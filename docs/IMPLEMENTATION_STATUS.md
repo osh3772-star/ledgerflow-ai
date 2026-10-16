@@ -16,6 +16,8 @@
 - 무료 공공 API 4종 Adapter와 11개 도구, timeout/retry/rate/cache/provenance, live 장애의 mock 성공 전환 금지.
 - 두 앱 각각 native agent/skill 6역할, Zod terminal Result 영속 기록과 허위 Posted 주장 거절.
 - Astro React 대시보드, 실제 전표·근거·귀속일·버전·hash·증빙 원문 검토.
+- 웹 표시명은 가상 한국회사 `한빛유통 주식회사`. 기존 fixture 이름·ID·해시와 MCP/스킬 식별자는 보존하고, 기본 1,000건이 연습용 원천 거래임을 화면에 표시.
+- 장부 기록이 없을 때는 재무 금액·빈 시산표 합계를 표시하지 않고 대기 상태 제공. 누적 재무상태표와 해당 기간의 기록 유무, 실제 잔액 0원, 로딩·조회 실패를 구분.
 - Supabase Auth/Storage 연결 코드, private evidence bucket/회사 RLS, 인간 JWT·canonical JSON/hash 보관과 멱등 재시도.
 - 공개용 아키텍처/계획/연결/역할/도구 명세, 41개 도구의 전체 schema와 합성 요청/응답 예시, 실제 GitHub CI/Linux 이미지 검증.
 - 사용자/Codex 담당표와 `deploy:check`, 비관리자 Docker/단일 Compose/health/foreground smoke 코드, Windows/Linux CI와 이미지 내부 smoke 단계.
@@ -29,9 +31,11 @@
 | --- | --- |
 | 공개 기준 소스의 `pnpm check` | `7b3b4ba`의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
 | Supabase 진단 개발 브랜치의 로컬 `pnpm check` | Windows 205 tests / 28 files 통과, 243.66초. 신규 12개 단위/1개 metadata 통합 포함; 새 원격 CI 결과는 아님 |
-| 로컬 실행판 최종 `pnpm check` | Windows 211 tests / 30 files 통과, 359.19초. 단일 명령 launcher 추가 후 전체 재검사 |
-| 최신 소스의 실제 GitHub CI | `1b944ef`, [실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756) 전체 성공. Windows/Linux 각각 211 tests / 30 files, 평가·웹 build, Linux 이미지 build/smoke 통과 |
+| 로컬 실행판 기동 추가 당시 `pnpm check` | Windows 211 tests / 30 files 통과, 359.19초. 단일 명령 launcher 추가 후 전체 재검사 |
+| 재무 화면 개선 후 전체 `pnpm check` | Windows 217 tests / 31 files 통과, 278.38초. 신규 화면 회귀 6개 포함, 기존 회계 통합 검사 유지 |
+| 로컬 실행판 기준 소스의 실제 GitHub CI | `1b944ef`, [실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756) 전체 성공. Windows/Linux 각각 211 tests / 30 files, 평가·웹 build, Linux 이미지 build/smoke 통과 |
 | `pnpm web:build` | Astro static build 통과 |
+| 재무 화면 회귀 | 신규 6개 통과: 빈 원장과 실제 잔액 0원 구분, 누적/기간 분리, 최대 100건의 전표 목록과 독립된 표시, 로딩·실패 시 이전 금액 숨김 |
 | `pnpm evaluate` | Draft 성공 1,000/1,000, 계정 set 분류 1,000/1,000 |
 | 수기 분개 gold | 10/10 line exact match, 기존 매출 gold 유지 |
 | 합성 오류 holdout | 오류 5개 모두 탐지, 정상 10개 false positive 0 |

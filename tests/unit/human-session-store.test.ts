@@ -2,10 +2,10 @@ import {describe,expect,it} from 'vitest';
 import {memoryHumanSessionStore,humanSessionCipher,sessionTokenHash,validateSessionEncryptionKey,HUMAN_SESSION_TTL_MS} from '../../apps/mcp-server/src/human-session-store.js';
 const company='00000000-0000-4000-8000-000000000001',userId='00000000-0000-4000-8000-000000000002';
 const key=Buffer.alloc(32,7).toString('base64'),token='a'.repeat(64);
-const session=()=>({userId,accessToken:'fixture-jwt-must-stay-encrypted',csrf:'c'.repeat(48),expires:Date.now()+HUMAN_SESSION_TTL_MS});
+const session=(now=Date.now())=>({userId,accessToken:'fixture-jwt-must-stay-encrypted',csrf:'c'.repeat(48),expires:now+HUMAN_SESSION_TTL_MS});
 describe('bounded human sessions and authenticated encryption',()=>{
   it('expires and revokes in-memory sessions and never returns mutable stored references',async()=>{
-    let now=Date.now();const store=memoryHumanSessionStore(()=>now),value=session();
+    let now=Date.now();const store=memoryHumanSessionStore(()=>now),value=session(now);
     await store.put(token,value);const loaded=(await store.get(token))!;loaded.csrf='d'.repeat(48);
     expect((await store.get(token))?.csrf).toBe(value.csrf);
     await store.delete(token);expect(await store.get(token)).toBeUndefined();
