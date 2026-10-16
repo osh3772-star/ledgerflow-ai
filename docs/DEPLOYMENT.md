@@ -47,6 +47,8 @@ Compose는 기존 `.env.local`을 컨테이너 실행 환경으로 전달하며 
 
 ## 원격/Cloudflare 후속 범위
 
+공공자료만 공유하기 위한 Cloudflare Worker와 로컬 gateway client는 별도로 구현했다. **장부 backend 원격 배포와 다른 범위**다. Worker에는 MCP endpoint·회계 도구·DB·인간 세션이 없고 기존 공공 Adapter만 재사용한다. 빌드, 인증·쿼터 검증, 배포·비밀값 등록·수신자 연결 명령은 [공유 중계 안내](PUBLIC_GATEWAY.md)를 따른다. 실제 배포 여부는 [구현 상태](IMPLEMENTATION_STATUS.md)에 구분한다.
+
 선택적 [암호화 PostgreSQL 인간 세션](SECURITY_SESSIONS.md)은 구현했다. 원격 운영 전에는 외부 인증 발급자·클라이언트별 MCP 신원/회사 scope, HTTPS/허용 Origin과 실제 provider/세션을 검증해야 한다. localhost 고정 MCP 신원과 로그인 없는 demo 운영자를 원격 환경에 그대로 적용하지 않는다. 원격 OAuth/HTTPS 부분은 아직 구현하지 않았다. 컨테이너 재기동 사이에 세션을 보존하려면 동일한 서버 전용 암호화 키와 기존 DB profile을 사용한다.
 
 Workers의 Node 호환 기능에는 지원 범위가 있으므로 Node 프로세스·native PostgreSQL 자식 프로세스·로컬 파일·in-memory 세션이 함께 동작한다고 가정하지 않는다. 현재 Astro 정적 build는 가능하지만 화면의 `/api`는 동일 출처 Node 서비스에 의존하므로 정적 업로드만으로 전체 회계 앱이 동작하는 것은 아니다. 배포 대상 결정 후 API/인증 라우팅을 별도로 검증한다. [Cloudflare Node 호환성](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)

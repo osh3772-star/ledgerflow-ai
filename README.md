@@ -12,7 +12,7 @@
 
 **처음 사용한다면 [사용 안내](docs/USER_GUIDE.md)부터 읽으세요.** API 연결 상태표, 현재 Mock/Live 구분, 사용 순서, 앱에 복사할 요청문, 사용자 승인과 자동화 범위를 한 문서로 정리했다.
 
-현재 공공 API 4종은 실제 응답 검증 이력이 있으며 기본 시연은 `mock`다. 로컬 DB/MCP는 동작하고 Supabase는 DB 인증 오류로 보류 중이다. 앱에서 업무를 요청하고 웹에서 직접 승인한 뒤 앱에 전기를 요청한다.
+공공 API 4종은 실제 응답을 검증했고, 새 분개 초안에 거래일 법령·공시기업 재무·금리 참고자료를 첨부한다. 가상 거래처의 국세청 검증은 실제 번호가 없어 제외한다. 새 설치는 `mock`이며 운영자 키의 직접 실조회 또는 [Cloudflare 공유 중계](docs/PUBLIC_GATEWAY.md)로 연결할 수 있다. 로컬 DB/MCP는 동작하고 Supabase는 DB 인증 오류로 보류 중이다. 앱에서 요청하고 웹에서 직접 승인한 뒤 앱에 전기를 요청한다.
 
 ## 실행
 
@@ -51,6 +51,8 @@ ECOS_API_KEY=
 
 공공 API 실조회는 `ADAPTER_MODE=live`, 명시 진단은 `pnpm api:check` / `pnpm api:adapters`다. API 실패를 mock 성공으로 바꾸지 않는다. `pnpm env:check`는 설정 여부만 출력한다.
 
+키가 이미 등록된 운영자 PC는 `pnpm api:live`로 다른 설정을 보존하며 실조회 모드를 켠다. `pnpm api:references`는 사용자 장부를 바꾸지 않고 합성 거래의 공공근거 수집을 진단한다. 다른 사용자는 운영자에게 받은 접속 토큰으로 `pnpm gateway:connect`를 실행하면 원본 API 키 4개 없이 공유 중계를 사용할 수 있다. 공개 서비스 배포·토큰 전달이 먼저 필요하다.
+
 로컬 데모에는 로그인이나 비밀번호 설정이 없다. 전표·증빙을 검토하고 화면에서 승인 또는 반려 버튼을 누른다. 앱은 승인 요청을 만들며 앱의 tool 실행 허용은 장부 승인이 아니다.
 
 ## 구현 / 검증
@@ -62,14 +64,17 @@ ECOS_API_KEY=
 | 인간 승인·hash/version·원자적 전기·불변성 | 승인 우회/권한 철회/라인 변조/중복/마감 테스트 |
 | 상각·선급 결산·역분개·폐기·은행 대사 | 월 완결 마감 및 실제 DB 통합 테스트 |
 | 4 공공 API Adapter / 11 MCP 도구 | 전체 mock, 일부 live 실키, 캐시·장애 테스트 |
+| 분개 공공근거 snapshot·선택 Cloudflare 중계 | 거래일 법령 실조회, 금액 불변·승인 hash·동시 멱등, Worker bundle·인증·쿼터 검사 |
 | 단일 MCP HTTP/stdio, 두 앱 설정 / 각 6역할 | 두 SDK 연결·공유 Draft·정적 config/skill 검사 |
 | 연결 자가진단·기존 PostgreSQL profile | 읽기 연결·현재 Codex 등록, Draft 재기동 보존·미완성 schema 거절 |
 | Astro React 화면, Supabase Auth/Storage 연결 코드·정책 | 정적 build·브라우저 검토, JWT adapter 테스트 |
 | Windows/Linux CI + Linux Docker 이미지 | [최신 실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756)에서 각 OS 211 tests, 실제 이미지 내부 비관리자 MCP 41개 도구·회사 범위 조회 |
 
-최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 원격/Cloudflare 배포는 외부 수용 검증이 남아 있다.
+최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 장부 backend 원격 배포는 외부 수용 검증이 남아 있다.
 
-현재 로컬 검사는 **217개 테스트 / 31개 파일**이 통과했다. 재무 화면의 빈 장부·실제 잔액 0원·누적/기간 구분 회귀 검사 6개를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스는 211개/30개다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
+2026-10-16 **Cloudflare 공공자료 중계는 실제 배포와 네 기관 주요 조회를 확인했다.** 수신자는 저장소 설치 후 `pnpm gateway:connect`로 운영자에게 받은 전용 토큰을 입력하면 된다. 원본 API 키 4개는 전달하지 않는다. 장부 backend의 원격 배포·native 앱 추론·hosted Supabase 검증은 별도다.
+
+현재 로컬 검사는 **237개 테스트 / 34개 파일**이 통과했다. 공공근거·중계 20개와 기존 재무 화면·회계 검사를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스는 211개/30개이며 이번 변경의 새 CI 결과와 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
 
 ![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
 
@@ -79,4 +84,4 @@ ECOS_API_KEY=
 
 매출 인도·단일 수행의무·일정 단위원가·월 상각 등 합성 시나리오 정책에 한정한다. 완전한 K-IFRS 준수, 실제 기업 정확도, 법인세/법정 신고·현금흐름표·주석을 제공한다고 주장하지 않는다. 공공 자료는 참고자료이며 가상회사 장부에 섞지 않는다. `auth-bootstrap.sql`은 native DB 테스트 전용이며 Supabase에 적용하지 않는다.
 
-Cloudflare에는 현재 Node/native DB backend를 배포하지 않는다. Astro 정적 사이트 가능성과 전체 회계 서버의 런타임 호환성은 별개로 검증한다. 로컬 호스팅/모델 API 추가비용은 0이고 기존 앱 구독 한도와 외부 DB 비용은 별도다.
+Cloudflare에는 공공자료만 중계하는 Worker를 배포했다. Node/native DB 장부 backend는 로컬에 유지한다. [공유 연결·배포·무료 한도](docs/PUBLIC_GATEWAY.md)와 [실제 검증 상태](docs/IMPLEMENTATION_STATUS.md)를 확인한다. 프로젝트 모델 API 추가비용은 0이고 기존 앱 구독 한도와 외부 DB 비용은 별도다.

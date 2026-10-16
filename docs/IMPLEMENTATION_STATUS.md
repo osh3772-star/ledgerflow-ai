@@ -4,6 +4,10 @@
 
 ## 구현 완료
 
+- 공공자료 회계 연동: 조회/분개 공통 서비스의 DART·거래일 법령·ECOS 참고 수집, 실사업자번호 없는 국세청 제외 사유, 실제/샘플/실패 구분. 신규 전표 payload/hash에 snapshot 포함, 기존 금액·fixture/hash 보존.
+- Cloudflare용 공공 API HTTP 중계와 로컬 gateway client, bearer·입력·본문·지역 쿼터·캐시, 비출력 secrets 등록/수신자 연결 명령. MCP·DB·승인 서버 추가 없음. 실제 배포 결과는 아래 검증 기록과 구분.
+- 웹 공공자료 메뉴·거래 선택 조회·전표 근거 표시·현재 연결 모드, 처음 사용 안내의 공유 API 설정과 활용 범위.
+
 - 단일 MCP 제품 `ledgerflow-accounting-mcp`, foreground HTTP/stdio, 두 앱 공유 DB·연결 설정.
 - 읽기 전용 `mcp:doctor`: 프로젝트/현재 Codex 등록, 41개 도구·회사 범위 읽기, 비밀값 없는 진단 파일.
 - 기존 PostgreSQL 기동 schema gate와 실패 시 연결 정리, 서버 재기동 후 Draft/hash 보존.
@@ -29,6 +33,15 @@
 
 | 검사 | 결과 |
 | --- | --- |
+| 공공자료 연동 최종 `pnpm check` | Windows 237 tests / 34 files 통과, 228.54초. 기존 217개 + 신규 20개. 웹 build·키 노출 0건·현재 MCP 카탈로그 41개도 확인. 새 원격 CI 결과는 별도 |
+| 10월 16일 정식 Adapter 실조회 | 사용자 키로 NTS 상태·DART 2025 CFS 229행·법인세법 검색/본문·ECOS USD/금리, 6회 요청·실패/재시도 0. NTS 실제 거래처 검증 아님 |
+| 회계 근거 실조회 | 2026-01-10 합성 증빙 → DART 2024·2026-01-02 시행 VAT 조문·1월 금리 available/live, 4회 요청·실패/재시도 0. NTS 제외. 사용자 장부 변경 0 |
+| Worker bundle | 고정 Wrangler 4.151.0의 deploy --dry-run 성공, 약 880 KiB / gzip 149 KiB, rate-limit binding 검증 |
+| 공공근거/중계 신규 검사 | 단위 17개 및 별도 폐기형 PostgreSQL 3개. 금액 불변·hash 결합·승인 필요·동시 멱등·키 비노출·인증/입력/쿼터/캐시·Workers fetch/redirect 회귀 |
+| 실제 Cloudflare 배포 | `ledgerflow-public-reference-gateway.eric5833.workers.dev`, 버전 `a4c02b77-0323-424e-bc8b-03265e5ef6b9`. 공공자료 HTTP 전용, MCP endpoint 없음. 키 4개+접속 토큰은 Worker secrets |
+| 실제 중계 조회 | 23:15 KST 주요 도구 6/6 성공, gateway client 실패 0·캐시 재사용 3. NTS 테스트 번호·DART 2025 CFS 229행·법인세법 검색/조문·ECOS USD/금리. 모든 결과 public_api_live |
+| 실제 중계 회계 근거 | 2026-01-10 증빙의 DART 2024·VAT 시행일 2026-01-02·월 금리 성공, NTS 합성 거래처 제외, 장부 변경·유료 모델 0 |
+| 새 foreground MCP | localhost 정상 기동, SDK status/context·회사 범위 읽기·41개 도구 확인, mode=gateway와 실제 ECOS MCP 응답 확인. native 앱 추론 증거 아님 |
 | 공개 기준 소스의 `pnpm check` | `7b3b4ba`의 실제 CI Windows/Linux 각각 192 tests / 26 files 통과, 테스트 본문 393.75초 / 62.33초 |
 | Supabase 진단 개발 브랜치의 로컬 `pnpm check` | Windows 205 tests / 28 files 통과, 243.66초. 신규 12개 단위/1개 metadata 통합 포함; 새 원격 CI 결과는 아님 |
 | 로컬 실행판 기동 추가 당시 `pnpm check` | Windows 211 tests / 30 files 통과, 359.19초. 단일 명령 launcher 추가 후 전체 재검사 |
@@ -121,7 +134,7 @@ Storage policy는 회사 A writer 생성/A reader 조회 성공, 회사 B의 유
 | hosted fixture 초기 적재 | native 1,000건 seed는 보존; 실제 Auth UUID 매핑과 hosted 전용 적재 절차는 미구현 |
 | 원격 MCP OAuth·HTTPS·외부 세션 저장소 | 암호화 PostgreSQL 세션은 구현/로컬 검증; 실제 provider·MCP OAuth/HTTPS는 미구현/미검증, loopback 유지 |
 | 로컬 Docker Desktop/Compose | Linux 이미지의 실제 CI build/run 통과. 로컬 설치는 생략했으며 Desktop·host-network Compose는 미검증 |
-| Cloudflare backend | 미배포; native DB/fs/Node HTTP/session 때문에 Workers 전체 호환 미입증 |
+| Cloudflare 장부 backend | 미배포; native DB/fs/Node HTTP/session 때문에 Workers 전체 호환 미입증. 별도 공공자료 전용 HTTP 중계는 실제 배포/실조회 검증 완료 |
 | 전문 회계/세무 범위 | 세금 산출·현금흐름표·주석·전문가 K-IFRS 검토·실제 은행/정부 세금계산서 연동 미구현 |
 
 무료 개발 경로는 로컬 Node+DB+기존 앱 구독이다. Supabase Free/Pro와 배포 제약은 [ARCHITECTURE.md](ARCHITECTURE.md)에 공식 출처와 함께 정리했다.

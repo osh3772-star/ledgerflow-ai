@@ -12,6 +12,7 @@ export function createHumanRouter(options:{
   reader:AccountingService;companyId:string;companyContext:()=>Promise<unknown>;
   erp?:ErpService;
   evidenceStorage?:EvidenceStorage;
+  publicApiConfiguration?:()=>unknown;
   sessionStore?:HumanSessionStore;
 }){
   const sessions=options.sessionStore??memoryHumanSessionStore();
@@ -30,7 +31,7 @@ export function createHumanRouter(options:{
       if(path==='/api/context'&&request.method==='GET')return reply({company:await options.companyContext(),
         humanApprovalMode:options.localDemoUserId?'local_demo':options.authentication?'external_auth':'unavailable',
         humanSessionStore:sessions.kind,
-        evidenceStorageConfigured:Boolean(options.evidenceStorage)});
+        evidenceStorageConfigured:Boolean(options.evidenceStorage),publicApi:options.publicApiConfiguration?.()??null});
       const token=request.headers.get('cookie')?.match(/(?:^|;\s*)lf_human=([a-f0-9]{64})(?:;|$)/u)?.[1];
       const session=token?await sessions.get(token):undefined;
       let service=options.reader;
@@ -90,6 +91,11 @@ export function createHumanRouter(options:{
         if(path==='/api/journal')return reply(await options.reader.get({companyId:options.companyId,journalId:url.searchParams.get('id')}));
         if(path==='/api/approval')return reply(await options.reader.approval({companyId:options.companyId,journalId:url.searchParams.get('id')}));
         if(path==='/api/documents')return reply(await options.reader.documents({companyId:options.companyId,transactionId:url.searchParams.get('transactionId')}));
+        if(path==='/api/public-references'){
+          if(request.headers.get('sec-fetch-site')!=='same-origin')return reply({error:'SAME_ORIGIN_BROWSER_REQUIRED'},403);
+          const source=await options.reader.source({companyId:options.companyId,transactionId:url.searchParams.get('transactionId')});
+          return reply({transactionId:source.transaction.id,publicReferences:'publicReferences' in source?source.publicReferences:null});
+        }
         const range={companyId:options.companyId,from:url.searchParams.get('from')??'2026-01-01',to:url.searchParams.get('to')??'2026-12-31'};
         if(path==='/api/transactions'&&options.erp)return reply(await options.erp.getTransactions({...range,...(url.searchParams.get('cursor')?{cursor:url.searchParams.get('cursor')!}:{})}));
         if(path==='/api/trial-balance')return reply(await options.reader.trialBalance(range));

@@ -1,17 +1,18 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import '../styles/dashboard.css';
 import '../styles/bilingual.css';
 import BeginnerGuide,{GuideWelcome} from './BeginnerGuide.js';
 import {FinancialMetrics,BalanceSheetPanel,TrialBalancePanel} from './FinancialReports.js';
+import {PublicApiStatus,PublicReferences} from './PublicReferences.js';
 type Row=Record<string,unknown>;
 type Company={companyId:string;name:string;periods:{id:string;from:string;to:string;status:string}[]};
-type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
+type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;publicReferences?:unknown;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
 // Korean presentation name for the synthetic demo; preserve fixture IDs and hashes.
 const companyDisplayName='한빛유통 주식회사';
 const money=(value:unknown)=>{try{return BigInt(String(value??'0')).toLocaleString('ko-KR');}catch{return String(value??'—');}};
 async function api(path:string,init?:RequestInit){const r=await fetch(path,{...init,credentials:'same-origin'}),j=await r.json();
   if(!r.ok)throw new Error(String(j.error??'요청 실패'));return j;}
-const tabs=[['overview','개요','◈'],['guide','처음 사용하기','?'],['transactions','거래','↗'],['journals','분개전표','▤'],['approval','사용자 승인','✓'],['reports','재무 보고서','▥'],['audit','감사 점검','◎']] as const;
+const tabs=[['overview','개요','◈'],['guide','처음 사용하기','?'],['transactions','거래','↗'],['journals','분개전표','▤'],['approval','사용자 승인','✓'],['references','공공자료','↗'],['reports','재무 보고서','▥'],['audit','감사 점검','◎']] as const;
 const koreanLabels:Record<string,string>={
   Draft:'초안',Validated:'검증 완료',Approval:'승인 요청',Posted:'장부 반영 완료',
   pending:'검토 대기',approved:'승인됨',rejected:'반려됨',Discarded:'폐기됨',
@@ -34,11 +35,15 @@ export default function Dashboard(){
   const [cursor,setCursor]=useState<string|null>(null);
   const [storageConfigured,setStorageConfigured]=useState(false),[archived,setArchived]=useState(false);
   const [evidence,setEvidence]=useState<Row[]>([]);
+  const [publicConfiguration,setPublicConfiguration]=useState<unknown>(),[referenceReport,setReferenceReport]=useState<unknown>();
+  const [referenceLoading,setReferenceLoading]=useState(false);
+  const [referenceTransactionId,setReferenceTransactionId]=useState('');
+  const referenceRequest=useRef(0);
   const current=company?.periods[period],query=current?'from='+current.from+'&to='+current.to:'from=2026-01-01&to=2026-01-31';
   async function refresh(){
     setLoading(true);setError('');
     try{
-      const context=await api('/api/context');setCompany(context.company);setStorageConfigured(context.evidenceStorageConfigured);
+      const context=await api('/api/context');setCompany(context.company);setStorageConfigured(context.evidenceStorageConfigured);setPublicConfiguration(context.publicApi);
       if(context.humanApprovalMode!=='unavailable'){
         try{const session=await api('/api/human/session');setCsrf(session.csrf);}catch{setCsrf(undefined);}
       }else setCsrf(undefined);
@@ -59,6 +64,11 @@ export default function Dashboard(){
     }catch(e){setError(String(e));}
   }
   async function nextPage(){if(!cursor)return;try{const result=await api('/api/transactions?'+query+'&cursor='+encodeURIComponent(cursor));setRows(result.items);setCursor(result.nextCursor);}catch(e){setError(String(e));}}
+  function clearReference(){referenceRequest.current++;setReferenceReport(undefined);setReferenceLoading(false);}
+  async function inspectReferences(){const id=referenceTransactionId||String(rows[0]?.id??'');if(!id)return;
+    const request=++referenceRequest.current;setReferenceLoading(true);setReferenceReport(undefined);setError('');
+    try{const result=await api('/api/public-references?transactionId='+encodeURIComponent(id));if(request===referenceRequest.current)setReferenceReport(result.publicReferences);}
+    catch(e){if(request===referenceRequest.current)setError(String(e));}finally{if(request===referenceRequest.current)setReferenceLoading(false);}}
   async function archiveEvidence(){
     if(!selected||!company||!csrf)return;
     try{for(const documentId of selected.payload.sourceDocumentIds)await api('/api/human/evidence',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},
@@ -73,13 +83,15 @@ export default function Dashboard(){
     </aside>
     <main><header><div className="breadcrumb">워크스페이스 <span>/</span> {tabs.find(t=>t[0]===tab)?.[1]}</div><span className="synthetic">가상회사</span><span className="avatar">한빛</span></header>
       <section className="heading"><div><p className="eyebrow">{companyDisplayName} · 가상 한국회사</p><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1><p>거래의 근거부터 승인된 장부까지, 한 곳에서 확인하세요.</p></div><div className="toolbar">
-        <label className="sr-only" htmlFor="period">회계기간</label><select id="period" value={period} onChange={e=>{setPeriod(Number(e.target.value));setSelected(undefined);}}>
+        <label className="sr-only" htmlFor="period">회계기간</label><select id="period" value={period} onChange={e=>{setPeriod(Number(e.target.value));setSelected(undefined);setReferenceTransactionId('');clearReference();}}>
           {company?.periods.map((p,index)=><option key={p.id} value={index}>{p.from.slice(0,7)} · {p.status==='closed'?'마감':'열림'}</option>)}</select>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
       {(tab==='overview'||tab==='transactions')&&<section className="notice data-origin-note" aria-label="거래 데이터 안내"><strong>처음부터 보이는 거래는 연습용 샘플입니다.</strong><p>기본 시연 데이터는 미리 만든 가상 거래 1,000건입니다. 실제 회사 거래나 은행에서 자동 수집한 내역이 아닙니다. 거래 조회와 장부 반영은 별개이며, 검증·사용자 승인·장부 반영을 거친 전표만 재무 보고서에 집계됩니다.</p></section>}
       {tab==='overview'&&<GuideWelcome onOpen={()=>{setTab('guide');setSelected(undefined);}}/>}
+      {(tab==='overview'||tab==='references')&&<PublicApiStatus configuration={publicConfiguration}/>}
+      {tab==='references'&&<><section className="panel"><div className="panel-title"><h2>거래와 공공자료 함께 확인</h2><button className="secondary" disabled={loading||referenceLoading||!rows.length} onClick={()=>void inspectReferences()}>{referenceLoading?'조회 중…':'선택한 거래의 참고자료 조회'}</button></div><label htmlFor="reference-transaction">참고자료를 확인할 거래</label> <select id="reference-transaction" value={referenceTransactionId||String(rows[0]?.id??'')} disabled={loading||referenceLoading} onChange={e=>{setReferenceTransactionId(e.target.value);clearReference();}}>{rows.map(row=><option key={String(row.id)} value={String(row.id)}>{String(row.externalRef)} · {String(row.recognitionOn)}</option>)}</select><p className="muted">현재 페이지의 거래를 선택해 조회합니다. 거래·전표 생성이나 승인·장부 반영은 하지 않습니다. 분개 초안 생성에서도 같은 공통 서비스가 실행됩니다.</p></section>{referenceReport!==undefined&&<PublicReferences report={referenceReport}/>}</>}
       {tab==='guide'&&<BeginnerGuide onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
       {(tab==='overview'||tab==='reports')&&<>
         <FinancialMetrics financial={financial} loading={loading} error={error} pendingCount={pending.length} postedCount={posted.length}/>
@@ -100,6 +112,7 @@ export default function Dashboard(){
         <p>귀속일 {selected.payload.recognitionOn} · 버전 {selected.version}</p>
         <table><thead><tr><th>계정 코드</th><th className="num">차변</th><th className="num">대변</th></tr></thead><tbody>{selected.payload.lines.map((l,index)=><tr key={index}><td className="mono">{l.accountCode}</td><td className="num">{money(l.debit)}</td><td className="num">{money(l.credit)}</td></tr>)}</tbody></table>
         <div className="basis"><strong>적용 근거·가정</strong><p>{selected.payload.basis.standards.join(' · ')}</p><ul>{selected.payload.basis.assumptions.map(a=><li key={a}>{a}</li>)}</ul><p>{selected.payload.basis.uncertainty}</p></div>
+        <PublicReferences report={selected.payload.publicReferences}/>
         <div className="basis"><strong>원천 증빙 · 가상자료</strong>{evidence.map(doc=><details key={String(doc.id)}><summary><CodeLabel value={doc.type}/> · {String(doc.issueDate)}</summary>
           <p className="hash mono">{String(doc.sha256)}</p><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(doc.content,null,2)}</pre></details>)}</div>
         <p className="hash mono">승인 대상 <BilingualText english="hash" korean="내용 검증값"/>: {selected.hash}</p><p>사용자 승인 상태: <strong><CodeLabel value={selected.discardedAt?'Discarded':approval?.status??'요청 전'}/></strong></p>

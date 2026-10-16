@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 import pg from 'pg';
 import { generateFullErpSeed } from '@ledgerflow/test-data';
 import { PostgresErpRepository,PostgresAccountingRepository,PostgresApiCache } from '@ledgerflow/data-access';
-import { ErpService,AccountingService } from '@ledgerflow/application-services';
-import {PublicDataService} from '@ledgerflow/public-data';
+import { ErpService,AccountingService,AccountingReferenceService } from '@ledgerflow/application-services';
+import {PublicDataService,GatewayPublicDataClient} from '@ledgerflow/public-data';
 import {createHumanRouter} from '../apps/mcp-server/src/human-routes.js';
 import {supabaseHumanAuthentication} from '../apps/mcp-server/src/supabase-auth.js';
 import {supabaseEvidenceStorage} from '../apps/mcp-server/src/evidence-storage.js';
@@ -58,11 +58,14 @@ export async function createMcpRuntime(environment: NodeJS.ProcessEnv = process.
   const directory = resolve('.ledgerflow/mcp-audit');
   await mkdir(directory,{recursive:true});
   const auditFile = resolve(directory,'tool-calls.jsonl');
+  const publicData=environment.LEDGERFLOW_PUBLIC_GATEWAY_URL?.trim()
+    ?new GatewayPublicDataClient(environment.LEDGERFLOW_PUBLIC_GATEWAY_URL,environment.LEDGERFLOW_PUBLIC_GATEWAY_TOKEN??'')
+    :new PublicDataService({nts:environment.NTS_SERVICE_KEY,dart:environment.DART_API_KEY,law:environment.LAW_OC,ecos:environment.ECOS_API_KEY},
+      environment.ADAPTER_MODE==='live'?'live':'mock',new PostgresApiCache(pool));
+  const referenceReview=new AccountingReferenceService(publicData);
   const dependencies: ServerDependencies = {
     service: new ErpService(new PostgresErpRepository(pool,userId)), companyId, profile,
-    accounting:new AccountingService(new PostgresAccountingRepository(pool,userId)),
-    publicData:new PublicDataService({nts:environment.NTS_SERVICE_KEY,dart:environment.DART_API_KEY,law:environment.LAW_OC,ecos:environment.ECOS_API_KEY},
-      environment.ADAPTER_MODE==='live'?'live':'mock',new PostgresApiCache(pool)),
+    accounting:new AccountingService(new PostgresAccountingRepository(pool,userId),referenceReview),publicData,
     ...(environment.LEDGERFLOW_MCP_TOKEN?.trim()?{mcpToken:environment.LEDGERFLOW_MCP_TOKEN}:{}),
     async getCompanyContext() {
       const client = await pool.connect();
@@ -102,7 +105,8 @@ export async function createMcpRuntime(environment: NodeJS.ProcessEnv = process.
     ...(sessionStore?{sessionStore}:{}),
     ...(demoApproverId?{localDemoUserId:demoApproverId}:{}),
     ...(authentication&&environment.SUPABASE_URL&&environment.SUPABASE_PUBLISHABLE_KEY?{evidenceStorage:supabaseEvidenceStorage(environment.SUPABASE_URL,environment.SUPABASE_PUBLISHABLE_KEY)}:{}),
-    accounting:id=>new AccountingService(new PostgresAccountingRepository(pool,id)),reader:dependencies.accounting!,
+    accounting:id=>new AccountingService(new PostgresAccountingRepository(pool,id),referenceReview),reader:dependencies.accounting!,
+    publicApiConfiguration:()=>publicData.configuration(),
     companyId,companyContext:()=>dependencies.getCompanyContext(),erp:dependencies.service as ErpService});
   await dependencies.getCompanyContext();
   let closed=false;

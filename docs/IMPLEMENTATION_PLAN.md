@@ -12,6 +12,8 @@
 | M6 native 역할 | 두 앱 각각 6 agent/skill, 구조화 Result 기록 | 설정·skill 유효성, 실제 DB Posted 근거 검사; 실제 앱 추론 실행은 별도 수동 검증 |
 | M7 결산·웹 | 상각·선급 차액 Draft, 마감 gate, Astro React | 완결된 월을 독립 승인 후 마감, 마감 후 전기 금지, UI build/브라우저 검토 |
 | M8 배포 검증 | 기존 PostgreSQL 재기동 보존·schema gate, Supabase Auth/Storage 코드·RLS, 비관리자 Docker/Compose·Windows/Linux CI·deploy:check | 실제 Windows/Linux CI와 Linux Docker smoke 통과. hosted Supabase 인증/Storage/RLS·Desktop/Compose는 별도 후속 검증 |
+| M9 공공자료 회계 근거 | 공통 AccountingReferenceService, 거래일 법령·DART·ECOS·국세청 제외 사유, 선택 JSONB snapshot | 실제 과거 거래일 조회, 기존 gold 금액 불변, hash 결합·동시 멱등·인간 승인 통합 테스트 |
+| M10 공유 API 중계 | Cloudflare 읽기 전용 Worker, 로컬 gateway client, 토큰 연결/비밀값 등록 CLI | 실제 Wrangler dry build, 인증·쿼터·입력·캐시 테스트, 실제 배포 후 origin 확인. MCP 1개·원본 키 비공개 유지 |
 
 ## 테스트 전략
 
@@ -20,6 +22,8 @@
 기존 PostgreSQL profile의 테스트는 테스트가 직접 준비한 DB에 서버를 두 번 연결해 Draft 보존을 검사한다. 서버 자체의 migration·seed·권한 변경은 허용하지 않는다. 누락 schema, 잘못된 외부 Auth 설정, 회사 위조 시 거절과 연결 해제를 확인한다. `mcp:doctor`는 실행 서버에 status/context를 먼저 호출한 뒤 catalog와 제한된 ERP 조회만 수행한다. 실제 앱 추론·인간 결정의 증거로 사용하지 않는다.
 
 `pnpm evaluate`는 고정 fixture 1,000건과 `accounting-gold.json` 10개 수기 분개, 별도 `accounting-errors.json` 5개 오류를 사용한다. 분류와 line exact 비교를 구분하며 성과를 실제 기업/AI 판단 정확도로 확대하지 않는다. 앱 LLM의 native 추론 gold 비교는 아직 수행하지 않았다.
+
+공공자료 연동의 기본 테스트는 mock/fake fetch와 테스트 소유 임시 DB만 사용한다. `pnpm api:references`는 별도로 명시 실행하는 실조회 진단이며 사용자 장부에 접근하지 않는다. Cloudflare 코드는 `pnpm gateway:build`로 CI에서도 검증하고, 계정 로그인·배포·비밀값 등록은 운영자가 요청한 배포 작업에서만 수행한다. [공유 연결과 한계](PUBLIC_GATEWAY.md)
 
 | 지표 | 구현 측정 / 한계 |
 | --- | --- |

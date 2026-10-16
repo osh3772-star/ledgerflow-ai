@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { uuidSchema,dateSchema } from './base.js';
+import {publicReferenceReportSchema} from './public-references.js';
 
 export const wonSchema=z.string().regex(/^(?:0|[1-9]\d{0,17})$/u);
 export const journalLineSchema=z.strictObject({accountCode:z.string().regex(/^\d{4}$/u),debit:wonSchema,credit:wonSchema});
@@ -11,6 +12,7 @@ export const journalPayloadSchema=z.strictObject({transactionId:uuidSchema,perio
   sourceDocumentIds:z.array(uuidSchema).min(1).max(20),lines:z.array(journalLineSchema).min(2).max(100),
   evidenceHashes:z.array(z.strictObject({documentId:uuidSchema,sha256:z.string().regex(/^[a-f0-9]{64}$/u)})).min(1).max(20),
   basis:basisSchema,policyVersion:z.literal('lf-accounting-v1'),reversalOf:uuidSchema.optional(),
+  publicReferences:publicReferenceReportSchema.optional(),
   calculation:z.strictObject({type:z.enum(['depreciation','prepaid_expense']),referenceId:uuidSchema,periodId:uuidSchema}).optional()});
 export type JournalPayload=z.output<typeof journalPayloadSchema>;
 export const journalSchema=z.strictObject({id:uuidSchema,companyId:uuidSchema,payload:journalPayloadSchema,

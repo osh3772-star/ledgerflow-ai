@@ -9,12 +9,13 @@ export const SERVER_KEYS = [
   'LEDGERFLOW_MCP_TOKEN',
   'LEDGERFLOW_HUMAN_SESSION_STORE','LEDGERFLOW_SESSION_ENCRYPTION_KEY',
   'LEDGERFLOW_DATABASE_CA_FILE',
+  'LEDGERFLOW_PUBLIC_GATEWAY_URL','LEDGERFLOW_PUBLIC_GATEWAY_TOKEN',
 ] as const;
 
 export function environmentMetadata(environment: NodeJS.ProcessEnv) {
   const mode = environment.ADAPTER_MODE ?? 'mock';
   if (mode !== 'mock' && mode !== 'live') throw new Error('ADAPTER_MODE must be mock or live.');
-  return { mode, keys: SERVER_KEYS.map((name) => ({ name, configured: Boolean(environment[name]?.trim()) })) };
+  return { mode:environment.LEDGERFLOW_PUBLIC_GATEWAY_URL?.trim()?'gateway':mode, keys: SERVER_KEYS.map((name) => ({ name, configured: Boolean(environment[name]?.trim()) })) };
 }
 
 export function loadServerEnvironment() {

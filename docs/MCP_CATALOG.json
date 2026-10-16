@@ -159,6 +159,56 @@
                     "type": "null"
                   }
                 ]
+              },
+              "publicApiConfiguration": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "mock",
+                          "live",
+                          "gateway"
+                        ]
+                      },
+                      "providers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "configured": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "configured"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "providers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -169,7 +219,8 @@
               "paidModelApi",
               "ownOrchestrator",
               "unattendedScheduler",
-              "publicApiMetrics"
+              "publicApiMetrics",
+              "publicApiConfiguration"
             ],
             "additionalProperties": false
           },
@@ -2224,7 +2275,7 @@
     },
     {
       "name": "get_accounting_source",
-      "description": "계정·계약·인도·재고 원가·급여·자산·선급·결산 참조의 회계 입력 snapshot을 조회합니다.",
+      "description": "회계 입력 snapshot과 거래일 기준 공공 참고자료를 함께 조회합니다. 각 자료의 실조회/샘플·실패·적용일을 확인하세요.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2348,7 +2399,7 @@
     },
     {
       "name": "propose_journal_entry",
-      "description": "결정론적 규칙으로 거래의 Draft를 저장합니다. 사용자 승인이나 전기는 수행하지 않습니다.",
+      "description": "결정론적 Draft와 공공 참고자료 snapshot을 저장합니다. 참고자료도 승인 hash에 포함되며 금액 계산·승인은 독립적으로 검증합니다.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2534,6 +2585,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -2680,7 +2870,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,
@@ -2871,6 +3094,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -3017,7 +3379,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": true,
@@ -3346,6 +3741,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -3492,7 +4026,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,
@@ -3683,6 +4250,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -3829,7 +4535,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,
@@ -4149,6 +4888,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -4295,7 +5173,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,
@@ -5005,6 +5916,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -5151,7 +6201,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,
@@ -5733,6 +6816,145 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
+                  "publicReferences": {
+                    "type": "object",
+                    "properties": {
+                      "transactionDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "preparedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "items": {
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "nts",
+                                "dart",
+                                "law",
+                                "ecos"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "available",
+                                "unavailable",
+                                "not_applicable"
+                              ]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "tool": {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            "provenance": {
+                              "type": "object",
+                              "properties": {
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mock",
+                                    "public_api_live"
+                                  ]
+                                },
+                                "sourceUrl": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "fetchedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "effectiveDate": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "referencePeriod": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "rawSha256": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                "cacheHit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "origin",
+                                "sourceUrl",
+                                "fetchedAt",
+                                "effectiveDate",
+                                "referencePeriod",
+                                "rawSha256",
+                                "cacheHit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "facts": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "errorCode": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Z0-9_]+$"
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "purpose",
+                            "note"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "humanReviewRequired": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "affectsAmounts": {
+                        "type": "boolean",
+                        "const": false
+                      }
+                    },
+                    "required": [
+                      "transactionDate",
+                      "preparedAt",
+                      "items",
+                      "humanReviewRequired",
+                      "affectsAmounts"
+                    ],
+                    "additionalProperties": false
+                  },
                   "calculation": {
                     "type": "object",
                     "properties": {
@@ -5879,7 +7101,40 @@
           "meta"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": false,

@@ -39,6 +39,7 @@ jobs:
       - run: pnpm check
       - run: pnpm evaluate
       - run: pnpm web:build
+      - run: pnpm gateway:build
       - uses: actions/upload-artifact@v4
         with:
           name: ledgerflow-dashboard-${{ matrix.os }}

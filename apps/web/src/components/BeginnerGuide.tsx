@@ -22,6 +22,7 @@ const firstRequest=`현재 프로젝트의 get_system_status와 get_company_cont
 매출 역할로 2026년 1월의 미처리 매출 거래 1건을 찾아 증빙을 확인해 줘.
 어떤 거래인지, 어떤 계정에 왜 기록하는지 회계 초보자도 이해할 수 있게 설명해 줘.
 분개 초안 생성 → 검증 → 사용자 승인 요청까지 진행해 줘.
+전표에 첨부된 공공자료의 실제/샘플 구분, 시행일, 조회 실패·제외 사유도 설명해 줘.
 전표 ID, 버전, hash와 차변·대변 합계를 알려주고 사용자 승인 대기에서 멈춰 줘.
 도구가 연결되지 않았거나 증빙이 부족하면 그 상태를 알려줘.`;
 const postRequest=`현재 프로젝트의 get_system_status와 get_company_context를 먼저 확인해 줘.
@@ -33,7 +34,7 @@ const connectionRequest=`현재 프로젝트의 get_system_status와 get_company
 실제 도구가 보이지 않거나 호출이 실패하면 연결되었다고 추정하지 말고 알려줘.
 거래 생성, 승인, 장부 반영은 하지 마.`;
 
-type GuideTarget='approval'|'reports';
+type GuideTarget='approval'|'reports'|'references';
 const glossary=[
   ['거래','상품 판매, 물건 매입, 급여 지급처럼 회사에서 일어난 일입니다.'],
   ['증빙','그 거래를 확인할 수 있는 세금계산서·계약서·입출금 내역 같은 자료입니다.'],
@@ -154,6 +155,14 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
       <RequestBox title="두 번째 요청문 · 내가 승인한 뒤 장부에 반영" prompt={postRequest} hint="[전표 ID]는 첫 번째 작업에서 앱이 알려준 전표 ID로 바꿔 주세요. 승인하지 않은 전표는 반영되지 않습니다."/>
     </section>
 
+    <section className="guide-section" aria-labelledby="guide-public-title">
+      <div className="guide-section-heading"><span className="guide-kicker">공공자료는 어디에 쓰이나요?</span><h2 id="guide-public-title">분개할 때 확인할 참고 근거를 함께 가져옵니다.</h2></div>
+      <p>‘공공자료’ 메뉴에서 거래를 골라 조회하거나 앱에 분개 초안을 요청하세요. DART 공시기업 재무정보, 거래일에 맞는 세법 조문, 한국은행 금리 자료를 모아 보여줍니다. 새 전표에는 그때 확인한 자료가 승인 내용에 포함됩니다. 조회에 실패하면 ‘확인 필요’, 샘플 모드이면 ‘샘플 자료’로 표시합니다.</p>
+      <p>가상 거래처에는 실제 사업자번호가 없으므로 국세청 자동 검증은 생략합니다. 실제 사업자번호를 지정해 별도로 조회할 수 있습니다. 공시기업의 매출은 우리 회사 매출이 아니며, 법령·금리 조회만으로 세액이나 분개 금액을 확정하지 않습니다.</p>
+      <button type="button" className="guide-link-button" onClick={()=>onNavigate('references')}>거래별 공공자료 확인 →</button>
+      <details className="guide-details"><summary>다른 사람이 설치하면 공공 API도 바로 연결되나요?</summary><p>저장소에는 MCP·역할·스킬과 공공자료 연동 코드가 들어 있습니다. 기본 설치는 키가 필요 없는 샘플 모드입니다. 운영자가 공유 중계 서버를 배포한 경우, 전달받은 중계 주소와 전용 접속 토큰을 내 PC의 <code>.env.local</code>에 설정하고 서버를 다시 시작하면 운영자의 공공자료 연동을 이용합니다. 원본 공공 API 키 4개를 받을 필요는 없습니다.</p><p>공유 서버가 없거나 접속 설정을 받지 않았다면 자동 실조회가 되지 않습니다. 본인의 API 키 4개를 등록하고 <code>pnpm api:live</code>로 직접 조회 모드를 켤 수도 있습니다. 접속 토큰·API 키·DB 비밀번호는 GitHub에 올리지 마세요.</p><a href={repositoryUrl+'/blob/main/docs/PUBLIC_GATEWAY.md'} target="_blank" rel="noopener noreferrer">공유 공공자료 연결 안내 ↗</a></details>
+    </section>
+
     <section className="guide-section" aria-labelledby="guide-terms-title">
       <div className="guide-section-heading"><span className="guide-kicker">어려운 말은 여기서 확인</span><h2 id="guide-terms-title">처음 만나는 회계 용어</h2></div>
       <dl className="guide-glossary">{glossary.map(([term,description])=><div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>
@@ -162,7 +171,7 @@ export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarg
 
     <section className="guide-demo-note" aria-labelledby="guide-demo-title"><h2 id="guide-demo-title">지금은 가상회사로 연습하는 시연판입니다.</h2>
       <p>화면의 가상 한국회사는 <strong>한빛유통 주식회사</strong>입니다. 처음부터 있는 거래 1,000건은 분개와 결산을 연습하도록 미리 준비한 샘플이며 실제 영업 내역이 아닙니다. 거래가 조회된다고 장부 반영까지 끝난 것은 아닙니다.</p>
-      <p>기본 로컬 시연은 로그인 없이 사용하고, 서버를 종료하면 작업 데이터가 초기화됩니다. 공공 API는 기본적으로 샘플 응답을 사용하며 실제 공공자료를 조회해도 가상회사의 거래와 구분합니다. 실제 세금 신고나 완전한 회계기준 준수를 인증하는 서비스는 아닙니다.</p>
+      <p>기본 로컬 시연은 로그인 없이 사용하고, 서버를 종료하면 작업 데이터가 초기화됩니다. 공공자료 연결 모드는 개요·공공자료 메뉴에 표시됩니다. 처음 설치한 PC는 샘플 모드이며 실조회 또는 공유 중계 연결을 설정할 수 있습니다. 실제 공공자료도 가상회사의 거래와 구분합니다. 실제 세금 신고나 완전한 회계기준 준수를 인증하는 서비스는 아닙니다.</p>
     </section>
   </div>;
 }

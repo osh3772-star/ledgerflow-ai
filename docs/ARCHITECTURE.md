@@ -14,10 +14,14 @@ flowchart TD
   M --> E[공통 ERP 서비스]
   M --> A[공통 회계 서비스]
   M --> P[공공 참고자료 Adapter 4종]
+  A --> V[공공자료 검토 snapshot]
+  V --> P
   A --> K[LLM 독립 Decimal 규칙 엔진]
   E --> D[(PostgreSQL / Supabase)]
   A --> D
   P --> N[국세청 / DART / 법령 / ECOS]
+  P -. 공유 연결 모드 .-> G[Cloudflare 읽기 전용 HTTP 중계]
+  G --> N
   P --> D
   W[Astro + React 대시보드] --> H[같은 Node HTTP 프로세스의 웹 route]
   H --> A
@@ -26,7 +30,11 @@ flowchart TD
   HU[사용자 승인자: demo는 로그인 없음] --> H
 ```
 
-서버 제품은 정확히 하나다. 기본 foreground 프로세스의 `http://127.0.0.1:8787/mcp`를 두 앱이 공유한다. 선택 stdio도 같은 서버 팩토리·서비스를 사용하며 한 프로세스가 HTTP 승인 화면과 stdio를 함께 제공한다. 별도 오케스트레이터·모델 API·무인 스케줄러는 없다. 사용자가 앱에서 작업을 요청하고 앱 종료/중단 시 실행도 중단된다.
+MCP 서버 제품은 정확히 하나다. 기본 foreground 프로세스의 `http://127.0.0.1:8787/mcp`를 두 앱이 공유한다. 선택 stdio도 같은 서버 팩토리·서비스를 사용하며 한 프로세스가 HTTP 승인 화면과 stdio를 함께 제공한다. 별도 오케스트레이터·모델 API·무인 스케줄러는 없다. 사용자가 앱에서 작업을 요청하고 앱 종료/중단 시 실행도 중단된다.
+
+2026-10-16 공공자료의 회계 근거 첨부와 선택 Cloudflare 공유 중계를 추가했다. Worker는 공공 도구 11종만 중계하며 MCP·DB·장부·승인 서버가 아니다. 직접 mock/live와 gateway 모드는 같은 `PublicDataClient` 계약을 사용한다. 서버가 공공 클라이언트 인스턴스와 캐시를 회계·웹·MCP 도구에 재사용한다. 기존 마이그레이션·fixture·분개 금액 엔진을 교체하지 않는다. [연결·배포 명세](PUBLIC_GATEWAY.md)
+
+`get_accounting_source`와 신규 분개는 `AccountingReferenceService`로 DART 재무 참고, 거래일 법령, ECOS 금리 참고를 수집한다. 실사업자 매핑이 없는 합성 거래처는 국세청 자동 조회에서 제외한다. 개별 실패는 명시하고 수집 전체 기한은 18초로 제한한다. 새 전표 JSONB의 선택 필드 `publicReferences`를 기존 hash에 포함해 승인 대상을 고정한다. 이 필드에는 기본값을 부여하지 않아 기존 payload/hash를 보존한다. 참조자료가 금액·계정을 변경하지 않으며 AI는 그 적합성과 불확실성을 설명한다. 승인·검증·전기는 기존 독립 DB 제어를 따른다.
 
 ## 모듈과 의존성
 
@@ -40,6 +48,7 @@ flowchart TD
 | `packages/public-data` | 국세청·DART·법령·ECOS schema/normalize/cache/retry |
 | `apps/mcp-server` | SDK v2 도구 registry, HTTP/stdio, MCP 인증, 인간 인증 route, Storage |
 | `apps/web` | Astro 정적 출력 + React 화면, 동일 출처 API 호출 |
+| `apps/public-api-gateway` | 선택 Cloudflare HTTP 중계, 4기관 키 서버 보관·인증·지역 호출 제한·Cache API; MCP 아님 |
 | `scripts/check-connections.ts` | 기존 서버·두 앱 설정/현재 Codex 등록의 읽기 진단, 추론/승인/전기 없음 |
 | `scripts/database-readiness.ts` | 기존 PostgreSQL의 필수 schema 읽기 점검, 자동 migration/seed 없음 |
 | `scripts/postgres-connection.ts` | 지속 runtime/진단 공통 연결 설정, Supabase TLS CA·hostname 검증과 선택 CA 파일 |
@@ -166,6 +175,7 @@ Storage는 private `ledgerflow-evidence` bucket과 회사-prefix RLS다. 인간 
 | 로컬 DB·MCP·대시보드 + 이미 구독 중인 앱 | 프로젝트 모델 API 0원, 호스팅 0원 | 기존 앱 구독/사용 한도·PC 전력 비용 별도 |
 | Supabase Free + 로컬 Node | DB/Storage $0 | 500MB DB, 1GB Storage, 제한 내 사용; 유휴 중단 고려 |
 | Supabase Pro + 로컬 Node | 기본 $25/월부터 | 추가 사용·프로젝트 비용 별도, 현 시점 기본 가격 |
+| Cloudflare 공공자료 중계 | Free 한도 내 $0 | 기관 쿼터·CPU/요청 제한, 공유 토큰 필요. 장부 backend는 로컬 |
 | Pages 정적 사이트 | 무료 플랜 검토 가능 | 서버 API 기능은 별도 호스트 필요, 현재 미배포 |
 
 Supabase 무료 한도와 Pro 가격은 공식 가격표를 확인했다. 공공 API는 발급받은 무료 이용권한과 승인 쿼터 내 사용한다. 추가 유료 모델 API 호출 경로는 코드에 없다. 앱 native 추론 사용량/실제 비용은 측정되지 않았고 무제한이라고 가정하지 않는다. [Supabase pricing](https://supabase.com/pricing), [Pages limits](https://developers.cloudflare.com/pages/platform/limits/)

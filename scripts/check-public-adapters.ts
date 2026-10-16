@@ -1,7 +1,9 @@
-import {PublicDataService} from '@ledgerflow/public-data';
+import {PublicDataService,GatewayPublicDataClient} from '@ledgerflow/public-data';
 import {loadServerEnvironment} from './server-env.js';
 loadServerEnvironment();
-const service=new PublicDataService({nts:process.env.NTS_SERVICE_KEY,dart:process.env.DART_API_KEY,law:process.env.LAW_OC,ecos:process.env.ECOS_API_KEY},'live');
+const service=process.argv.includes('--gateway')?
+  new GatewayPublicDataClient(process.env.LEDGERFLOW_PUBLIC_GATEWAY_URL??'',process.env.LEDGERFLOW_PUBLIC_GATEWAY_TOKEN??''):
+  new PublicDataService({nts:process.env.NTS_SERVICE_KEY,dart:process.env.DART_API_KEY,law:process.env.LAW_OC,ecos:process.env.ECOS_API_KEY},'live');
 const queries:[Parameters<typeof service.call>[0],unknown][]=[
   ['get_business_status',{businessNumbers:['0000000000']}],
   ['get_financial_statements',{corpCode:'00126380',year:2025}],

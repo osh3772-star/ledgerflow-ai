@@ -9,3 +9,6 @@ supabase/.temp/
 supabase/.branches/
 *.tsbuildinfo
 .astro/
+.wrangler/
+.dev.vars
+.dev.vars.*

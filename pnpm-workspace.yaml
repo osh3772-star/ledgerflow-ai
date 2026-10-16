@@ -9,3 +9,4 @@ allowBuilds:
   '@embedded-postgres/darwin-x64': true
   '@embedded-postgres/darwin-arm64': true
   esbuild: true
+  workerd: true

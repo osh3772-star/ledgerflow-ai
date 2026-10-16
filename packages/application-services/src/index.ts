@@ -21,3 +21,4 @@ export class ErpService {
   async createTransaction(input: unknown) { return this.repository.createTransaction(validated(createTransactionSchema,input)); }
 }
 export * from './accounting.js';
+export * from './public-references.js';

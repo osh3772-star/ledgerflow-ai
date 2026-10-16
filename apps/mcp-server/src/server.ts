@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { McpServer, fromJsonSchema, type CallToolResult, type JsonSchemaType } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { ErpService,AccountingService } from '@ledgerflow/application-services';
-import {API_TOOLS,publicInputs,type PublicDataService} from '@ledgerflow/public-data';
+import {API_TOOLS,publicInputs,type PublicDataClient} from '@ledgerflow/public-data';
 import {ACCOUNTING_TOOLS,registerAccountingTools} from './accounting-tools.js';
 import { DomainError, uuidSchema, dateSchema, transactionQuerySchema, unprocessedQuerySchema,
   invoiceQuerySchema, bankQuerySchema, inventoryQuerySchema, counterpartyQuerySchema,
@@ -24,7 +24,7 @@ export interface ServerDependencies {
   getCompanyContext: () => Promise<z.output<typeof companyContextSchema>>;
   audit: (event: ToolAudit) => Promise<void>;
   accounting?:AccountingService;
-  publicData?:PublicDataService;
+  publicData?:PublicDataClient;
   humanRouter?:(request:Request)=>Promise<Response>;
   mcpToken?:string;
 }
@@ -82,11 +82,13 @@ export function createLedgerFlowServer(dependencies: ServerDependencies): McpSer
         humanApproval: z.boolean(), posting: z.boolean(), trialBalance: z.boolean(), publicApiTools: z.boolean() }),
       paidModelApi: z.literal(false), ownOrchestrator: z.literal(false), unattendedScheduler: z.literal(false),
       publicApiMetrics:z.strictObject({requests:z.number(),cacheHits:z.number(),retries:z.number(),failures:z.number()}).nullable(),
+      publicApiConfiguration:z.strictObject({mode:z.enum(['mock','live','gateway']),providers:z.array(z.strictObject({provider:z.enum(['nts','dart','law','ecos']),configured:z.boolean()}))}).nullable(),
     }), async () => ({ server: SERVER_NAME, profile: dependencies.profile,
       tools:[...ERP_TOOLS,...(dependencies.accounting?ACCOUNTING_TOOLS:[]),...(dependencies.publicData?API_TOOLS:[])],
       capabilities: { erpRead:true, journalDraft:Boolean(dependencies.accounting), validation:Boolean(dependencies.accounting),
         humanApproval:Boolean(dependencies.humanRouter), posting:Boolean(dependencies.accounting), trialBalance:Boolean(dependencies.accounting), publicApiTools:Boolean(dependencies.publicData) },
-      paidModelApi:false, ownOrchestrator:false, unattendedScheduler:false,publicApiMetrics:dependencies.publicData?{...dependencies.publicData.metrics}:null }));
+      paidModelApi:false, ownOrchestrator:false, unattendedScheduler:false,publicApiMetrics:dependencies.publicData?{...dependencies.publicData.metrics}:null,
+      publicApiConfiguration:dependencies.publicData?.configuration()??null }));
   register('get_company_context','서버에서 고정한 가상회사, 통화, 회계정책 및 DB 회계기간을 조회합니다.',
     z.strictObject({}), companyContextSchema, async () => dependencies.getCompanyContext());
   register('get_transactions','기간귀속일 기준 가상 ERP 거래를 cursor로 조회합니다. 전표/원장 조회가 아닙니다.',

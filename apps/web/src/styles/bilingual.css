@@ -38,6 +38,25 @@
 .flow .bilingual-en { font-size: 10px; }
 .flow .bilingual-ko { font-size: 9px; }
 footer { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.public-api-status strong { display: block; margin-bottom: 7px; }
+.public-api-status p { margin: 0 0 5px; line-height: 1.8; }
+.public-api-status > span { font-size: 11px; }
+.public-reference-panel { margin: 0 0 22px; padding: 23px; background: #f5faf7; border: 1px solid #dce8e0; border-radius: 9px; }
+.public-reference-panel h3 { margin: 0 0 12px; color: #2e6147; font-size: 16px; }
+.public-reference-panel > p { font-size: 12px; color: #647b6c; line-height: 1.8; }
+.public-reference-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.public-reference-grid article { padding: 18px; border: 1px solid #dfe8e2; background: white; border-radius: 8px; }
+.public-reference-grid article > div { display: flex; gap: 8px; justify-content: space-between; align-items: center; font-size: 13px; }
+.public-reference-grid h4 { margin: 14px 0 8px; font-size: 12px; color: #476a54; }
+.public-reference-grid p { font-size: 12px; line-height: 1.8; color: #6c8072; }
+.public-reference-grid small { display: block; margin-top: 9px; font-size: 10px; color: #7b8c81; overflow-wrap: anywhere; }
+.public-reference-grid a, .public-reference-grid summary { color: #126b57; font-size: 12px; }
+.public-reference-grid details { margin-top: 14px; }
+.public-reference-grid pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.7; }
+.reference-status { padding: 4px 7px; background: #f0f4f1; color: #617569; border-radius: 4px; font-size: 10px; }
+.reference-status.available { background: #e9f5ed; color: #246a46; }
+.reference-status.unavailable { background: #fff2db; color: #86612e; }
 @media (max-width: 680px) {
   .brand-tagline { display: none; }
+  .public-reference-grid { grid-template-columns: 1fr; }
 }

@@ -12,6 +12,8 @@
 
 실패는 `ok:false, error:{code,message}`, MCP `isError:true`다. 공개 도구 meta origin은 `public_reference`이며 실제/mock 구분은 data의 provenance.origin을 본다. Journal 응답은 ID/company/payload/hash/version/state/idempotencyKey/postedAt/discardedAt/discardReason이다. public과 일부 보고서 data는 JSON Schema의 일반 JSON 값으로 선언하며 도메인 결과는 서비스 normalize와 테스트로 검증한다.
 
+`get_system_status.publicApiConfiguration`은 서버의 `mock/live/gateway` 모드와 각 제공자의 설정 여부만 노출한다. 실제 연결 성공은 개별 조회의 provenance로 확인한다. 키·접속 토큰은 반환하지 않는다. `get_accounting_source`는 선택 공공 검토 보고서를 반환하고 신규 `propose_journal_entry`의 `payload.publicReferences`는 전표 hash에 포함된다. [공공자료 적용 범위·공유 연결](PUBLIC_GATEWAY.md)
+
 Authentication: localhost 고정 서버 신원, 선택 bearer. Permission: ERP 조회 erp:read, ERP 생성 erp:write + preparer/admin, 회계 쓰기 accounting:write, 마감 accounting:close. 인간 approve 권한은 web 전용이다. AI role prompt는 scope를 대체하지 않는다.
 
 Audit: `{at,server,actor,profile,traceId,tool,companyId,outcome,durationMs,errorCode?}`. 인자·인증키·민감 원문을 기록하지 않는다. 파일/DB audit 실패는 `AUDIT_UNAVAILABLE`로 응답하며 이미 원자적으로 완료된 command는 멱등성 키/DB 상태로 재확인한다.
@@ -37,8 +39,8 @@ Audit: `{at,server,actor,profile,traceId,tool,companyId,outcome,durationMs,error
 | 도구 | 입력 요약 | 응답·기능 | scope |
 | --- | --- | --- | --- |
 | get_source_documents | companyId/transactionId | 증빙 원문·hash·출처 | erp:read |
-| get_accounting_source | 동일 | 계정·기간·계약·보조자료 snapshot | erp:read |
-| propose_journal_entry | companyId/transactionId/idempotencyKey | 결정론 Draft Journal | accounting:write |
+| get_accounting_source | 동일 | 계정·기간·계약·보조자료 + 공공자료 검토 snapshot | erp:read |
+| propose_journal_entry | companyId/transactionId/idempotencyKey | 결정론 Draft Journal + hash에 결합된 공공 근거 | accounting:write |
 | get_journal_entry | companyId/journalId | 실제 DB Journal | erp:read |
 | list_journal_entries | companyId/state?/limit?/after? | 전표 요약 최대 100 | erp:read |
 | validate_journal_entry | companyId/journalId | 독립 검증 후 Journal | accounting:write |

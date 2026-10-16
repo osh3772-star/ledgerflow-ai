@@ -3,23 +3,36 @@ import {ExactDecimal,DomainError,proposeInput,journalInput,postInput,rangeInput,
 import {z} from 'zod';
 import {generateJournal,validateJournal,trialBalance,monthlyDepreciation} from '@ledgerflow/accounting-core';
 import type {PostgresAccountingRepository} from '@ledgerflow/data-access';
+import type {AccountingReferenceService} from './public-references.js';
 const decimal=(s:string)=>new ExactDecimal(s);
 export class AccountingService{
-  constructor(readonly repository:PostgresAccountingRepository){}
+  constructor(readonly repository:PostgresAccountingRepository,private referenceReview?:AccountingReferenceService){}
+  async source(input:unknown){const q=documentInput.parse(input),snapshot=await this.repository.source(q.companyId,q.transactionId);
+    return this.referenceReview?{...snapshot,publicReferences:await this.referenceReview.collect(snapshot)}:snapshot;}
   async propose(input:unknown){const q=proposeInput.parse(input);
     const existing=await this.repository.byKey(q.companyId,q.idempotencyKey);
     if(existing){
       if(existing.transactionId!==q.transactionId)throw new DomainError('IDEMPOTENCY_CONFLICT','동일 키의 거래 참조가 다릅니다.');
       return this.repository.journal(q.companyId,existing.id);
     }
-    const payload=generateJournal(await this.repository.source(q.companyId,q.transactionId));
-    return this.repository.save(q.companyId,payload,q.idempotencyKey) as Promise<Journal>;}
+    const source=await this.repository.source(q.companyId,q.transactionId),payload=generateJournal(source);
+    if(this.referenceReview)payload.publicReferences=await this.referenceReview.collect(source);
+    try{return await this.repository.save(q.companyId,payload,q.idempotencyKey) as Journal;}
+    catch(error){
+      // Concurrent reference lookups can have different fetchedAt values. The first immutable draft wins.
+      if(error instanceof DomainError&&error.code==='IDEMPOTENCY_CONFLICT'){
+        const winner=await this.repository.byKey(q.companyId,q.idempotencyKey);
+        if(winner?.transactionId===q.transactionId)return this.repository.journal(q.companyId,winner.id);
+      }throw error;
+    }}
   async documents(input:unknown){const q=documentInput.parse(input);return this.repository.sourceDocuments(q.companyId,q.transactionId);}
   async get(input:unknown){const q=journalInput.parse(input);return this.repository.journal(q.companyId,q.journalId);}
   async list(input:unknown){const q=listJournalInput.parse(input);return this.repository.list(q.companyId,q.state,q.limit,q.after);}
   async unprocessed(input:unknown){return this.repository.pending(unprocessedQuerySchema.parse(input));}
   async validate(input:unknown){
     const q=journalInput.parse(input),j=await this.repository.journal(q.companyId,q.journalId);
+    if(j.payload.publicReferences&&j.payload.publicReferences.transactionDate!==j.payload.recognitionOn)
+      throw new DomainError('VALIDATION_FAILED','공공자료 검토 기준일과 전표 귀속일이 다릅니다.');
     if(j.payload.entryType==='source'){
       const errors=validateJournal(j.payload,await this.repository.source(q.companyId,j.payload.transactionId));
       if(errors.length)throw new DomainError('VALIDATION_FAILED',errors.join(','));
@@ -60,6 +73,8 @@ export class AccountingService{
       description:'역분개 '+original.id,reversalOf:original.id,
       lines:original.payload.lines.map(l=>({accountCode:l.accountCode,debit:l.credit,credit:l.debit}))};
     if(payload.calculation)payload.calculation={...payload.calculation,periodId:period.id};
+    if(this.referenceReview)payload.publicReferences=await this.referenceReview.collect(await this.repository.source(q.companyId,original.payload.transactionId),q.recognitionOn);
+    else delete payload.publicReferences;
     return this.repository.save(q.companyId,payload,q.idempotencyKey);
   }
   async closingAdjustments(input:unknown){
@@ -82,6 +97,7 @@ export class AccountingService{
         basis:{standards:[row.type==='depreciation'?'K-IFRS 제1016호':'K-IFRS 제1001호'],
           assumptions:['사용가능/보장 월부터 월 균등 인식','기게시 상각 차감·잔액 상한·마지막 월 보정'],uncertainty:'전문가 검토 미완료; 시나리오 월 규약',expertReviewed:false},
         calculation:{type:row.type,referenceId:row.id,periodId:period.id}};
+      if(this.referenceReview)payload.publicReferences=await this.referenceReview.collect(source,period.to);
       proposals.push(await this.repository.save(q.companyId,payload,'close/'+period.id+'/'+row.type+'/'+row.id) as Journal);
     }
     return {periodId:period.id,proposals,posted:false};

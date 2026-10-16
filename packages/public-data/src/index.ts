@@ -1,7 +1,19 @@
 import {createHash} from 'node:crypto';
 import {z} from 'zod';
 import {dateSchema,DomainError,ExactDecimal} from '@ledgerflow/contracts';
+export * from './gateway-client.js';
 type Provider='nts'|'dart'|'law'|'ecos';
+export class PublicProviderRejection extends DomainError{
+  constructor(readonly provider:Provider,readonly httpStatus:number|null,readonly serviceCode:string|null,readonly redirectTarget:string|null=null){
+    super('PROVIDER_REJECTED','기관 인증·입력 조건을 확인하세요.');
+  }
+}
+export type PublicApiConfiguration={mode:'mock'|'live'|'gateway';providers:{provider:Provider;configured:boolean}[]};
+export interface PublicDataClient{
+  call(name:typeof API_TOOLS[number],raw:unknown):Promise<unknown>;
+  metrics:{requests:number;cacheHits:number;retries:number;failures:number};
+  configuration():PublicApiConfiguration;
+}
 export const API_TOOLS=['verify_business','get_business_status','search_disclosures','get_financial_statements','compare_company_financials',
   'search_tax_law','get_law_article','check_law_amendment','get_exchange_rate','get_interest_rate','get_economic_indicator'] as const;
 const number=z.string().regex(/^\d{10}$/u),compactDate=dateSchema;
@@ -52,6 +64,7 @@ export class PublicDataService{
   metrics={requests:0,cacheHits:0,retries:0,failures:0};
   constructor(private keys:Partial<Record<Provider,string|undefined>>,private mode:'mock'|'live'='mock',
     private cache:ApiCache=new MemoryApiCache(),private fetcher:typeof fetch=fetch){}
+  configuration():PublicApiConfiguration{return {mode:this.mode,providers:(['nts','dart','law','ecos'] as const).map(provider=>({provider,configured:Boolean(this.keys[provider]?.trim())}))};}
   async call(name:typeof API_TOOLS[number],raw:unknown):Promise<unknown>{
     const schema=publicInputs[name],parsed=schema.safeParse(raw);
     if(!parsed.success)throw new DomainError('INVALID_INPUT','공공 API 입력을 확인하세요.');
@@ -184,7 +197,17 @@ export class PublicDataService{
               redirect:'error',signal:AbortSignal.timeout(Math.max(1,Math.min(provider==='dart'?15000:8000,25000-(Date.now()-started))))});
             if(r.status===429||r.status>=500){if(attempt<2){this.metrics.retries++;const retry=Math.min(Number(r.headers.get('retry-after')??'1')*1000,25000);
               if(Date.now()-started+retry>24000)throw new DomainError('RATE_LIMITED','기관 호출 제한; 나중에 재시도하세요.');await pause(retry);continue;}throw new DomainError('PROVIDER_UNAVAILABLE','기관 조회 제한 또는 장애입니다.');}
-            if(!r.ok)throw new DomainError('PROVIDER_REJECTED','기관 인증·입력 조건을 확인하세요.');
+            if(!r.ok){
+              let redirectTarget:string|null=null;
+              if(provider==='dart'&&r.status>=300&&r.status<400&&r.headers.get('location')){
+                const target=new URL(r.headers.get('location')!,url);
+                if(target.hostname==='opendart.fss.or.kr'&&!target.username&&!target.password){
+                  redirectTarget=target.origin+target.pathname;
+                  for(const value of Object.values(this.keys))if(value)redirectTarget=redirectTarget.replaceAll(value,'[redacted]');
+                }
+              }
+              throw new PublicProviderRejection(provider,r.status,null,redirectTarget);
+            }
             const reader=r.body?.getReader();if(!reader)throw new DomainError('SCHEMA_MISMATCH','응답 본문이 없습니다.');
             let size=0;const chunks:Uint8Array[]=[];
             while(true){const chunk=await reader.read();if(chunk.done)break;size+=chunk.value.byteLength;
@@ -201,7 +224,8 @@ export class PublicDataService{
         provider==='dart'?['000','013'].includes(String(data.status)):
         provider==='ecos'?Boolean(data.StatisticSearch)&&!obj(data.RESULT).CODE:
         operation==='search_tax_law'?Boolean(data.LawSearch)&&[undefined,'00'].includes(obj(data.LawSearch).resultCode as string|undefined):Boolean(data['법령']);
-      if(!accepted){this.metrics.failures++;throw new DomainError('PROVIDER_REJECTED','기관 오류 응답은 캐시하지 않습니다.');}
+      if(!accepted){this.metrics.failures++;throw new PublicProviderRejection(provider,null,
+        provider==='dart'&&/^\d{3}$/u.test(String(data.status))?String(data.status):null);}
       const now=new Date(),row:CacheRecord={response,origin,fetchedAt:now.toISOString(),expiresAt:new Date(now.getTime()+ttl).toISOString(),sourceUrl:endpoint};
       await this.cache.put(cacheKey,provider,row);return {row,cacheHit:false};
     })();
