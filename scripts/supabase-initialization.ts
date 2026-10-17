@@ -16,7 +16,9 @@ function bundleHash(migrations:InitialMigrationBundle['migrations'],body:string)
   return hash(JSON.stringify({version:1,migrations,body}));
 }
 export async function buildInitialMigrationBundle(directory=resolve('supabase/migrations')):Promise<InitialMigrationBundle>{
-  const names=(await readdir(directory)).filter(name=>/^\d+_.+\.sql$/u.test(name)).sort();
+  // Keep the immutable initial six-file receipt stable; later migrations have
+  // their own checked upgrade path, rather than changing existing receipts.
+  const names=(await readdir(directory)).filter(name=>/^\d+_.+\.sql$/u.test(name)&&name<'202610170007').sort();
   if(JSON.stringify(names)!==JSON.stringify(migrationNames))throw new Error('INITIAL_MIGRATION_SET_CHANGED');
   const migrations:InitialMigrationBundle['migrations']=[],bodies:string[]=[];
   for(const name of names){

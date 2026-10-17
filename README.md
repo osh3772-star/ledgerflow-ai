@@ -1,10 +1,10 @@
 # LedgerFlow AI
 
-**[Cloudflare에서 한빛유통 공개 미리보기 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — 설치 없이 가상 거래 1,000건·공공자료 예시·사용법을 봅니다. 실제 분개·승인·장부 반영은 내 PC의 프로젝트와 연결된 앱에서 진행합니다. [공개/로컬 기능 구분](docs/PUBLIC_SITE.md)
+**[Cloudflare에서 한빛유통 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — 설치 없는 원격 장부·OAuth MCP·계정별 회사 분리 코드를 추가했습니다. **현재 운영 활성화는 Supabase DB 인증 오류로 보류**되어 공개 샘플만 조회됩니다. [원격 사용법과 활성화 상태](docs/REMOTE_USAGE.md)
 
 공개 저장소: [osh3772-star/ledgerflow-ai](https://github.com/osh3772-star/ledgerflow-ai)
 
-**공유받아 처음 설치한다면 [새 PC 설치·MCP 연결·회계 역할 시작하기](docs/GETTING_STARTED.md)를 따라 하세요.** MCP 설정과 6개 역할·스킬이 저장소에 포함되어 있습니다. 기본 시연은 공공 API 키·Supabase·Docker 없이 시작합니다. 다른 사람에게는 이 저장소 링크를 보내세요. `127.0.0.1` 주소는 각자의 PC 안에서만 열립니다.
+**처음 사용한다면 [첫 사용·원격 연결·선택적 로컬 설치](docs/GETTING_STARTED.md)를 읽으세요.** 원격 활성화 후 방문자는 사이트와 본인 AI 앱만 사용하며 서버·Node.js·DB·API 키 설치는 필요 없습니다. 기존 로컬 독립 실행과 역할·스킬 파일도 유지하며 MCP 서버에서 역할 프롬프트 6개를 제공합니다.
 
 [![LedgerFlow checks](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml)
 

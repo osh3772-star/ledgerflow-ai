@@ -1,5 +1,7 @@
 # Native client accounting roles
 
+원격에서는 같은 MCP 서버의 instructions와 역할 프롬프트 6개를 사용한다. 서버·역할 파일 설치 없이 필요한 역할을 앱 대화에서 선택하지만 native agent/skill 자동 설치나 6개 독립 실행을 뜻하지 않는다. 원격 토큰은 계정별 회사의 서비스 작성자에 연결되고 인간 웹 세션에는 사용할 수 없다. 아래 Task/Result·권한·승인 원칙은 동일하다. [원격 연결](REMOTE_USAGE.md)
+
 Claude Code·Codex가 AI 추론과 사용자 요청 업무를 담당한다. 각 앱의 agent 6개와 skill 6개는 같은 MCP 서버를 사용한다. 필요한 역할만 선택하고 사용자가 위임/병렬 작업을 요청할 때만 native subagent를 생성한다. 역할 이름이나 prompt는 DB 권한 인증이 아니다.
 
 항상 `get_system_status`와 `get_company_context`부터 호출한다. 현재 catalog에 없는 도구를 추정하거나 SQL/셸로 대체하지 않는다. 소스 개발 셸 접근과 실제 회계 실행 권한을 구분한다.

@@ -87,12 +87,44 @@ function RequestBox({title,prompt,hint,destination='chat'}:{title:string;prompt:
 export function GuideWelcome({onOpen}:{onOpen:()=>void}){
   return <section className="guide-welcome" aria-labelledby="guide-welcome-title">
     <div><span className="guide-kicker">어디서 시작하나요?</span><h2 id="guide-welcome-title">ERP에 있는 1월 거래를 앱에 분개해 달라고 요청하세요.</h2>
-      <p>연습용 거래 1,000건은 이미 준비되어 있습니다. 코덱스·클로드 코드에 초안 작성을 요청하고, 사이트에서 승인한 뒤 앱에 장부 반영을 요청합니다. 복사용 월별 요청문과 설치 안내를 확인하세요.</p></div>
+      <p>연습용 거래 1,000건은 이미 준비되어 있습니다. 코덱스·클로드 코드에 초안 작성을 요청하고, 사이트에서 승인한 뒤 앱에 장부 반영을 요청합니다. 복사용 월별 요청문과 연결 안내를 확인하세요.</p></div>
     <button type="button" className="guide-primary-button" onClick={onOpen}>사용 방법과 제작 목적 보기 <span aria-hidden="true">→</span></button>
   </section>;
 }
 
-export default function BeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void}){
+function HostedBeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void}){
+  const remoteMonth=monthRequest.replace('현재 프로젝트의','연결된 MCP 서버의').replace('docs/CLIENT_ROLES.md에 따라 필요한 역할의 스킬을 현재 대화에서 순서대로 적용해 줘.','서버가 제공하는 총괄·매출·매입·자금·결산·감사 중 필요한 역할 지침을 현재 대화에서 순서대로 적용해 줘.');
+  return <div className="beginner-guide">
+    <section className="guide-intro"><span className="guide-kicker">설치 없는 원격 사용 안내</span><h2>사이트에서 내 장부를 열고, AI 앱에 연결하세요.</h2>
+      <p>이 사이트 상단의 ‘로그인·시작하기’가 활성화된 경우 아래 순서로 사용합니다. ‘공개 샘플 조회 모드’라면 운영자가 원격 DB 연결을 준비 중인 상태이며, 아직 개인 장부를 처리할 수 없습니다.</p>
+      <ol className="guide-steps">
+        <li><span className="guide-step-number">1</span><div><h3>이메일 인증·로그인</h3><p>처음에는 회원가입하고 확인 이메일의 링크로 인증한 뒤 로그인하세요. 계정마다 별도 가상회사와 원천 거래 1,000건이 준비됩니다.</p></div></li>
+        <li><span className="guide-step-number">2</span><div><h3>내 AI 앱에 MCP 주소 추가</h3><p>상단 ‘AI 연결·계정 관리’의 주소를 Codex 또는 Claude Code의 원격 HTTP MCP 설정에 추가합니다. 브라우저가 열리면 이 사이트의 같은 계정으로 로그인하고 연결을 허용하세요. 서버·Node.js·DB·공공 API 키를 PC에 설치할 필요는 없습니다.</p></div></li>
+        <li><span className="guide-step-number">3</span><div><h3>연결된 앱에서 분개 요청</h3><p>아래 요청문을 AI 앱에 보내세요. 사이트가 AI 추론을 실행하지는 않습니다. 이미 사용 중인 앱과 본인 이용 계정이 필요합니다.</p></div></li>
+        <li><span className="guide-step-number">4</span><div><h3>이 사이트에서 직접 승인</h3><p>새로고침 → 사용자 승인 → 전표 보기에서 증빙·금액·근거를 확인하세요. AI에게 승인 버튼을 대신 누르게 하지 않습니다.</p><button className="guide-link-button" onClick={()=>onNavigate('approval')}>사용자 승인 열기 →</button></div></li>
+        <li><span className="guide-step-number">5</span><div><h3>앱에 장부 반영 요청</h3><p>두 번째 요청문을 보내면 승인 상태와 hash를 다시 확인한 전표만 반영합니다. 이후 재무 보고서에서 결과를 확인하세요.</p><button className="guide-link-button" onClick={()=>onNavigate('reports')}>재무 보고서 열기 →</button></div></li>
+      </ol>
+    </section>
+    <section className="guide-section"><h2>먼저 매출 한 건으로 연습하세요.</h2>
+      <RequestBox title="첫 요청 · 분개 초안부터 승인 대기까지" prompt={firstRequest.replace('현재 프로젝트의','연결된 MCP 서버의')} hint="연결을 허용한 Codex·Claude의 대화창에 붙여 넣으세요. 웹에서 직접 승인하기 전에는 장부에 반영되지 않습니다."/>
+      <RequestBox title="두 번째 요청 · 내가 직접 승인한 뒤" prompt={postRequest.replace('현재 프로젝트의','연결된 MCP 서버의')} hint="[전표 ID]는 앱이 알려준 ID로 바꾸세요. 웹과 AI 연결이 같은 계정인지 확인하세요."/>
+    </section>
+    <section className="guide-section"><h2>한 달 전체를 정리하려면</h2>
+      <RequestBox title="2026년 1월 기존 ERP 거래 정리" prompt={remoteMonth} hint="한 건의 흐름을 확인한 뒤 사용하세요. 이미 게시한 거래는 다시 처리하지 않습니다."/>
+      <RequestBox title="1월 중 내가 승인한 전표만 반영" prompt={monthPostRequest.replace('현재 프로젝트의','연결된 MCP 서버의')} hint="월말 수정분개·기간 마감은 별도 작업이며 사용자 승인이 필요합니다."/>
+    </section>
+    <section className="guide-section"><h2>회계 역할 여섯 개는 어떻게 쓰나요?</h2><p>서버가 여섯 역할의 지침과 MCP 프롬프트를 제공합니다. 필요한 역할을 현재 앱 대화에서 선택합니다. 서버 연결이 앱에 스킬 파일을 자동 설치하거나 독립 에이전트 여섯 개를 자동 실행하지는 않습니다.</p>
+      <div className="guide-role-table"><table><thead><tr><th>역할</th><th>업무</th><th>서버 프롬프트</th></tr></thead><tbody>{roles.map(([label,work,role])=><tr key={role}><td>{label}</td><td>{work}</td><td><code>{'ledgerflow-'+role}</code></td></tr>)}</tbody></table></div>
+      <p>역할 정의·SDK 테스트와 실제 앱 실행은 구분합니다. 실제 사용 결과는 역할별 Result와 도구 호출 기록으로 확인합니다. 역할 이름이 승인 권한을 주지는 않습니다.</p>
+    </section>
+    <section className="guide-section"><h2>공공 API와 다른 사람의 장부</h2><p>로그인한 원격 장부의 자료 조회·분개 요청은 서버에 보관된 운영자 키와 공통 캐시로 공공자료를 조회합니다. 방문자에게 키를 배포하지 않습니다. 국세청은 실제 사업자번호가 없는 합성 거래처를 제외하며, DART·거래일 법령·ECOS 자료는 참고 근거입니다. 실패·샘플 출처를 실제 성공으로 표시하지 않습니다.</p><p>개인 장부의 거래·초안·승인·게시 결과는 계정별 회사로 분리됩니다. 로그인 전의 공개 샘플은 모두에게 같은 읽기 전용 자료입니다. A의 분개나 승인은 B의 장부나 공개 샘플을 바꾸지 않습니다.</p></section>
+    <section className="guide-section"><h2>왜 만들었나요?</h2><p>가상 도소매 회사의 거래가 증빙 확인·분개·검증·승인을 거쳐 장부와 재무제표로 이어지는 과정을 직접 연습하기 위한 취업 포트폴리오입니다. 반복 계산은 코드가, 자료 해석과 설명은 AI가, 최종 승인은 사람이 맡습니다.</p><dl className="guide-glossary">{glossary.map(([term,description])=><div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl></section>
+    <section className="guide-demo-note"><h2>가상회사 연습용 서비스입니다.</h2><p>실제 은행·세금계산서 수집이나 법정 신고 서비스가 아닙니다. 공공자료는 합성 장부와 구분하며 완전한 K-IFRS 준수 인증을 주장하지 않습니다.</p><a href={repositoryUrl+'/blob/main/docs/GETTING_STARTED.md'} target="_blank" rel="noopener noreferrer">GitHub 사용 안내 ↗</a><p>개발·로컬 실행이 필요한 경우 저장소의 별도 로컬 설치 절차를 이용하세요.</p></section>
+  </div>;
+}
+
+export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(target:GuideTarget)=>void;hosted?:boolean}){
+  if(hosted)return <HostedBeginnerGuide onNavigate={onNavigate}/>;
   return <div className="beginner-guide">
     <section className="guide-intro" aria-labelledby="guide-intro-title">
       <span className="guide-kicker">회계 초보자를 위한 시작 안내</span>

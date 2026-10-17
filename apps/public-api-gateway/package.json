@@ -1,6 +1,23 @@
 {
-  "name":"@ledgerflow/public-api-gateway","version":"0.1.0","private":true,"type":"module",
-  "scripts":{"build":"wrangler deploy --dry-run --outdir ../../.ledgerflow/gateway-build","deploy":"wrangler deploy"},
-  "dependencies":{"@ledgerflow/public-data":"workspace:*","@ledgerflow/contracts":"workspace:*","zod":"4.6.7"},
-  "devDependencies":{"wrangler":"4.151.0"}
+  "name": "@ledgerflow/public-api-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir ../../.ledgerflow/gateway-build",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@ledgerflow/application-services": "workspace:*",
+    "@ledgerflow/contracts": "workspace:*",
+    "@ledgerflow/data-access": "workspace:*",
+    "@ledgerflow/public-data": "workspace:*",
+    "@ledgerflow/test-data": "workspace:*",
+    "@modelcontextprotocol/server": "2.3.1",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.0"
+  }
 }

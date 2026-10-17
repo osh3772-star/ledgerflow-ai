@@ -11,7 +11,7 @@ try {
   const buildFiles:string[]=[];
   const visit=(directory:string)=>{for(const entry of readdirSync(directory,{withFileTypes:true})){const path=join(directory,entry.name);if(entry.isDirectory())visit(path);else if(entry.isFile())buildFiles.push(path);}};
   if(process.argv.includes('--web-build'))visit('apps/web/dist');
-  const serverSecrets=['LEDGERFLOW_MCP_TOKEN','LEDGERFLOW_SESSION_ENCRYPTION_KEY','LEDGERFLOW_DATABASE_URL','SUPABASE_PUBLISHABLE_KEY','LEDGERFLOW_PUBLIC_GATEWAY_TOKEN']
+  const serverSecrets=['LEDGERFLOW_MCP_TOKEN','LEDGERFLOW_SESSION_ENCRYPTION_KEY','LEDGERFLOW_REMOTE_ENCRYPTION_KEY','LEDGERFLOW_DATABASE_URL','SUPABASE_PUBLISHABLE_KEY','LEDGERFLOW_PUBLIC_GATEWAY_TOKEN']
     .map(name=>environment[name]?.trim()).filter((value):value is string=>Boolean(value));
   const variants = [...Object.values(keys),...serverSecrets].flatMap((key) => {
     try { return [key, encodeURIComponent(key), decodeURIComponent(key)]; } catch { return [key]; }

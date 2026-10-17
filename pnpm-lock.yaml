@@ -89,12 +89,27 @@ importers:
 
   apps/public-api-gateway:
     dependencies:
+      '@ledgerflow/application-services':
+        specifier: workspace:*
+        version: link:../../packages/application-services
       '@ledgerflow/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@ledgerflow/data-access':
+        specifier: workspace:*
+        version: link:../../packages/data-access
       '@ledgerflow/public-data':
         specifier: workspace:*
         version: link:../../packages/public-data
+      '@ledgerflow/test-data':
+        specifier: workspace:*
+        version: link:../../packages/test-data
+      '@modelcontextprotocol/server':
+        specifier: 2.3.1
+        version: 2.3.1
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
       zod:
         specifier: 4.6.7
         version: 4.6.7

@@ -3,9 +3,12 @@ import {z} from 'zod';
 import {DomainError} from '@ledgerflow/contracts';
 import {API_TOOLS,PublicDataService,PublicProviderRejection,publicInputs,type ApiCache,type CacheRecord} from '@ledgerflow/public-data';
 import {createPublicSiteRouter,type WebAssets} from './public-site.js';
+import {handleRemote,remoteConfigured,type RemoteEnvironment} from './remote-worker.js';
 
-export interface GatewayEnvironment{
+export interface GatewayEnvironment extends RemoteEnvironment{
   WEB_ASSETS?:WebAssets;
+  REMOTE_RATE_LIMITER?:{limit(input:{key:string}):Promise<{success:boolean}>};
+  AUTH_RATE_LIMITER?:{limit(input:{key:string}):Promise<{success:boolean}>};
   NTS_SERVICE_KEY:string;DART_API_KEY:string;LAW_OC:string;ECOS_API_KEY:string;GATEWAY_ACCESS_TOKEN:string;
   REFERENCE_RATE_LIMITER:{limit(input:{key:string}):Promise<{success:boolean}>};
 }
@@ -65,7 +68,20 @@ export function createReferenceGateway(options:{cache:ApiCache;fetcher?:typeof f
 let gateway:ReturnType<typeof createReferenceGateway>|undefined;
 const publicSite=createPublicSiteRouter();
 export default {async fetch(request:Request,environment:GatewayEnvironment){
-  if(new URL(request.url).pathname.startsWith('/api/')&&environment.WEB_ASSETS)return publicSite(request,environment.WEB_ASSETS);
+  const path=new URL(request.url).pathname;
+  if(path==='/health'&&request.method==='GET'&&remoteConfigured(environment))
+    return Response.json({service:'ledgerflow-accounting-mcp',remoteConfigured:true,ledgerAccess:'authenticated_per_user',databaseProbePerformed:false},{headers:{'Cache-Control':'no-store'}});
+  if(path.startsWith('/api/')||path.startsWith('/oauth/')||path.startsWith('/.well-known/')||path==='/mcp'){
+    if(environment.REMOTE_ENABLED==='true'&&path!=='/api/remote/config'){
+      const authRoute=path.startsWith('/oauth/')||['/api/remote/login','/api/remote/signup'].includes(path);
+      const limiter=authRoute?environment.AUTH_RATE_LIMITER:environment.REMOTE_RATE_LIMITER;
+      if(!limiter)return Response.json({error:'REMOTE_RATE_LIMITER_REQUIRED'},{status:503});
+      if(!(await limiter.limit({key:createHash('sha256').update(request.headers.get('cf-connecting-ip')??'unknown').digest('hex')})).success)
+        return Response.json({error:'RATE_LIMITED'},{status:429,headers:{'Retry-After':'60','Cache-Control':'no-store'}});
+    }
+    const response=await handleRemote(request,environment);if(response)return response;
+    if(path.startsWith('/api/')&&environment.WEB_ASSETS)return publicSite(request,environment.WEB_ASSETS);
+  }
   if(!gateway){const cache=(globalThis as unknown as {caches:{default:EdgeCache}}).caches.default;
     gateway=createReferenceGateway({cache:new EdgeApiCache(cache),log:event=>console.log(JSON.stringify(event))});}
   return gateway.fetch(request,environment);

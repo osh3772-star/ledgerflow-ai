@@ -173,6 +173,12 @@ export const FULL_SEED_TABLES: TableConfig[] = specifications.map(([table, key, 
   }),
 }));
 
+// Internal provisioning helper; caller owns its transaction and verified tenant.
+// Does not create Auth users, import identities, or post accounting entries.
+export async function insertErpSubledgers(client: PoolClient, data: FullErpSeed) {
+  for (const config of FULL_SEED_TABLES) await insertAndCompare(client, config, rowsFor(config, data));
+}
+
 function rowsFor(config: TableConfig, data: FullErpSeed): Record<string, unknown>[] {
   const dates = new Map(data.transactions.map((row) => [row.id, row.recognitionOn]));
   const rows = data[config.key] as unknown as Record<string, unknown>[];

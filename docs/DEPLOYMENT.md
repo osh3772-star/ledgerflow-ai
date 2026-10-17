@@ -1,5 +1,7 @@
 # 배포 준비와 실행 검증
 
+> 원격 운영은 [원격 배포 절차](REMOTE_USAGE.md)와 pnpm remote:deploy를 사용한다. 실제 DB TLS/Auth 연결 → schema/007 upgrade → secrets 등록 → 같은 Worker 활성화 순서다. 현재 DB 인증 오류로 활성화는 보류다. 아래는 기존 로컬/컨테이너 경로다.
+
 2026-10-16. 검증 대상은 Node 24의 localhost 개발 서버, Windows/Linux 회귀 CI와 Linux 이미지 내부 foreground smoke다. 실제 실행 결과와 검증 대상 커밋은 [CI 실행 기록](CI_VALIDATION.md)에 구분한다. [담당 작업](WORK_ASSIGNMENTS.md)
 
 ## 호스트에서 준비 확인

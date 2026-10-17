@@ -1,5 +1,15 @@
 # Implementation and verification status
 
+## 2026-10-17 원격 장부 확장
+
+동일한 MCP 팩토리의 Cloudflare 진입점·OAuth/PKCE·DB 웹 세션·계정별 회사/ERP 1,000건·서비스 작성자/인간 승인자 분리·로그인/동의/접근 취소 UI를 구현했다. 원본 001~006 migration과 fixture/금액 엔진을 보존한다. 도구 41개와 역할 프롬프트 6개를 제공하며 native agent 자동 설치·실제 6개 역할 실행을 주장하지 않는다.
+
+실제 PostgreSQL의 두 테스트 계정으로 거래 1,000건씩 격리, code 단일 사용/PKCE/resource/callback, 다른 회사 차단, AI 승인 scope 차단, 웹 승인 후 Posted/시산표, refresh 회전/취소를 검사했다. 테스트 소유 DB/mock Auth의 결과이며 실제 Supabase 사용자·네이티브 앱 검증은 아니다.
+
+Supabase Auth health는 정상이나 DB는 DATABASE_AUTHENTICATION_FAILED다. 이 상태에서 원격 secrets 업로드·장부 운영 활성화를 진행하지 않는다. [사용·배포·보안 명세](REMOTE_USAGE.md)
+
+최종 pnpm check는 **248개/36개 파일 통과**, 웹/Worker build도 통과했다. 공개 빌드 포함 키 노출은 0건이었다. 원격 배포 명령은 DB 인증 실패 단계에서 안전하게 중단됐다. 공개 안내 화면은 원격 비활성 상태로 Worker 6ef9f22a-5c3f-46aa-b89a-908093e866b9에 갱신하고 브라우저에서 새 원격 사용 순서·계정별 격리 설명·준비 중 표시를 확인했다. 실제 Workerd→Supabase DB/TLS·실제 회원가입/SMTP·네이티브 앱 OAuth·실사용자 웹 승인/전기는 아직 검증하지 않았다.
+
 2026-10-16 KST. 사용자가 요청한 기존 프로젝트 유지·미구현 회계 기능 추가 작업의 결과다. 실제 장부 운영을 수행한 보고가 아니라 소스 개발과 합성 fixture 테스트 결과다.
 
 ## 구현 완료

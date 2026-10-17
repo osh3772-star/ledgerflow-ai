@@ -26,6 +26,7 @@
     "gateway:connect": "tsx scripts/connect-public-gateway.ts",
     "site:prepare": "tsx scripts/prepare-public-site.ts",
     "site:deploy": "pnpm web:build && pnpm site:prepare --live-references && pnpm exec tsx scripts/check-key-exposure.ts --web-build && pnpm --filter @ledgerflow/public-api-gateway run deploy",
+    "remote:deploy": "pnpm web:build && pnpm site:prepare --live-references && pnpm exec tsx scripts/check-key-exposure.ts --web-build && tsx scripts/deploy-remote.ts",
     "env:import": "tsx scripts/import-api-keys.ts",
     "seed:mini": "tsx scripts/seed-mini.ts",
     "seed:full": "tsx scripts/seed-full.ts",
