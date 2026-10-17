@@ -14,17 +14,19 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
  let db:Awaited<ReturnType<typeof startLocalPostgres>>,router:ReturnType<typeof createRemoteRouter>;
  const cookies=new Map<string,{cookie:string;csrf:string}>(),clients:Client[]=[];
  const users=new Map([['a@example.test',a],['b@example.test',b]]);
+ const providerCodes=new Map<string,{id:string;challenge:string}>();let googleEnabled=true;
  const authFetch:typeof fetch=async(input,init)=>{
   const url=String(input);
-  if(url.includes('/token?grant_type=password')){
-   const q=JSON.parse(String(init?.body));const id=users.get(q.email);
-   if(q.password!=='fixture-password'||!id)return Response.json({error:'invalid_credentials'},{status:400});
-   return Response.json({access_token:'verified-'+id,refresh_token:'refresh-'+id});
+  if(url.endsWith('/settings'))return Response.json({external:{google:googleEnabled}});
+  if(url.includes('/token?grant_type=pkce')){
+   const q=JSON.parse(String(init?.body)),record=providerCodes.get(q.auth_code);providerCodes.delete(q.auth_code);
+   if(!record||createHash('sha256').update(q.code_verifier).digest('base64url')!==record.challenge)return Response.json({error:'invalid_grant'},{status:400});
+   return Response.json({access_token:'verified-'+record.id,refresh_token:'refresh-'+record.id,provider_token:'must-not-persist-google-token'});
   }
   if(url.endsWith('/user')){
    const token=new Headers(init?.headers).get('authorization')?.replace('Bearer verified-','');
    const email=[...users].find(([,id])=>id===token)?.[0];
-   return email?Response.json({id:token,email,email_confirmed_at:'2026-10-17T00:00:00Z'}):Response.json({error:'invalid'},{status:401});
+   return email?Response.json({id:token,email,email_confirmed_at:'2026-10-17T00:00:00Z',identities:[{provider:'google'}]}):Response.json({error:'invalid'},{status:401});
   }
   return Response.json({error:'unsupported'},{status:400});
  };
@@ -35,6 +37,17 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   return response??new Response('not found',{status:404});
  };
  const post=(body:unknown):RequestInit=>({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ async function googleStart(email:string,returnTo='/'){
+  const response=await call('/api/remote/google/start',post({returnTo}));expect(response.status).toBe(200);
+  const location=new URL((await response.json()).redirect),code=randomUUID();
+  expect(location.origin).toBe('https://auth.example');expect(location.pathname).toBe('/auth/v1/authorize');
+  expect(location.searchParams.get('provider')).toBe('google');expect(location.searchParams.get('code_challenge_method')).toBe('s256');
+  expect(location.searchParams.get('redirect_to')).toBe(origin+'/api/remote/google/callback');
+  expect(location.href).not.toMatch(/code_verifier|access_token|refresh_token/u);
+  providerCodes.set(code,{id:users.get(email)!,challenge:location.searchParams.get('code_challenge')!});
+  return {code,cookie:response.headers.get('set-cookie')!.split(';')[0]!,response};
+ }
+ const googleCallback=(flow:{code:string;cookie:string},query='code='+flow.code)=>call('/api/remote/google/callback?'+query,{headers:{Cookie:flow.cookie}});
  async function authorize(user:string){
   const registration=await (await call('/oauth/register',post({client_name:user+' client',redirect_uris:['http://127.0.0.1:4567/callback'],token_endpoint_auth_method:'none'}))).json();
   const verifier='a'.repeat(50),query=new URLSearchParams({response_type:'code',client_id:registration.client_id,redirect_uri:'http://127.0.0.1:4567/callback',
@@ -61,12 +74,59 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   router=createRemoteRouter({pool:db.pool,publicData:new PublicDataService({},'mock'),auth:{origin,supabaseUrl:'https://auth.example',publishableKey:'fixture-key',encryptionKey:key},
    authFetch,assets:{fetch:async()=>new Response('<html>sign in and consent</html>',{headers:{'Content-Type':'text/html'}})}});
   for(const email of users.keys()){
-   const response=await call('/api/remote/login',post({email,password:'fixture-password'}));expect(response.status).toBe(200);
-   const body=await response.json();cookies.set(email,{cookie:response.headers.get('set-cookie')!.split(';')[0]!,csrf:body.csrf});
+   const response=await googleCallback(await googleStart(email));expect(response.status).toBe(303);
+   const cookie=response.headers.getSetCookie().find(value=>value.startsWith('lf_remote='))!.split(';')[0]!;
+   const session=await (await call('/api/remote/session',{headers:{Cookie:cookie}})).json();
+   cookies.set(email,{cookie,csrf:session.csrf});
    expect(response.headers.get('set-cookie')).toContain('HttpOnly; Secure; SameSite=Lax');
   }
  });
  afterAll(async()=>{for(const c of clients)await c.close();if(db)await db.stop();});
+ it('offers only configured Google sign-in, requires same-origin start and retires password endpoints',async()=>{
+  expect((await (await call('/api/remote/config')).json()).googleLogin).toEqual({enabled:true,checked:true});
+  for(const path of ['/api/remote/login','/api/remote/signup'])expect((await call(path,post({email:'a@example.test',password:'unused'}))).status).toBe(410);
+  expect((await call('/api/remote/google/start',{...post({}),headers:{Origin:'https://attacker.example','Content-Type':'application/json'}})).status).toBe(403);
+  expect((await call('/api/remote/google/start')).status).toBe(403);
+  for(const returnTo of ['https://attacker.example','//attacker.example','/\\attacker.example','/api/human/decision','/#fragment','/oauth/authorize?client_id=unknown'])
+   expect((await call('/api/remote/google/start',post({returnTo}))).status).not.toBe(200);
+  googleEnabled=false;
+  try{const r=await call('/api/remote/google/start',post({}));expect((await r.json()).error).toBe('GOOGLE_PROVIDER_NOT_CONFIGURED');expect(r.headers.has('set-cookie')).toBe(false);}
+  finally{googleEnabled=true;}
+ });
+ it('binds one-time Google codes to the original browser and keeps provider tokens server-side',async()=>{
+  const first=await googleStart('a@example.test'),other=await googleStart('b@example.test');
+  const invalid=await googleCallback({...first,cookie:other.cookie});expect(invalid.status).toBe(303);
+  expect(invalid.headers.get('location')).toBe(origin+'/?auth_error=google_failed');
+  expect(invalid.headers.getSetCookie().some(value=>value.startsWith('lf_remote='))).toBe(false);
+  const good=await googleStart('a@example.test'),success=await googleCallback(good);
+  expect(success.headers.get('location')).toBe(origin+'/');expect(success.headers.get('referrer-policy')).toBe('no-referrer');
+  expect(success.headers.get('set-cookie')).not.toMatch(/verified-|refresh-|must-not-persist/u);
+  const replay=await googleCallback(good);expect(replay.headers.get('location')).toContain('google_failed');
+  const stored=await db.pool.query('SELECT token_hash,encrypted_session FROM private.remote_browser_sessions');
+  expect(JSON.stringify(stored.rows)).not.toMatch(/verified-|refresh-|must-not-persist/u);
+  expect(stored.rows.every(row=>!JSON.stringify(openSession(row.encrypted_session,key,row.token_hash)).includes('must-not-persist'))).toBe(true);
+  const x=await googleStart('a@example.test'),y=await googleStart('b@example.test');
+  await db.pool.query('UPDATE private.remote_login_flows SET encrypted_flow=(SELECT encrypted_flow FROM private.remote_login_flows WHERE token_hash=$1) WHERE token_hash=$2',
+   [digest(x.cookie.split('=')[1]!),digest(y.cookie.split('=')[1]!)]);
+  expect((await googleCallback(y)).headers.get('location')).toContain('google_failed');
+ });
+ it('expires/cancels Google flows and refuses missing cookies without disclosing callback inputs',async()=>{
+  const expired=await googleStart('a@example.test');
+  await db.pool.query('UPDATE private.remote_login_flows SET expires_at=now()-interval \'1 second\' WHERE token_hash=$1',[digest(expired.cookie.split('=')[1]!)]);
+  expect((await googleCallback(expired)).headers.get('location')).toContain('google_failed');
+  const cancelled=await googleStart('a@example.test'),failure=await googleCallback(cancelled,'error=access_denied&error_description=private-marker');
+  expect(failure.headers.get('location')).toBe(origin+'/?auth_error=google_failed');expect(failure.headers.get('set-cookie')).toContain('Max-Age=0');
+  expect((await call('/api/remote/google/callback?code=private-marker')).headers.get('location')).not.toContain('private-marker');
+ });
+ it('returns Google users to the pending MCP consent without granting access or approval automatically',async()=>{
+  const registration=await (await call('/oauth/register',post({client_name:'Google round trip',redirect_uris:['http://localhost:4567/callback']}))).json();
+  const query=new URLSearchParams({response_type:'code',client_id:registration.client_id,redirect_uri:'http://localhost:4567/callback',code_challenge:'a'.repeat(43),
+   code_challenge_method:'S256',state:'mcp-state-preserved',resource,scope:'ledgerflow'});
+  const path='/oauth/authorize?'+query;
+  const before=(await db.pool.query('SELECT count(*)::int AS n FROM private.remote_oauth_grants')).rows[0].n;
+  const response=await googleCallback(await googleStart('a@example.test',path));expect(response.headers.get('location')).toBe(origin+path);
+  expect((await db.pool.query('SELECT count(*)::int AS n FROM private.remote_oauth_grants')).rows[0].n).toBe(before);
+ });
  it('provisions exactly 1000 isolated rows per verified user and never reseeds existing workspaces',async()=>{
   const wa=await provisionWorkspace(db.pool,a),wb=await provisionWorkspace(db.pool,b);
   expect(wa.companyId).not.toBe(wb.companyId);expect(wa.writerId).not.toBe(a);

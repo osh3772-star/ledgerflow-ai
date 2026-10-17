@@ -1,6 +1,6 @@
 # LedgerFlow AI
 
-**[Cloudflare에서 한빛유통 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — 원격 로그인·OAuth MCP·계정별 회사 분리를 활성화했습니다. 실제 Supabase schema와 Cloudflare→DB 연결·OAuth 앱 등록을 확인했습니다. **실제 이메일 수신·사용자 로그인·Codex/Claude 연결·사용자 승인 후 전기는 별도 수용 검증이 필요합니다.** 로그인 전 화면은 공통 조회용 샘플입니다. [원격 사용법과 검증 범위](docs/REMOTE_USAGE.md)
+**[Cloudflare에서 한빛유통 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — Google 로그인·OAuth MCP·계정별 회사 분리 구조입니다. 실제 Supabase schema와 Cloudflare→DB 연결·OAuth 앱 등록을 확인했습니다. **Google Provider 운영 설정과 실제 Google 로그인·Codex/Claude 연결·사용자 승인 후 전기는 별도 확인이 필요합니다.** 이메일·비밀번호 가입은 사용하지 않고 로그인 전 화면은 공통 조회용 샘플입니다. [Google 설정·Aside 명령어](docs/GOOGLE_LOGIN_SETUP.md) · [원격 사용법](docs/REMOTE_USAGE.md)
 
 공개 저장소: [osh3772-star/ledgerflow-ai](https://github.com/osh3772-star/ledgerflow-ai)
 

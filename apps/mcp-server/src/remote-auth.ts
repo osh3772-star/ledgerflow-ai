@@ -20,30 +20,27 @@ export function openSession(value:string,key:string,binding=''):BrowserIdentity{
   return sessionSchema.parse(JSON.parse(Buffer.concat([decipher.update(bytes.subarray(12,-16)),decipher.final()]).toString('utf8')));
 }
 export interface RemoteAuthConfiguration {origin:string;supabaseUrl:string;publishableKey:string;encryptionKey:string;}
-const requestSchema=z.strictObject({email:z.email().max(254),password:z.string().min(8).max(200)});
 export class RemoteAuth {
   constructor(readonly pool:Pool,readonly config:RemoteAuthConfiguration,private fetcher:typeof fetch=fetch){}
   async provider(path:string,body?:unknown,accessToken?:string){
-    const response=await this.fetcher(this.config.supabaseUrl+'/auth/v1/'+path,{method:body?'POST':'GET',
+    // Workerd's native fetch must not receive this RemoteAuth as its receiver.
+    const fetcher=this.fetcher;
+    const response=await fetcher(this.config.supabaseUrl+'/auth/v1/'+path,{method:body?'POST':'GET',
       headers:{apikey:this.config.publishableKey,'Content-Type':'application/json',...(accessToken?{Authorization:'Bearer '+accessToken}:{})},
       ...(body?{body:JSON.stringify(body)}:{}),redirect:'manual',signal:AbortSignal.timeout(8000)});
-    if(!response.ok)throw new DomainError('AUTH_FAILED','이메일 인증과 로그인 정보를 확인하세요.');
+    if(!response.ok)throw new DomainError('AUTH_FAILED','인증 정보와 연결 설정을 확인하세요.');
     return await response.json() as Record<string,unknown>;
   }
-  async verify(accessToken:string){
+  async verify(accessToken:string,requireGoogle=false){
     const user=await this.provider('user',undefined,accessToken);
     if(!user.email_confirmed_at||user.is_anonymous===true)throw new DomainError('EMAIL_VERIFICATION_REQUIRED','이메일 인증이 필요합니다.');
+    if(requireGoogle&&(!Array.isArray(user.identities)||!user.identities.some(identity=>identity?.provider==='google')))
+      throw new DomainError('AUTH_FAILED','Google 신원을 확인하지 못했습니다.');
     return {userId:uuidSchema.parse(user.id),email:z.string().parse(user.email)};
   }
-  async login(input:unknown,signup=false){
-    const q=requestSchema.parse(input);
-    if(signup){
-      await this.provider('signup?redirect_to='+encodeURIComponent(this.config.origin+'/'),q);
-      return {confirmationRequired:true} as const;
-    }
-    const tokens=await this.provider('token?grant_type=password',q);
+  async createBrowserSession(tokens:Record<string,unknown>,requireGoogle=false){
     const accessToken=z.string().parse(tokens.access_token),refreshToken=z.string().parse(tokens.refresh_token);
-    const identity=await this.verify(accessToken);
+    const identity=await this.verify(accessToken,requireGoogle);
     const session={...identity,accessToken,refreshToken,csrf:secret()},token=randomBytes(32).toString('hex');
     await this.pool.query('INSERT INTO private.remote_browser_sessions(token_hash,user_id,encrypted_session,expires_at) VALUES($1,$2,$3,now()+interval \'7 days\')',
       [digest(token),identity.userId,sealSession(session,this.config.encryptionKey,digest(token))]);

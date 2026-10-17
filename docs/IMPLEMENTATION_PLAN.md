@@ -1,6 +1,8 @@
 # Implementation plan
 
-2026-10-17 원격 확장은 [원격 사용·배포 계획](REMOTE_USAGE.md)을 따른다. 기존 41개 도구/6개 역할/공통 엔진을 보존하며 Auth → 계정별 회사 provisioning/RLS → OAuth MCP → 사람 웹 승인 → Posted/시산표 순서로 검증한다. 실제 DB 접속·TLS·Auth health는 15:41 KST에 성공했다. 실제 메일 수신·네이티브 앱·인간 승인 수용 검증은 코드 검증과 구분한다.
+최신 로그인 방식은 Google이다. 서버 PKCE·008 단일 사용 flow·기존 세션/회사 격리 통합 후 소유자가 Google OAuth ID·Secret과 callback 허용 주소를 등록한다. 이메일 가입·SMTP 준비는 현재 흐름에서 제외한다. [Google 설정·Aside 전달문](GOOGLE_LOGIN_SETUP.md)
+
+2026-10-17 원격 확장은 [원격 사용·배포 계획](REMOTE_USAGE.md)을 따른다. 기존 41개 도구/6개 역할/공통 엔진을 보존하며 Auth → 계정별 회사 provisioning/RLS → OAuth MCP → 사람 웹 승인 → Posted/시산표 순서로 검증한다. 실제 DB 접속·TLS·Auth health는 15:41 KST에 성공했다. 실제 Google 로그인·네이티브 앱·인간 승인 수용 검증은 코드 검증과 구분한다.
 
 2026-10-16 현재 사용자가 요청한 미구현 기능을 작은 검증 단위로 추가했다. 단일 공유 MCP, 앱 주도 추론, 기존 ERP/Decimal/PostgreSQL/공공 API probe를 유지한다. 수정 전 공개 소스 99개를 키 제외 백업했으며 이전 M1 백업 58개도 보존한다.
 
@@ -56,7 +58,7 @@
 
 ## 다음 최소 단위
 
-현재 최소 단위는 연결에 성공한 기존 Supabase의 schema를 검증·설치하고, 보강한 사용 안내와 원격 장부를 같은 Worker에 배포하는 것이다. 이후 실제 이메일 수신·가입·앱 OAuth와 status/context·사용자 직접 승인 후 Posted를 확인한다. 운영자의 사용자 신원이나 장부 승인 결정을 개발자가 만들어 대신하지 않는다. 기존 `pnpm start` 로컬 demo도 보존한다.
+현재 최소 단위는 Google Provider의 소유자 설정을 마치고 실제 Google 로그인·앱 OAuth와 status/context·사용자 직접 승인 후 Posted를 확인하는 것이다. Supabase 회계 schema와 원격 장부는 같은 Worker에 배포했다. 운영자의 사용자 신원이나 장부 승인 결정을 개발자가 만들어 대신하지 않는다. 기존 `pnpm start` 로컬 demo도 보존한다.
 
 핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 사용자 지시에 따라 현재 최소 단위는 **기존 Supabase 연결값 3개 준비 → TLS/Auth health/DB metadata 읽기 전용 진단**이다. [단계별 연결 계획](SUPABASE_SETUP.md)을 따른다. 실제 Claude Code/Codex 공유 Draft·인간 승인·Posted 수용 테스트도 남아 있으며 DB 접속만으로 완료 처리하지 않는다.
 

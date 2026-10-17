@@ -2,6 +2,8 @@
 
 > 2026-10-17: 기존 서버 팩토리·41개 도구를 Cloudflare HTTP에 재사용하는 OAuth, 계정별 회사/ERP, 서비스 작성자와 인간 승인자 분리를 추가했다. 실제 Supabase 접속·TLS·Auth health 검사가 성공했으며 운영 상태와 실제 앱 검증 범위는 [원격 구조·검증 경계](REMOTE_USAGE.md)를 따른다. 새 MCP 제품이나 추론 runner는 없다.
 
+방문자 로그인은 Google → Supabase 서버 PKCE → 기존 암호화 브라우저 세션이다. 이메일·비밀번호 입력과 원격 password/signup 경로는 종료했다. 008은 쿠키 해시와 결합한 10분 단일 사용 암호화 login flow만 추가하며 기존 001~007과 회계 엔진을 변경하지 않는다. 실제 Google 제공자 등록은 [운영 설정](GOOGLE_LOGIN_SETUP.md)을 따른다.
+
 2026-10-16 현재 구현을 설명한다. 이전 Phase 기록은 당시 결과이며 현재 기능 목록은 이 문서와 MCP 카탈로그를 기준으로 한다.
 
 ## 실행 구조
@@ -180,7 +182,7 @@ Storage는 private `ledgerflow-evidence` bucket과 회사-prefix RLS다. 인간 
 | Supabase Free + 로컬 Node | DB/Storage $0 | 500MB DB, 1GB Storage, 제한 내 사용; 유휴 중단 고려 |
 | Supabase Pro + 로컬 Node | 기본 $25/월부터 | 추가 사용·프로젝트 비용 별도, 현 시점 기본 가격 |
 | Cloudflare 정적 화면·원격 MCP·공공자료 중계 | Free 한도 내 $0 | 원격은 외부 DB·Auth 필요, 기관 쿼터·CPU/요청 제한. 로컬 중계는 공유 토큰 사용 |
-| 가입 인증 메일 | 발송 서비스 설정에 따름 | 실제 SMTP 발송·수신 확인 필요. 기본 Supabase 메일 제한과 별도 |
+| Google 로그인 | 기본 신원 확인 흐름 | 소유자 OAuth 앱·Supabase Google Provider 설정 필요. 사이트 가입용 SMTP는 사용하지 않음 |
 
 Hyperdrive는 Free 한도 내 하루 SQL statement 100,000개를 제공한다. 이 한도는 거래 건수가 아니라 SELECT·변경·트랜잭션 내 SQL 등의 호출 수이며 초과하면 요청이 실패할 수 있다. 무료 범위를 초과하는 유료 전환을 자동으로 진행하지 않는다. [공식 Hyperdrive 요금·쿼터](https://developers.cloudflare.com/hyperdrive/platform/pricing/)
 

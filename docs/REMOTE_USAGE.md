@@ -1,6 +1,6 @@
 # 설치 없이 사용하는 원격 장부
 
-2026-10-17 15:52 KST. **Supabase 회계 schema 설치·원격 배포를 완료했고, Cloudflare→Supabase DB 연결과 OAuth 앱 등록(HTTP 201)을 확인했다.** /api/remote/config는 available:true, 미인증 /mcp는 OAuth 안내와 HTTP 401을 반환한다. 실제 이메일 수신·사용자 로그인·AI 앱 OAuth·사용자 승인 후 Posted는 아직 별도 검증이 필요하다. 로그인 전은 공통 샘플 조회다.
+2026-10-17. **Google 로그인으로 전환했다.** 별도 사이트 이메일·비밀번호 가입은 제거했다. Supabase 회계 schema와 Cloudflare→DB 연결은 준비됐으며, Google Provider를 소유자 계정에서 등록해야 한다. /api/remote/config의 googleLogin.enabled가 true여야 Google 버튼이 활성화된다. 실제 Google 로그인·AI 앱 OAuth·사용자 승인 후 Posted는 별도 검증이 필요하다. [운영 설정과 Aside 명령어](GOOGLE_LOGIN_SETUP.md)
 
 사이트: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/
 
@@ -12,7 +12,7 @@ MCP: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp
 
 ## 방문자의 사용 순서
 
-1. 사이트 상단에서 회원가입 → 확인 이메일 링크로 인증 → 로그인한다.
+1. 사이트 상단 **로그인·시작하기 → Google로 계속하기**를 누르고 본인 Google 계정을 선택한다. 별도 사이트 비밀번호나 가입 확인메일은 없다.
 2. **AI 연결·계정 관리**에서 MCP 주소를 복사해 사용하는 앱의 원격 HTTP MCP 설정에 추가한다.
 3. 앱이 연 브라우저에서 같은 계정으로 로그인하고 **내 장부 연결 허용**을 누른다.
 4. 앱에 아래 요청문을 보낸다. Git·Node.js·DB·공공 API 키 설치는 필요 없다. 사용하는 AI 앱과 본인 이용 계정은 필요하며, 사이트가 앱 설정을 자동 변경하지는 않는다.
@@ -53,8 +53,8 @@ MCP 연결이 앱에 native agent·skill 파일을 자동 설치하거나 독립
 ## 운영자만 준비할 사항
 
 1. ignored .env.local의 Supabase URL·publishable key·유효한 DB URL·CA 파일 경로·공공 API 키 4개를 확인한다.
-2. Supabase Auth의 Email provider·회원가입·이메일 확인을 활성화한다. URL Configuration의 Site URL과 Redirect URLs에 공개 사이트의 정확한 HTTPS 주소를 등록한다. [이메일 인증](https://supabase.com/docs/guides/auth/passwords), [redirect 허용 목록](https://supabase.com/docs/guides/auth/redirect-urls)
-3. 일반 방문자에게 인증 이메일을 보낼 수 있는 SMTP 구성을 확인한다. 기본 메일 서비스에는 수신자·발송량 제한이 있다. [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
+2. Google Web OAuth 클라이언트의 ID·Secret을 Supabase Google Provider에 등록한다. Google의 redirect URI는 Supabase `/auth/v1/callback`, Supabase의 Redirect URL은 사이트 `/api/remote/google/callback`으로 구분한다. [정확한 주소·Aside 명령어](GOOGLE_LOGIN_SETUP.md)
+3. Google Audience·Testing/Publishing 상태와 최소 openid/email/profile 범위를 확인한다. 이 로그인에는 SMTP가 필요하지 않고 기존 이메일 확인을 비활성화해 우회하지 않는다.
 4. Cloudflare 로그인 상태에서 pnpm check 후 pnpm remote:deploy를 실행한다.
 
 remote:deploy는 웹 build·공개 snapshot·키 노출 검사 후 실제 DB TLS/Auth 연결을 확인한다. 최초 빈 DB에는 기존 001~006 migration을 manifest 검증 방식으로 적용하고, 007은 별도 hash receipt로 원자적 upgrade한다. 기존 설치/receipt 불일치는 초기화하지 않고 중단한다. Auth 사용자를 SQL로 만들어 넣지 않는다.
@@ -65,13 +65,13 @@ DB 접속은 **Cloudflare Hyperdrive**를 사용한다. 배포 스크립트가 �
 
 pnpm site:deploy는 **공개 미리보기 전용**으로 원격 기능을 끈다. 실제 원격 장부 갱신은 pnpm remote:deploy를 사용한다. DB 인증 실패 시 원격 secrets 업로드·활성화 전에 중단한다.
 
-활성화 후 실제 이메일 인증/로그인, 서로 다른 실제 계정 격리, Codex·Claude OAuth와 status/context 호출, 사용자의 직접 웹 승인 후 Posted를 확인해야 한다. 테스트용 Auth와 SDK 성공은 실제 앱 검증을 대신하지 않는다.
+Google 제공자 활성화 후 실제 Google 로그인, 서로 다른 실제 계정 격리, Codex·Claude OAuth와 status/context 호출, 사용자의 직접 웹 승인 후 Posted를 확인해야 한다. 테스트용 Auth와 SDK 성공은 실제 앱 검증을 대신하지 않는다.
 
 ## 구조와 보안 경계
 
 - 기존 MCP 팩토리·공통 ERP/AccountingService·Decimal 엔진을 Cloudflare fetch transport에 재사용한다. 별도 MCP 제품·LLM API·오케스트레이터·스케줄러를 추가하지 않는다. Node 로컬 HTTP/stdio도 보존한다.
 - Worker는 native PostgreSQL을 기동하지 않고 pg 8.23.1과 Hyperdrive binding으로 외부 DB에 접속한다. 원본 CA와 verify-full 검증은 Hyperdrive가 담당하고 SQL 응답 캐시는 사용하지 않는다. 기존 트랜잭션과 SET LOCAL 회사 scope를 유지한다. SDK Web Standard handler와 실제 OAuth 설정 저장까지 확인했으며 실제 사용자 로그인·장부 처리 검증은 별도다.
-- 외부 Auth getUser와 이메일 인증으로 확인한 계정만 provisioning한다. 도구 입력의 사용자 ID·회사 ID로 신원을 선택하지 않는다.
+- Google의 서버 PKCE 코드 교환 후 외부 Auth getUser의 확인된 이메일·Google identity로 사용자 신원을 검증한다. 008 migration의 10분 단일 사용 flow는 암호화·쿠키 해시/AAD로 결합한다. callback의 open redirect·중복 code·다른 브라우저·만료를 거절하고 Google provider token은 보관하지 않는다. 도구 입력의 사용자 ID·회사 ID로 신원을 선택하지 않는다.
 - 계정별 UUID의 회사·원천 거래 1,000건·증빙·보조자료를 원자적으로 적재한다. 원본 fixture/hash는 변경하지 않고 재로그인은 재적재하지 않는다. 소규모 포트폴리오용 최초 25개 작업공간 상한을 둔다.
 - 사람은 실제 Supabase user, MCP 작성자는 로그인 없는 서비스 actor다. 작성자 FK를 private actor registry로 확장하되 인간 결정자 FK·자기 승인 금지·승인 scope·hash·불변성·원자적 전기를 보존한다.
 - MCP actor에는 승인 권한과 원천 ERP 생성 권한이 없다. 준비된 거래부터 회계 처리하며 create_transaction은 원격 신원에서 거절된다.

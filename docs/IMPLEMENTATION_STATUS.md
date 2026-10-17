@@ -1,5 +1,13 @@
 # Implementation and verification status
 
+## Google 로그인 전환
+
+2026-10-17. 이메일·비밀번호 입력과 원격 signup/password login 경로를 종료하고 Google 버튼·서버 S256 PKCE·원래 MCP 동의 화면 복귀를 구현했다. 008 migration은 암호화된 10분 단일 사용 login flow만 추가한다. 기존 회사 UUID·회계 도구 41개·역할 6개·사람 승인·불변 전표와 원본 001~007을 보존한다.
+
+실제 PostgreSQL의 해당 통합 테스트 10개가 통과했다. Google disabled·잘못된 Origin·open redirect·다른 브라우저·잘못된 PKCE·flow 암호문 교체·단일 사용·만료·취소·Google provider token 미보관·MCP 동의/승인 자동 부여 금지와 기존 분개·사람 승인 후 게시를 확인한다. 운영 Supabase의 Google 제공자는 마지막 확인에서 꺼져 있으며 실제 Google 계정 로그인 성공을 주장하지 않는다. [소유자 Google 설정·Aside 명령어](GOOGLE_LOGIN_SETUP.md)
+
+최종 `pnpm check`는 **256개/38개 파일 통과**이며 웹 2페이지와 Worker dry build도 통과했다. Workerd의 native fetch를 서비스 객체에 바인딩하지 않도록 고치고 실제 배포에서 Google 설정 조회 성공도 확인했다. Google 제공자는 아직 비활성이며, 실제 로그인 성공과는 구분한다. 전체 안내서의 목차 21개·복사 블록 12개·앵커 누락 0을 유지한다.
+
 ## 2026-10-17 원격 장부 확장
 
 **15:52 KST 후속 검증:** 수정한 연결값으로 Supabase 접속·TLS·Auth health에 성공했고 원본 001~006과 원격 007 schema 설치·배포를 완료했다. Hyperdrive의 CA verify-full·SQL 캐시 비활성 경로로 실제 Cloudflare→Supabase OAuth 앱 등록 HTTP 201을 확인했다. `/api/remote/config`는 available:true, 미인증 `/mcp`는 OAuth 안내와 401이다. 보강한 ‘처음 사용하기’와 20단계 전체 `/workflow/` 안내를 공개 사이트에 반영했다. 실제 사용자 이메일 수신·로그인·네이티브 앱 OAuth·사람 승인 후 게시 검증은 남아 있다. 아래 오전 기록은 그 당시 상태다.

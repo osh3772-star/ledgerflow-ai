@@ -9,6 +9,7 @@ import {provisionWorkspace} from './remote-workspace.js';
 import {remoteServices} from './remote-services.js';
 import {createHumanRouter} from './human-routes.js';
 import {HUMAN_SESSION_TTL_MS} from './human-session-store.js';
+import {RemoteGoogleAuth,googleCookie} from './remote-google-auth.js';
 
 export const REMOTE_PATHS=['/mcp','/oauth/','/.well-known/','/api/remote/'];
 export async function boundedBody(request:Request,max=16384){
@@ -21,6 +22,7 @@ const cookie=(value:string,clear=false)=>'lf_remote='+value+'; HttpOnly; Secure;
 const json=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfiguration;publicData:PublicDataClient;assets:{fetch:(request:Request)=>Promise<Response>};authFetch?:typeof fetch}){
   const auth=new RemoteAuth(options.pool,options.auth,options.authFetch);
+  const google=new RemoteGoogleAuth(auth);
   const origin=options.auth.origin,resource=origin+'/mcp';
   const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization,Content-Type,MCP-Protocol-Version,MCP-Session-Id','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Expose-Headers':'WWW-Authenticate,MCP-Session-Id'};
   const unauthorized=()=>json({error:'MCP_LOGIN_REQUIRED'},401,{'WWW-Authenticate':'Bearer resource_metadata="'+origin+'/.well-known/oauth-protected-resource/mcp"',...cors});
@@ -53,14 +55,24 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         await auth.authorization(url);
         return options.assets.fetch(new Request(origin+'/',{headers:{Accept:'text/html'}}));
       }
-      if(path==='/api/remote/config'&&request.method==='GET')return json({available:true,mcpUrl:resource,authentication:'email_verified_supabase',tenantMode:'per_user_company'});
-      if(path==='/api/remote/login'||path==='/api/remote/signup'){
+      if(path==='/api/remote/config'&&request.method==='GET')return json({available:true,mcpUrl:resource,authentication:'google_supabase_pkce',tenantMode:'per_user_company',googleLogin:await google.configuration()});
+      if(path==='/api/remote/login'||path==='/api/remote/signup')return json({error:'GOOGLE_LOGIN_REQUIRED'},410);
+      if(path==='/api/remote/google/start'){
         if(request.method!=='POST'||request.headers.get('origin')!==origin||!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'SAME_ORIGIN_REQUIRED'},403);
-        const login=await auth.login(JSON.parse(await boundedBody(request)),path.endsWith('/signup'));
-        if('confirmationRequired' in login)return json(login);
-        // Provision only after Auth has verified the actual account, not a tool-supplied user/company.
-        await provisionWorkspace(options.pool,login.session.userId);
-        return json({signedIn:true,email:login.session.email,csrf:login.session.csrf},200,{'Set-Cookie':cookie(login.token)});
+        const flow=await google.begin(JSON.parse(await boundedBody(request)));
+        return json({redirect:flow.redirect},200,{'Set-Cookie':googleCookie(flow.token)});
+      }
+      if(path==='/api/remote/google/callback'){
+        if(request.method!=='GET')return json({error:'METHOD_NOT_ALLOWED'},405);
+        const headers=new Headers({'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
+        headers.append('Set-Cookie',googleCookie('',true));
+        try{
+          const login=await google.finish(request);
+          try{await provisionWorkspace(options.pool,login.session.userId);}
+          catch(error){await options.pool.query('DELETE FROM private.remote_browser_sessions WHERE token_hash=$1',[digest(login.token)]);throw error;}
+          headers.set('Location',origin+login.returnTo);headers.append('Set-Cookie',cookie(login.token));
+        }catch{headers.set('Location',origin+'/?auth_error=google_failed');}
+        return new Response(null,{status:303,headers});
       }
       if(path==='/mcp'){
         if(url.search)return json({error:'INVALID_ENDPOINT'},400,cors);

@@ -23,22 +23,29 @@ async function main(){
    const plan=await inspectInitialSchema(client,bundle);
    if(plan.state==='blocked')throw new Error(plan.reason??'SCHEMA_REVIEW_REQUIRED');
    if(plan.state==='fresh')await applyInitialSchema(client,bundle,bundle.bundleHash);
-   const sql=await readFile('supabase/migrations/202610170007_remote_workspaces.sql','utf8'),hash=createHash('sha256').update(sql).digest('hex');
-   await client.query('BEGIN');
-   try{
-    await client.query('SELECT pg_advisory_xact_lock(20261017,7)');
-    const exists=(await client.query("SELECT to_regclass('private.remote_schema_receipt') IS NOT NULL AS ready")).rows[0].ready;
-    if(exists){
-     if((await client.query('SELECT hash FROM private.remote_schema_receipt')).rows[0]?.hash!==hash)throw new Error('REMOTE_MIGRATION_HASH_MISMATCH');
-    }else{
-     if((await client.query("SELECT to_regclass('private.remote_workspaces') IS NOT NULL AS ready")).rows[0].ready)throw new Error('REMOTE_SCHEMA_REVIEW_REQUIRED');
-     await client.query(sql.replace(/^BEGIN;\r?$/mu,'').replace(/^COMMIT;\s*$/mu,''));
-     await client.query('CREATE TABLE private.remote_schema_receipt(singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),hash text NOT NULL)');
-     await client.query('REVOKE ALL ON private.remote_schema_receipt FROM PUBLIC,anon,authenticated');
-     await client.query('INSERT INTO private.remote_schema_receipt(hash) VALUES($1)',[hash]);
-    }
-    await client.query('COMMIT');
-   }catch(error){await client.query('ROLLBACK');throw error;}
+   const upgrades=[
+    {file:'202610170007_remote_workspaces.sql',receipt:'remote_schema_receipt',table:'remote_workspaces',lock:7},
+    {file:'202610170008_google_login.sql',receipt:'remote_google_schema_receipt',table:'remote_login_flows',lock:8},
+   ] as const;
+   for(const upgrade of upgrades){
+    const sql=await readFile('supabase/migrations/'+upgrade.file,'utf8'),hash=createHash('sha256').update(sql).digest('hex');
+    await client.query('BEGIN');
+    try{
+     await client.query('SELECT pg_advisory_xact_lock(20261017,$1)',[upgrade.lock]);
+     const exists=(await client.query('SELECT to_regclass($1) IS NOT NULL AS ready',['private.'+upgrade.receipt])).rows[0].ready;
+     if(exists){
+      if((await client.query('SELECT hash FROM private.'+upgrade.receipt)).rows[0]?.hash!==hash)throw new Error('REMOTE_MIGRATION_HASH_MISMATCH');
+     }else{
+      if((await client.query('SELECT to_regclass($1) IS NOT NULL AS ready',['private.'+upgrade.table])).rows[0].ready)throw new Error('REMOTE_SCHEMA_REVIEW_REQUIRED');
+      await client.query(sql.replace(/^BEGIN;\r?$/mu,'').replace(/^COMMIT;\s*$/mu,''));
+      // Identifiers are fixed source constants, never request/environment inputs.
+      await client.query('CREATE TABLE private.'+upgrade.receipt+'(singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),hash text NOT NULL)');
+      await client.query('REVOKE ALL ON private.'+upgrade.receipt+' FROM PUBLIC,anon,authenticated');
+      await client.query('INSERT INTO private.'+upgrade.receipt+'(hash) VALUES($1)',[hash]);
+     }
+     await client.query('COMMIT');
+    }catch(error){await client.query('ROLLBACK');throw error;}
+   }
   }finally{client.release();}
  }finally{await pool.end();}
  if(!process.env.LEDGERFLOW_REMOTE_ENCRYPTION_KEY){
@@ -67,7 +74,7 @@ async function main(){
  deploy.stdout.resume();deploy.stderr.resume();
  if(await new Promise<number>((done,reject)=>{deploy.once('error',reject);deploy.once('close',code=>done(code??1));})!==0)throw new Error('REMOTE_WORKER_DEPLOY_FAILED');
  console.log(JSON.stringify({remoteDeployed:true,url:base.vars.REMOTE_ORIGIN,mcpUrl:base.vars.REMOTE_ORIGIN+'/mcp',hyperdrive:{cachingDisabled:true,tlsMode:'verify-full'},secretsPrinted:false,
-  remainingChecks:['Supabase email confirmation redirect allowlist','Two real user logins','Native Codex/Claude OAuth and tools']}));
+  remainingChecks:['Supabase Google provider and callback allowlist','Two real Google user logins','Native Codex/Claude OAuth and tools']}));
 }
 try{await main();}catch(error){
  const safe=['DATABASE_AUTHENTICATION_FAILED','DATABASE_CA_FILE_REQUIRED','DATABASE_CA_INVALID','REMOTE_KEY_INVALID','REMOTE_SECRET_UPLOAD_FAILED','REMOTE_WORKER_DEPLOY_FAILED',

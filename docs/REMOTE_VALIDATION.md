@@ -1,5 +1,9 @@
 # 원격 배포 및 사용 안내 검증 기록
 
+**Google 로그인 후속 변경:** 현재 방문자 진입은 Google 버튼이고 이메일·비밀번호 가입은 종료했다. 서버 PKCE·단일 사용 flow·기존 승인/격리 통합 테스트 10개가 통과했다. 소유자의 Google OAuth 앱·Supabase Provider 등록과 실제 Google 계정 로그인이 필요하다. [설정 및 Aside 전달문](GOOGLE_LOGIN_SETUP.md). 아래 표는 Google 전환 전 배포의 연결 검증 기록이며, 이메일/SMTP 항목은 현재 Google 흐름의 준비 조건이 아니다.
+
+Google 전환 후 최종 `pnpm check`: **256개/38개 파일 통과**. 웹 build·Worker build·공개 파일 비밀값 검사도 통과했다. 실제 서버의 Google 설정 조회는 성공했고 제공자는 비활성이다. password/signup 경로는 HTTP 410, 쿠키 없는 Google callback은 오류를 노출하지 않고 303 복귀, 미인증 MCP는 401을 확인했다. 실제 Google 제공자 설정 성공이나 실제 Google 계정 로그인 성공을 이 테스트 결과로 대신하지 않는다.
+
 2026-10-17 KST. 실제 장부를 대신 처리한 보고가 아니라 배포·연결·소스 검증 기록입니다.
 
 | 항목 | 결과 | 확인 범위 |

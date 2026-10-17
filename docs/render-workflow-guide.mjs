@@ -68,8 +68,9 @@ function initialize(website){
   fetch('/api/remote/config',{credentials:'omit',redirect:'error',signal:AbortSignal.timeout(8000)})
    .then(async response=>{if(!response.ok)throw new Error();return response.json();})
    .then(config=>{
-    status.querySelector('strong').textContent=config.available?'이 서버는 원격 장부 연결이 활성화되어 있습니다.':'현재 이 서버는 공개 샘플 조회 모드입니다.';
-    status.querySelector('p').textContent=config.available?'대시보드에서 가입·이메일 인증·로그인한 뒤 AI 앱을 연결하세요. 실제 로그인·앱 호출·장부 반영 성공은 각 단계에서 확인합니다.':'개인 장부 처리는 운영 준비가 끝난 뒤 시작합니다. 아래에서 전체 사용 흐름과 샘플 안내를 먼저 읽을 수 있습니다.';
+    const ready=config.available&&config.googleLogin?.enabled;
+    status.querySelector('strong').textContent=ready?'Google 로그인으로 내 장부를 열 수 있도록 연결되어 있습니다.':config.available?'원격 서버는 준비됐고 Google 로그인 설정을 확인 중입니다.':'현재 이 서버는 공개 샘플 조회 모드입니다.';
+    status.querySelector('p').textContent=ready?'대시보드에서 Google 계정으로 로그인한 뒤 같은 계정으로 AI 앱을 연결하세요. 실제 로그인·앱 호출·장부 반영 성공은 각 단계에서 확인합니다.':config.available?'Google 버튼이 비활성이면 운영자가 Google 제공자와 돌아올 주소를 설정해야 합니다. 별도 이메일 회원가입은 사용하지 않습니다.':'개인 장부 처리는 운영 준비가 끝난 뒤 시작합니다. 아래에서 전체 사용 흐름과 샘플 안내를 먼저 읽을 수 있습니다.';
    }).catch(()=>{status.querySelector('strong').textContent='현재 서버 상태를 확인하지 못했습니다.';status.querySelector('p').textContent='대시보드 상단의 안내를 확인하세요. 이 문서의 절차만으로 서버 연결 성공을 판단하지 않습니다.';});
  }
  for(const button of document.querySelectorAll('.copy'))button.addEventListener('click',async()=>{
@@ -96,7 +97,7 @@ const siteLink=website?'<a href="/">대시보드로 돌아가기</a>':'<a href="
 const status=website?'<aside class="status" data-server-status aria-label="현재 서버 설정" aria-live="polite"><strong>현재 서버 상태를 확인하고 있습니다.</strong><p>문서의 작성 시점과 현재 운영 상태를 구분합니다. 실제 업무 성공은 각 단계에서 확인하세요.</p></aside>':'<aside class="status" aria-label="안내서 상태"><strong>이 파일은 작성 시점의 안내서입니다.</strong><p>현재 운영 상태는 공개 사이트 상단에서 확인하세요. 파일을 열거나 요청문을 복사하는 것만으로 회계 업무가 실행되지는 않습니다.</p></aside>';
 const html=[
 '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
-'<meta name="description" content="한빛유통 회계 업무 전체 흐름: 로그인, MCP 연결, 거래 조회, 분개, 검증, 사용자 승인, 장부 반영, 결산과 보고서.">',
+'<meta name="description" content="한빛유통 회계 업무 전체 흐름: Google 로그인, MCP 연결, 거래 조회, 분개, 검증, 사용자 승인, 장부 반영, 결산과 보고서.">',
 '<title>한빛유통 · 회계 업무 전체 워크플로우</title><style>'+css+'</style></head><body id="top">',
 '<div class="topbar"><div class="topbar-inner"><div class="brand"><span>한</span>한빛유통 · 전체 사용 안내</div><div class="actions">'+siteLink+'<button class="print" type="button">인쇄 · PDF로 저장</button></div></div></div>',
 '<header class="hero"><div class="hero-inner"><div class="kicker">ACCOUNTING WORKFLOW · 회계 업무 흐름</div><h1>거래를 확인하는 순간부터<br>재무 보고서가 완성되기까지.</h1>',
@@ -104,7 +105,7 @@ const html=[
 '<div class="tags"><span>2026.10.17 기준</span><span>가상 한국회사 · 한빛유통</span><span>MCP 서버 1개</span><span>역할 6개 · 도구 41개</span><span>사용자가 요청하고 직접 승인</span></div></div></header>',
 '<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>전체 흐름 · 20단계와 참고 문서</strong>'+nav+'</nav><main class="main">',
 status,
-'<section class="readme" aria-label="핵심 사용 순서"><h2>가장 중요한 사용 순서</h2><div class="quickflow"><span>사이트 로그인</span><b>→</b><span>AI 앱 MCP 연결</span><b>→</b><span>분개 요청</span><b>→</b><span>내가 웹에서 승인</span><b>→</b><span>앱에 장부 반영 요청</span><b>→</b><span>보고서 확인</span></div><p>원격 운영을 활성화한 뒤의 사용 흐름과, 그 전에 운영자가 준비해야 할 일을 함께 설명합니다.</p></section>',
+'<section class="readme" aria-label="핵심 사용 순서"><h2>가장 중요한 사용 순서</h2><div class="quickflow"><span>Google 로그인</span><b>→</b><span>AI 앱 MCP 연결</span><b>→</b><span>분개 요청</span><b>→</b><span>내가 웹에서 승인</span><b>→</b><span>앱에 장부 반영 요청</span><b>→</b><span>보고서 확인</span></div><p>원격 운영을 활성화한 뒤의 사용 흐름과, 그 전에 운영자가 준비해야 할 일을 함께 설명합니다.</p></section>',
 parts.join('\n'),
 '</main></div><footer class="footer">가상회사 회계 업무 체험 · 자료 검토와 최종 승인은 사람에게 있습니다.<br>이 안내 페이지에서 거래 생성·승인·장부 반영을 실행하지 않습니다.<a class="to-top" href="#top">문서 맨 위로 ↑</a></footer><div class="sr-status" role="status" aria-live="polite"></div>',
 '<script>('+initialize.toString()+')('+JSON.stringify(website)+');</script></body></html>'

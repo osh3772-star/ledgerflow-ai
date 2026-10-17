@@ -87,7 +87,7 @@ function RequestBox({title,prompt,hint,destination='chat'}:{title:string;prompt:
 function WorkflowGuideLinks(){
   return <section className="guide-workflow-entry" aria-labelledby="guide-workflow-title">
     <div><span className="guide-kicker">처음부터 끝까지 · 전체 안내서</span><h2 id="guide-workflow-title">내가 할 일과 AI가 할 일을 순서대로 확인하세요.</h2>
-      <p>아래 빠른 시작에는 바로 보낼 요청문이 있습니다. 전체 안내서는 가입·앱 연결부터 전표 승인, 한 달 처리, 결산과 오류 복구까지 20단계로 설명합니다.</p></div>
+      <p>아래 빠른 시작에는 바로 보낼 요청문이 있습니다. 전체 안내서는 Google 로그인·앱 연결부터 전표 승인, 한 달 처리, 결산과 오류 복구까지 20단계로 설명합니다.</p></div>
     <a className="guide-workflow-primary" href="/workflow/">전체 워크플로우 읽기 →</a>
     <nav className="guide-workflow-topics" aria-label="전체 안내서의 주요 단계">
       <a href="/workflow/#section-6"><strong>01 · AI 앱 연결</strong><span>코덱스·클로드와 같은 계정 연결</span></a>
@@ -144,9 +144,9 @@ function HostedBeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void
   return <div className="beginner-guide">
     <WorkflowGuideLinks/>
     <section className="guide-intro"><span className="guide-kicker">설치 없는 원격 사용 안내</span><h2>사이트에서 내 장부를 열고, AI 앱에 연결하세요.</h2>
-      <p>이 사이트 상단의 ‘로그인·시작하기’가 활성화된 경우 아래 순서로 사용합니다. ‘공개 샘플 조회 모드’라면 운영자가 원격 DB 연결을 준비 중인 상태이며, 아직 개인 장부를 처리할 수 없습니다.</p>
+      <p>상단 ‘로그인·시작하기’를 열어 ‘Google로 계속하기’로 시작합니다. Google 버튼이 준비 중이면 운영자의 연결 설정이 필요합니다. ‘공개 샘플 조회 모드’에서는 공통 예시만 읽을 수 있습니다.</p>
       <ol className="guide-steps">
-        <li><span className="guide-step-number">1</span><div><h3>이메일 인증·로그인</h3><p>처음에는 회원가입하고 확인 이메일의 링크로 인증한 뒤 로그인하세요. 계정마다 별도 가상회사와 원천 거래 1,000건이 준비됩니다.</p></div></li>
+        <li><span className="guide-step-number">1</span><div><h3>Google로 내 장부 열기</h3><p>‘Google로 계속하기’를 누르고 사용할 Google 계정을 선택하세요. 처음 로그인하면 별도 가상회사와 원천 거래 1,000건이 준비됩니다. 별도 사이트 비밀번호나 가입 확인메일은 필요 없습니다.</p></div></li>
         <li><span className="guide-step-number">2</span><div><h3>내 AI 앱에 MCP 주소 추가</h3><p>상단 ‘AI 연결·계정 관리’의 주소를 Codex 또는 Claude Code의 원격 HTTP MCP 설정에 추가합니다. 브라우저가 열리면 이 사이트의 같은 계정으로 로그인하고 연결을 허용하세요. 서버·Node.js·DB·공공 API 키를 PC에 설치할 필요는 없습니다.</p></div></li>
         <li><span className="guide-step-number">3</span><div><h3>연결된 앱에서 분개 요청</h3><p>아래 요청문을 AI 앱에 보내세요. 사이트가 AI 추론을 실행하지는 않습니다. 이미 사용 중인 앱과 본인 이용 계정이 필요합니다.</p></div></li>
         <li><span className="guide-step-number">4</span><div><h3>이 사이트에서 직접 승인</h3><p>새로고침 → 사용자 승인 → 전표 보기에서 증빙·금액·근거를 확인하세요. AI에게 승인 버튼을 대신 누르게 하지 않습니다.</p><button className="guide-link-button" onClick={()=>onNavigate('approval')}>사용자 승인 열기 →</button></div></li>

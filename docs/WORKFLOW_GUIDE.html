@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="한빛유통 회계 업무 전체 흐름: 로그인, MCP 연결, 거래 조회, 분개, 검증, 사용자 승인, 장부 반영, 결산과 보고서.">
+<meta name="description" content="한빛유통 회계 업무 전체 흐름: Google 로그인, MCP 연결, 거래 조회, 분개, 검증, 사용자 승인, 장부 반영, 결산과 보고서.">
 <title>한빛유통 · 회계 업무 전체 워크플로우</title><style>:root{--ink:#19352d;--muted:#60756d;--green:#276d50;--line:#dce5df;--canvas:#f3f5f0}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--canvas);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;line-height:1.9;font-size:15px;word-break:keep-all;overflow-wrap:anywhere}
 a{color:var(--green);text-underline-offset:4px}button{font:inherit;cursor:pointer}.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.topbar-inner{max-width:1420px;margin:auto;padding:13px 32px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{font-weight:800;letter-spacing:-.04em}.brand span{display:inline-grid;place-items:center;width:31px;height:31px;border-radius:9px;background:var(--ink);color:white;margin-right:10px}.actions{display:flex;align-items:center;gap:14px}.actions a{font-size:13px}.print{background:var(--ink);color:#fff;border:0;border-radius:7px;padding:8px 15px;font-size:13px}
@@ -19,16 +19,17 @@ a{color:var(--green);text-underline-offset:4px}button{font:inherit;cursor:pointe
 <header class="hero"><div class="hero-inner"><div class="kicker">ACCOUNTING WORKFLOW · 회계 업무 흐름</div><h1>거래를 확인하는 순간부터<br>재무 보고서가 완성되기까지.</h1>
 <p class="lead">사용자는 무엇을 누르고, AI는 어떤 도구를 쓰며, 언제 장부에 반영될까요?<br>처음 접속하는 사람도 순서대로 따라갈 수 있도록 전체 과정을 정리했습니다.</p>
 <div class="tags"><span>2026.10.17 기준</span><span>가상 한국회사 · 한빛유통</span><span>MCP 서버 1개</span><span>역할 6개 · 도구 41개</span><span>사용자가 요청하고 직접 승인</span></div></div></header>
-<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>전체 흐름 · 20단계와 참고 문서</strong><a href="#section-1">01. 지금 어디까지 사용할 수 있나요?</a><a href="#section-2">02. 전체 흐름을 먼저 이해하세요</a><a href="#section-3">03. 누가 무엇을 하나요?</a><a href="#section-4">04. 운영 준비 — 일반 방문자는 건너뛰세요</a><a href="#section-5">05. 사용자 첫 단계 — 가입하고 내 장부 열기</a><a href="#section-6">06. AI 앱 연결 — Codex와 Claude 중 하나면 됩니다</a><a href="#section-7">07. 이미 있는 거래 1,000건은 무엇인가요?</a><a href="#section-8">08. 첫 회계 업무 — 매출 한 건을 요청하세요</a><a href="#section-9">09. 이때 공공 API 네 개는 어디에 쓰이나요?</a><a href="#section-10">10. 초안에서 게시까지 — 전표 상태 읽는 법</a><a href="#section-11">11. 사람이 사이트에서 직접 승인하기</a><a href="#section-12">12. 승인한 전표만 장부에 반영하기</a><a href="#section-13">13. 숫자로 보는 한 건의 변화</a><a href="#section-14">14. 월 전체를 처리하는 방법</a><a href="#section-15">15. 재무 보고서를 읽고 월말 결산하기</a><a href="#section-16">16. 에이전트 여섯 개는 언제 쓰이나요?</a><a href="#section-17">17. A와 B가 동시에 사용하면 어떻게 되나요?</a><a href="#section-18">18. 잘못됐거나 중단됐을 때 이어가는 방법</a><a href="#section-19">19. 어느 부분이 자동화되나요?</a><a href="#section-20">20. 한 번의 업무가 끝났다는 판단 기준</a><a href="#section-21">참고 문서</a></nav><main class="main">
+<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>전체 흐름 · 20단계와 참고 문서</strong><a href="#section-1">01. 지금 어디까지 사용할 수 있나요?</a><a href="#section-2">02. 전체 흐름을 먼저 이해하세요</a><a href="#section-3">03. 누가 무엇을 하나요?</a><a href="#section-4">04. 운영 준비 — 일반 방문자는 건너뛰세요</a><a href="#section-5">05. 사용자 첫 단계 — Google로 내 장부 열기</a><a href="#section-6">06. AI 앱 연결 — Codex와 Claude 중 하나면 됩니다</a><a href="#section-7">07. 이미 있는 거래 1,000건은 무엇인가요?</a><a href="#section-8">08. 첫 회계 업무 — 매출 한 건을 요청하세요</a><a href="#section-9">09. 이때 공공 API 네 개는 어디에 쓰이나요?</a><a href="#section-10">10. 초안에서 게시까지 — 전표 상태 읽는 법</a><a href="#section-11">11. 사람이 사이트에서 직접 승인하기</a><a href="#section-12">12. 승인한 전표만 장부에 반영하기</a><a href="#section-13">13. 숫자로 보는 한 건의 변화</a><a href="#section-14">14. 월 전체를 처리하는 방법</a><a href="#section-15">15. 재무 보고서를 읽고 월말 결산하기</a><a href="#section-16">16. 에이전트 여섯 개는 언제 쓰이나요?</a><a href="#section-17">17. A와 B가 동시에 사용하면 어떻게 되나요?</a><a href="#section-18">18. 잘못됐거나 중단됐을 때 이어가는 방법</a><a href="#section-19">19. 어느 부분이 자동화되나요?</a><a href="#section-20">20. 한 번의 업무가 끝났다는 판단 기준</a><a href="#section-21">참고 문서</a></nav><main class="main">
 <aside class="status" aria-label="안내서 상태"><strong>이 파일은 작성 시점의 안내서입니다.</strong><p>현재 운영 상태는 공개 사이트 상단에서 확인하세요. 파일을 열거나 요청문을 복사하는 것만으로 회계 업무가 실행되지는 않습니다.</p></aside>
-<section class="readme" aria-label="핵심 사용 순서"><h2>가장 중요한 사용 순서</h2><div class="quickflow"><span>사이트 로그인</span><b>→</b><span>AI 앱 MCP 연결</span><b>→</b><span>분개 요청</span><b>→</b><span>내가 웹에서 승인</span><b>→</b><span>앱에 장부 반영 요청</span><b>→</b><span>보고서 확인</span></div><p>원격 운영을 활성화한 뒤의 사용 흐름과, 그 전에 운영자가 준비해야 할 일을 함께 설명합니다.</p></section>
+<section class="readme" aria-label="핵심 사용 순서"><h2>가장 중요한 사용 순서</h2><div class="quickflow"><span>Google 로그인</span><b>→</b><span>AI 앱 MCP 연결</span><b>→</b><span>분개 요청</span><b>→</b><span>내가 웹에서 승인</span><b>→</b><span>앱에 장부 반영 요청</span><b>→</b><span>보고서 확인</span></div><p>원격 운영을 활성화한 뒤의 사용 흐름과, 그 전에 운영자가 준비해야 할 일을 함께 설명합니다.</p></section>
 <p><strong>처음 접속하는 사람부터 월말 보고서를 확인하는 사람까지 — 전체 사용 안내</strong></p>
 <p>작성 기준: 2026년 10월 17일 · 대상: 회계 초보 사용자, 서비스를 공유받은 사람, 운영자</p>
 <section class="chapter" id="section-1"><h2>01. 지금 어디까지 사용할 수 있나요?</h2>
 <p><strong>가장 먼저 확인할 점: 원격 기능의 코드 구현과 실제 공개 서비스 활성화는 다릅니다.</strong></p>
 <p>2026년 10월 17일 15:52 KST까지 실제 Supabase DB 접속·TLS 검증·회계 테이블 설치와 Cloudflare 원격 배포를 완료했고, 공개 서버의 OAuth 앱 등록 저장을 확인했습니다. 서버 설정의 현재 활성화 여부는 이 페이지 상단과 대시보드에서 확인합니다. 설정 활성화, 실제 방문자 로그인, AI 앱 호출, 장부 반영 성공은 각기 별도로 확인합니다.</p>
-<div class="table-wrap"><table><thead><tr><th scope="col">구분</th><th scope="col">확인된 상태</th><th scope="col">사용자가 이해할 내용</th></tr></thead><tbody><tr><td>Cloudflare 공개 화면</td><td>접속 가능</td><td>공통 샘플 거래·참고자료 예시·설명을 읽을 수 있습니다.</td></tr><tr><td>계정별 원격 장부·OAuth MCP</td><td>코드·통합 테스트 완료, 원격 설정 활성화</td><td>현재 서버 상태 확인 후 가입·로그인·앱 연결을 진행합니다.</td></tr><tr><td>PostgreSQL 통합 검증</td><td>회귀·통합 검사 통과</td><td>테스트 계정 A/B의 격리·웹 승인 후 전기를 확인했습니다.</td></tr><tr><td>실제 Supabase DB 연결</td><td>회계 schema 준비·TLS·Auth health 성공, 공개 OAuth 앱 등록 HTTP 201</td><td>DB 연결과 실제 사용자 로그인·회계 처리 성공을 구분합니다.</td></tr><tr><td>실제 방문자 가입·메일·AI 앱 OAuth</td><td>후속 검증 필요</td><td>실제 사용 성공을 테스트 코드 성공과 구분합니다.</td></tr></tbody></table></div>
-<p>사이트 상단이 <strong>‘공개 샘플 조회 모드’</strong>이면 읽기만 합니다. <strong>‘로그인·시작하기’</strong>가 활성화되면 아래 원격 사용 절차를 시작할 수 있습니다. 화면 상태와 마지막 검증 기록이 다르면 운영자의 최신 검증 결과를 확인하세요.</p>
+<p>로그인은 <strong>Google로 계속하기</strong> 방식입니다. 별도 이메일·비밀번호 회원가입은 사용하지 않습니다. 운영자의 Google Provider 설정이 끝나기 전에는 버튼이 비활성입니다. <a href="https://github.com/osh3772-star/ledgerflow-ai/blob/main/docs/GOOGLE_LOGIN_SETUP.md" target="_blank" rel="noopener noreferrer">운영자 Google 연결 설정</a></p>
+<div class="table-wrap"><table><thead><tr><th scope="col">구분</th><th scope="col">확인된 상태</th><th scope="col">사용자가 이해할 내용</th></tr></thead><tbody><tr><td>Cloudflare 공개 화면</td><td>접속 가능</td><td>공통 샘플 거래·참고자료 예시·설명을 읽을 수 있습니다.</td></tr><tr><td>계정별 원격 장부·OAuth MCP</td><td>코드·통합 테스트 완료, 원격 설정 활성화</td><td>Google 버튼 활성화 여부를 확인한 뒤 로그인·앱 연결을 진행합니다.</td></tr><tr><td>PostgreSQL 통합 검증</td><td>회귀·통합 검사 통과</td><td>테스트 계정 A/B의 격리·웹 승인 후 전기를 확인했습니다.</td></tr><tr><td>실제 Supabase DB 연결</td><td>회계 schema 준비·TLS·Auth health 성공, 공개 OAuth 앱 등록 HTTP 201</td><td>DB 연결과 실제 사용자 로그인·회계 처리 성공을 구분합니다.</td></tr><tr><td>실제 Google 사용자·AI 앱 OAuth</td><td>제공자 설정·실제 로그인 검증 필요</td><td>실제 사용 성공을 테스트 코드 성공과 구분합니다.</td></tr></tbody></table></div>
+<p>사이트 상단이 <strong>‘공개 샘플 조회 모드’</strong>이면 읽기만 합니다. <strong>‘로그인·시작하기 → Google로 계속하기’</strong>가 활성화되면 아래 원격 사용 절차를 시작할 수 있습니다. Google 연결 준비 중이면 운영자 설정이 필요합니다.</p>
 <ul>
 <li><a href="https://ledgerflow-public-reference-gateway.eric5833.workers.dev/" target="_blank" rel="noopener noreferrer">공개 사이트 열기</a></li>
 <li><a href="https://github.com/osh3772-star/ledgerflow-ai" target="_blank" rel="noopener noreferrer">개발 소스와 GitHub 사용법</a></li>
@@ -37,9 +38,9 @@ a{color:var(--green);text-underline-offset:4px}button{font:inherit;cursor:pointe
 </section>
 <section class="chapter" id="section-2"><h2>02. 전체 흐름을 먼저 이해하세요</h2>
 <p>이 서비스는 <strong>AI 앱에 일을 요청하고, 사이트에서 사람이 검토하고, 승인된 결과를 장부에 반영하는 구조</strong>입니다.</p>
-<div class="code-block"><div class="code-toolbar"><span>흐름 / 복사용 요청문</span><button class="copy" type="button">복사</button></div><pre><code>운영자: 원격 DB·인증·메일·서버 준비
+<div class="code-block"><div class="code-toolbar"><span>흐름 / 복사용 요청문</span><button class="copy" type="button">복사</button></div><pre><code>운영자: 원격 DB·Google 제공자·서버 준비
                  ↓
-사용자: 사이트 가입·이메일 인증·로그인
+사용자: Google로 계속하기 → 내 Google 계정 선택
                  ↓
 사용자: Codex 또는 Claude에 같은 MCP 주소 연결·허용
                  ↓
@@ -57,14 +58,14 @@ AI 앱 + DB: 승인 상태·내용 hash 재확인 → 원자적 전기 → Poste
 <p><strong>‘도구 실행 허용’, ‘AI 앱 연결 허용’, ‘전표 승인’은 서로 다른 결정입니다.</strong> 앱 연결을 허용해도 전표가 자동 승인되지는 않습니다. 전표를 승인해도 곧바로 장부에 반영되지는 않습니다.</p>
 </section>
 <section class="chapter" id="section-3"><h2>03. 누가 무엇을 하나요?</h2>
-<div class="table-wrap"><table><thead><tr><th scope="col">담당</th><th scope="col">하는 일</th><th scope="col">직접 하지 않는 일</th></tr></thead><tbody><tr><td>사용자</td><td>가입·앱 연결 동의·업무 요청·증빙 확인·전표 승인/반려</td><td>차대변 합산과 반복 계산을 손으로 처리할 필요가 없습니다.</td></tr><tr><td>Codex·Claude</td><td>요청 해석·역할 선택·도구 호출·근거 설명·결과 정리</td><td>사용자 대신 웹 승인 버튼을 누르거나 DB 성공을 추정하지 않습니다.</td></tr><tr><td>단일 MCP 서버</td><td>권한 있는 요청을 공통 ERP·회계·공공자료 서비스에 전달</td><td>별도 AI 모델을 실행하거나 밤새 자율 업무를 돌리지 않습니다.</td></tr><tr><td>회계 엔진·PostgreSQL</td><td>Decimal 계산·계정/차대변/기간/증빙 검증·승인 확인·전기·집계</td><td>법률 조문만으로 모든 회계·세무 판단을 확정하지 않습니다.</td></tr><tr><td>Cloudflare</td><td>공개 화면과 인증된 원격 요청 처리</td><td>공공 샘플을 각 사용자의 실제 게시 장부로 취급하지 않습니다.</td></tr><tr><td>운영자·개발 담당</td><td>연결 정보·인증·메일·배포·장애 대응·회귀 검증</td><td>방문자에게 운영자 API 키와 DB 비밀번호를 배포하지 않습니다.</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">담당</th><th scope="col">하는 일</th><th scope="col">직접 하지 않는 일</th></tr></thead><tbody><tr><td>사용자</td><td>Google 로그인·앱 연결 동의·업무 요청·증빙 확인·전표 승인/반려</td><td>차대변 합산과 반복 계산을 손으로 처리할 필요가 없습니다.</td></tr><tr><td>Codex·Claude</td><td>요청 해석·역할 선택·도구 호출·근거 설명·결과 정리</td><td>사용자 대신 웹 승인 버튼을 누르거나 DB 성공을 추정하지 않습니다.</td></tr><tr><td>단일 MCP 서버</td><td>권한 있는 요청을 공통 ERP·회계·공공자료 서비스에 전달</td><td>별도 AI 모델을 실행하거나 밤새 자율 업무를 돌리지 않습니다.</td></tr><tr><td>회계 엔진·PostgreSQL</td><td>Decimal 계산·계정/차대변/기간/증빙 검증·승인 확인·전기·집계</td><td>법률 조문만으로 모든 회계·세무 판단을 확정하지 않습니다.</td></tr><tr><td>Cloudflare</td><td>공개 화면과 인증된 원격 요청 처리</td><td>공공 샘플을 각 사용자의 실제 게시 장부로 취급하지 않습니다.</td></tr><tr><td>운영자·개발 담당</td><td>연결 정보·Google 제공자·배포·장애 대응·회귀 검증</td><td>방문자에게 운영자 API 키와 DB 비밀번호를 배포하지 않습니다.</td></tr></tbody></table></div>
 <p>방문자는 원격 운영이 활성화된 경우 <strong>소스·Node.js·DB·MCP 서버·공공 API 키를 PC에 설치하지 않습니다.</strong> 사용 가능한 AI 앱과 본인 계정은 필요하고, 그 앱에서 MCP 연결 설정은 한 번 해야 합니다.</p>
 </section>
 <section class="chapter" id="section-4"><h2>04. 운영 준비 — 일반 방문자는 건너뛰세요</h2>
 <p>이 단계는 서비스를 올리는 운영자와 개발 담당의 일입니다.</p>
-<div class="table-wrap"><table><thead><tr><th scope="col">순서</th><th scope="col">운영자·사용자가 제공할 것</th><th scope="col">개발 담당이 수행할 것</th><th scope="col">완료 기준</th></tr></thead><tbody><tr><td>1. DB 연결</td><td>Supabase Connect의 올바른 접속 문자열·DB 비밀번호, 공개 CA 파일</td><td>연결·TLS·인증 확인</td><td>DB 접속 검사 성공</td></tr><tr><td>2. 인증·메일</td><td>Supabase Email provider·이메일 확인·허용 redirect URL, 실제 발송 가능한 메일 설정</td><td>로그인·메일·세션 동작 점검 지원</td><td>실제 새 계정의 인증·로그인 성공</td></tr><tr><td>3. 원격 배포</td><td>기존 Cloudflare 접근과 서버 측 키 설정</td><td>schema 검증·원격 migration·secrets 등록·동일 Worker 활성화</td><td>원격 설정 활성화와 인증된 MCP 응답 확인</td></tr><tr><td>4. 수용 검증</td><td>본인 인증·앱 연결 동의·전표 최종 승인</td><td>실제 두 계정 격리·도구 호출·게시 결과 확인</td><td>승인 전 거절, 승인 후 Posted, 타 계정 변화 없음</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">순서</th><th scope="col">운영자·사용자가 제공할 것</th><th scope="col">개발 담당이 수행할 것</th><th scope="col">완료 기준</th></tr></thead><tbody><tr><td>1. DB 연결</td><td>Supabase Connect의 올바른 접속 문자열·DB 비밀번호, 공개 CA 파일</td><td>연결·TLS·인증 확인</td><td>DB 접속 검사 성공</td></tr><tr><td>2. Google 인증</td><td>Google Web OAuth 클라이언트·Supabase Google Provider·callback 허용 주소</td><td>PKCE·확인된 신원·세션 검증</td><td>실제 Google 계정 로그인 성공</td></tr><tr><td>3. 원격 배포</td><td>기존 Cloudflare 접근과 서버 측 키 설정</td><td>schema 검증·원격 migration·secrets 등록·동일 Worker 활성화</td><td>원격 설정 활성화와 인증된 MCP 응답 확인</td></tr><tr><td>4. 수용 검증</td><td>본인 인증·앱 연결 동의·전표 최종 승인</td><td>실제 두 계정 격리·도구 호출·게시 결과 확인</td><td>승인 전 거절, 승인 후 Posted, 타 계정 변화 없음</td></tr></tbody></table></div>
 <p>운영자 설정은 <strong>.env.local의 LEDGERFLOW_DATABASE_URL</strong>을 사용합니다. Supabase 로그인 비밀번호와 DB 비밀번호는 다를 수 있습니다. 접속 문자열의 [YOUR-PASSWORD] 전체를 대괄호 없이 실제 DB 비밀번호로 바꾸고, 비밀번호의 특수문자는 URL 인코딩합니다. 비밀번호는 채팅·문서·GitHub에 보내지 않습니다. 방문자는 이 설정을 할 필요가 없습니다.</p>
-<p>일반 방문자에게 이메일 인증을 제공하려면 메일 발송 준비도 필요합니다. Supabase 기본 SMTP는 프로젝트 팀 외 주소의 발송을 제한하므로 일반 가입자용 설정을 별도로 확인합니다. <a href="https://supabase.com/docs/guides/auth/auth-smtp" target="_blank" rel="noopener noreferrer">Supabase 공식 SMTP 안내</a></p>
+<p>Google Client ID·Secret은 운영자가 Supabase Google Provider에 한 번 등록합니다. Google 로그인에는 이 사이트의 가입 확인메일이나 SMTP 설정이 필요하지 않습니다. Google 계정의 로그인·본인 확인은 Google 화면에서 진행합니다. <a href="https://github.com/osh3772-star/ledgerflow-ai/blob/main/docs/GOOGLE_LOGIN_SETUP.md" target="_blank" rel="noopener noreferrer">Google 설정 및 Aside 명령어</a></p>
 <p>운영자가 실행할 주요 명령:</p>
 <div class="code-block"><div class="code-toolbar"><span>터미널 명령</span><button class="copy" type="button">복사</button></div><pre><code>pnpm supabase:check
 pnpm check
@@ -73,13 +74,13 @@ pnpm remote:deploy</code></pre></div>
 <p>배포 스크립트가 Cloudflare Hyperdrive에 Supabase CA와 호스트명 검증을 설정하고 SQL 응답 캐시를 끕니다. 로컬 Node의 인증서 파일 설정은 그대로 유지합니다. 방문자가 인증서나 DB 비밀번호를 설치할 일은 없습니다. 운영자는 <a href="https://github.com/osh3772-star/ledgerflow-ai/blob/main/docs/REMOTE_USAGE.md" target="_blank" rel="noopener noreferrer">원격 사용·배포 상세</a>를 참고하세요.</p>
 <p><strong>배포 명령 구분:</strong> remote:deploy는 원격 장부 활성화 경로입니다. site:deploy는 공개 미리보기 배포이며 원격 기능을 끕니다. 현재 코드의 소규모 체험 작업공간 상한은 25개입니다.</p>
 </section>
-<section class="chapter" id="section-5"><h2>05. 사용자 첫 단계 — 가입하고 내 장부 열기</h2>
+<section class="chapter" id="section-5"><h2>05. 사용자 첫 단계 — Google로 내 장부 열기</h2>
 <p>원격 기능이 활성화된 뒤의 절차입니다.</p>
 <ol>
 <li>공개 사이트를 열고 상단 <strong>로그인·시작하기</strong>를 선택합니다.</li>
-<li>처음이라면 <strong>처음 방문·회원가입</strong>을 선택하고 본인 이메일과 비밀번호를 입력합니다.</li>
-<li>수신한 확인 이메일의 링크로 이메일을 인증합니다.</li>
-<li>사이트로 돌아와 로그인합니다. 인증 링크를 눌렀다는 사실과 사이트에 로그인된 상태는 별도로 확인합니다.</li>
+<li><strong>Google로 계속하기</strong>를 누릅니다. 준비 중이면 운영자의 Google 연결 설정을 기다립니다.</li>
+<li>Google 화면에서 사용할 본인 계정을 선택하고 로그인합니다. Google이 요구하는 본인 확인은 직접 진행합니다.</li>
+<li>사이트로 돌아와 내 이메일이 표시되는지 확인합니다. 별도 사이트 비밀번호나 가입 확인메일은 없습니다.</li>
 <li>계정별 <strong>한빛유통 주식회사</strong>와 연습용 원천 거래 1,000건이 준비됩니다.</li>
 </ol>
 <p>서버는 확인된 로그인 신원을 기준으로 회사를 선택합니다. AI 대화창에 ‘회사 ID를 B의 ID로 바꿔라’고 요청해도 다른 사람의 장부 권한이 생기지 않습니다.</p>
@@ -235,7 +236,7 @@ DB에서 Posted를 확인한 건, 미승인·반려·실패 건을 따로 정리
 <p>다른 앱 연결을 끊고 싶으면 <strong>AI 연결·계정 관리 → 연결한 앱과 접근 취소</strong>를 사용합니다. 단순 웹 로그아웃과 기존 AI 연결 권한 취소는 다른 일입니다.</p>
 </section>
 <section class="chapter" id="section-18"><h2>18. 잘못됐거나 중단됐을 때 이어가는 방법</h2>
-<div class="table-wrap"><table><thead><tr><th scope="col">상황</th><th scope="col">확인·재개 방법</th></tr></thead><tbody><tr><td>사이트가 공개 샘플 모드</td><td>운영자 DB·인증 준비 단계입니다. 연결 명령을 반복해서 분개 성공을 만들 수는 없습니다.</td></tr><tr><td>서버 URL은 저장됐지만 도구가 안 보임</td><td>실제 연결 주소·로그인·앱 허용을 확인하고 status/context를 다시 호출합니다.</td></tr><tr><td>이메일이 오지 않음</td><td>이메일 오타·스팸함·운영자의 SMTP·제공자 제한을 확인합니다. 이메일 확인을 임의로 꺼서 해결하지 않습니다.</td></tr><tr><td>AI와 사이트의 회사·전표가 다름</td><td>같은 로그인 계정·MCP 주소·작업 목록을 쓰는지 확인합니다.</td></tr><tr><td>증빙·판단 근거 부족</td><td>게시하지 않고 검토 필요로 남깁니다. 사람의 보완·검토 후 재개합니다.</td></tr><tr><td>공공자료 조회 실패</td><td>실패와 적용 제외를 구분하고 필요한 검토를 보완합니다. 성공이나 샘플로 바꿔 보고하지 않습니다.</td></tr><tr><td>전표를 반려함</td><td>반려 사유를 보존합니다. 기존 미게시 전표를 허용 조건에서 폐기 표시하고 새 초안으로 다시 검토합니다.</td></tr><tr><td>승인 후 내용 hash가 다름</td><td>기존 승인으로 게시하지 않습니다. 새 승인 대상과 근거를 다시 확인합니다.</td></tr><tr><td>게시 요청 중 네트워크 단절</td><td>기존 전표를 먼저 조회합니다. Posted면 중복 게시하지 않고 그 결과를 사용합니다.</td></tr><tr><td>이미 게시한 전표에 오류 발견</td><td>원전표를 삭제·덮어쓰지 않고 역분개 초안 → 검증 → 별도 사용자 승인 → 게시로 수정합니다.</td></tr><tr><td>닫힌 회계기간에 게시 시도</td><td>마감기간 전기 금지 규칙이 작동합니다. 임의 재개방하지 않고 후속 처리 방식을 검토합니다.</td></tr><tr><td>호출 제한·앱 이용 한도·대화 중단</td><td>처리한 ID·전표 상태·미완료 이유를 남기고 사용자가 새 요청으로 이어갑니다. 자동 백그라운드 재개는 없습니다.</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">상황</th><th scope="col">확인·재개 방법</th></tr></thead><tbody><tr><td>사이트가 공개 샘플 모드</td><td>운영자 DB·인증 준비 단계입니다. 연결 명령을 반복해서 분개 성공을 만들 수는 없습니다.</td></tr><tr><td>서버 URL은 저장됐지만 도구가 안 보임</td><td>실제 연결 주소·로그인·앱 허용을 확인하고 status/context를 다시 호출합니다.</td></tr><tr><td>Google 버튼 비활성·로그인 실패</td><td>운영자의 Google Provider·허용 callback 주소·Audience/테스트 사용자 설정을 확인합니다. 취소·만료되면 같은 브라우저에서 다시 시작합니다. 이메일 확인을 꺼서 우회하지 않습니다.</td></tr><tr><td>AI와 사이트의 회사·전표가 다름</td><td>같은 로그인 계정·MCP 주소·작업 목록을 쓰는지 확인합니다.</td></tr><tr><td>증빙·판단 근거 부족</td><td>게시하지 않고 검토 필요로 남깁니다. 사람의 보완·검토 후 재개합니다.</td></tr><tr><td>공공자료 조회 실패</td><td>실패와 적용 제외를 구분하고 필요한 검토를 보완합니다. 성공이나 샘플로 바꿔 보고하지 않습니다.</td></tr><tr><td>전표를 반려함</td><td>반려 사유를 보존합니다. 기존 미게시 전표를 허용 조건에서 폐기 표시하고 새 초안으로 다시 검토합니다.</td></tr><tr><td>승인 후 내용 hash가 다름</td><td>기존 승인으로 게시하지 않습니다. 새 승인 대상과 근거를 다시 확인합니다.</td></tr><tr><td>게시 요청 중 네트워크 단절</td><td>기존 전표를 먼저 조회합니다. Posted면 중복 게시하지 않고 그 결과를 사용합니다.</td></tr><tr><td>이미 게시한 전표에 오류 발견</td><td>원전표를 삭제·덮어쓰지 않고 역분개 초안 → 검증 → 별도 사용자 승인 → 게시로 수정합니다.</td></tr><tr><td>닫힌 회계기간에 게시 시도</td><td>마감기간 전기 금지 규칙이 작동합니다. 임의 재개방하지 않고 후속 처리 방식을 검토합니다.</td></tr><tr><td>호출 제한·앱 이용 한도·대화 중단</td><td>처리한 ID·전표 상태·미완료 이유를 남기고 사용자가 새 요청으로 이어갑니다. 자동 백그라운드 재개는 없습니다.</td></tr></tbody></table></div>
 <p>재개용 요청:</p>
 <div class="code-block"><div class="code-toolbar"><span>흐름 / 복사용 요청문</span><button class="copy" type="button">복사</button></div><pre><code>이전 업무를 이어서 하되 get_system_status와 get_company_context부터 확인해 줘.
 앞서 처리한 거래·전표 ID를 조회해 실제 상태를 먼저 구분해 줘.
@@ -245,7 +246,7 @@ Posted는 재처리하지 말고 기존 Draft·승인 대기·반려·실패 원
 </section>
 <section class="chapter" id="section-19"><h2>19. 어느 부분이 자동화되나요?</h2>
 <div class="table-wrap"><table><thead><tr><th scope="col">자동으로 도와주는 일</th><th scope="col">사용자가 직접 결정하는 일</th></tr></thead><tbody><tr><td>권한 있는 거래·증빙 조회, 참고자료 수집과 캐시</td><td>어떤 기간·대상을 처리할지 요청</td></tr><tr><td>반복 거래의 결정론적 계정 매핑·분개 계산</td><td>불확실한 계약·증빙·회계 가정 검토</td></tr><tr><td>차대변·계정·기간·중복·참조 무결성 검사</td><td>앱 연결 동의·실제 전표 승인/반려</td></tr><tr><td>승인된 전표의 조건 재검사·원자적 게시</td><td>결산·기간 마감의 명시적인 요청</td></tr><tr><td>게시 원장 집계·시산표·보고서 계산</td><td>실제 업무 적용·전문가 검토가 필요한 판단</td></tr></tbody></table></div>
-<p>이 서비스는 별도 유료 LLM API·자체 오케스트레이터·무인 스케줄러를 사용하지 않습니다. AI 추론은 사용자가 연결한 앱이 담당합니다. 앱 구독·이용 한도와 Cloudflare·Supabase·메일 제공자의 요금/용량은 별도이며, 서버가 있다고 모든 이용이 무제한 무료인 것은 아닙니다.</p>
+<p>이 서비스는 별도 유료 LLM API·자체 오케스트레이터·무인 스케줄러를 사용하지 않습니다. AI 추론은 사용자가 연결한 앱이 담당합니다. 앱 구독·이용 한도와 Cloudflare·Supabase의 요금/용량은 별도이며, 서버가 있다고 모든 이용이 무제한 무료인 것은 아닙니다.</p>
 <p>이 사이트를 만든 목적은 <strong>원천 거래가 근거 검토·분개·검증·사람의 승인을 거쳐 장부와 재무 보고서로 이어지는 과정을 체험하는 것</strong>입니다. 실제 세금 신고나 은행 업무를 대신하는 서비스로 소개하지 않습니다.</p>
 </section>
 <section class="chapter" id="section-20"><h2>20. 한 번의 업무가 끝났다는 판단 기준</h2>
@@ -269,7 +270,7 @@ Posted는 재처리하지 말고 기존 Draft·승인 대기·반려·실패 원
 <li><a href="https://github.com/osh3772-star/ledgerflow-ai/blob/main/docs/IMPLEMENTATION_STATUS.md" target="_blank" rel="noopener noreferrer">구현·실제 검증 상태</a></li>
 <li><a href="https://learn.chatgpt.com/docs/extend/mcp?surface=cli" target="_blank" rel="noopener noreferrer">공식 OpenAI MCP 문서</a></li>
 <li><a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">공식 Claude Code MCP 문서</a></li>
-<li><a href="https://supabase.com/docs/guides/auth/auth-smtp" target="_blank" rel="noopener noreferrer">Supabase 메일 발송 설정</a></li>
+<li><a href="https://github.com/osh3772-star/ledgerflow-ai/blob/main/docs/GOOGLE_LOGIN_SETUP.md" target="_blank" rel="noopener noreferrer">Google 로그인 운영 설정</a></li>
 </ul>
 </section>
 </main></div><footer class="footer">가상회사 회계 업무 체험 · 자료 검토와 최종 승인은 사람에게 있습니다.<br>이 안내 페이지에서 거래 생성·승인·장부 반영을 실행하지 않습니다.<a class="to-top" href="#top">문서 맨 위로 ↑</a></footer><div class="sr-status" role="status" aria-live="polite"></div>
@@ -280,8 +281,9 @@ Posted는 재처리하지 말고 기존 Draft·승인 대기·반려·실패 원
   fetch('/api/remote/config',{credentials:'omit',redirect:'error',signal:AbortSignal.timeout(8000)})
    .then(async response=>{if(!response.ok)throw new Error();return response.json();})
    .then(config=>{
-    status.querySelector('strong').textContent=config.available?'이 서버는 원격 장부 연결이 활성화되어 있습니다.':'현재 이 서버는 공개 샘플 조회 모드입니다.';
-    status.querySelector('p').textContent=config.available?'대시보드에서 가입·이메일 인증·로그인한 뒤 AI 앱을 연결하세요. 실제 로그인·앱 호출·장부 반영 성공은 각 단계에서 확인합니다.':'개인 장부 처리는 운영 준비가 끝난 뒤 시작합니다. 아래에서 전체 사용 흐름과 샘플 안내를 먼저 읽을 수 있습니다.';
+    const ready=config.available&&config.googleLogin?.enabled;
+    status.querySelector('strong').textContent=ready?'Google 로그인으로 내 장부를 열 수 있도록 연결되어 있습니다.':config.available?'원격 서버는 준비됐고 Google 로그인 설정을 확인 중입니다.':'현재 이 서버는 공개 샘플 조회 모드입니다.';
+    status.querySelector('p').textContent=ready?'대시보드에서 Google 계정으로 로그인한 뒤 같은 계정으로 AI 앱을 연결하세요. 실제 로그인·앱 호출·장부 반영 성공은 각 단계에서 확인합니다.':config.available?'Google 버튼이 비활성이면 운영자가 Google 제공자와 돌아올 주소를 설정해야 합니다. 별도 이메일 회원가입은 사용하지 않습니다.':'개인 장부 처리는 운영 준비가 끝난 뒤 시작합니다. 아래에서 전체 사용 흐름과 샘플 안내를 먼저 읽을 수 있습니다.';
    }).catch(()=>{status.querySelector('strong').textContent='현재 서버 상태를 확인하지 못했습니다.';status.querySelector('p').textContent='대시보드 상단의 안내를 확인하세요. 이 문서의 절차만으로 서버 연결 성공을 판단하지 않습니다.';});
  }
  for(const button of document.querySelectorAll('.copy'))button.addEventListener('click',async()=>{
