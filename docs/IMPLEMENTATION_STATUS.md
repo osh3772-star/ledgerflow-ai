@@ -2,6 +2,10 @@
 
 ## 2026-10-17 원격 장부 확장
 
+**15:52 KST 후속 검증:** 수정한 연결값으로 Supabase 접속·TLS·Auth health에 성공했고 원본 001~006과 원격 007 schema 설치·배포를 완료했다. Hyperdrive의 CA verify-full·SQL 캐시 비활성 경로로 실제 Cloudflare→Supabase OAuth 앱 등록 HTTP 201을 확인했다. `/api/remote/config`는 available:true, 미인증 `/mcp`는 OAuth 안내와 401이다. 보강한 ‘처음 사용하기’와 20단계 전체 `/workflow/` 안내를 공개 사이트에 반영했다. 실제 사용자 이메일 수신·로그인·네이티브 앱 OAuth·사람 승인 후 게시 검증은 남아 있다. 아래 오전 기록은 그 당시 상태다.
+
+후속 `pnpm check`는 **251개/37개 파일 통과**다. 새 코드·실제 배포·브라우저·남은 수용 검증을 [원격 배포 검증 기록](REMOTE_VALIDATION.md)에 분리했다.
+
 동일한 MCP 팩토리의 Cloudflare 진입점·OAuth/PKCE·DB 웹 세션·계정별 회사/ERP 1,000건·서비스 작성자/인간 승인자 분리·로그인/동의/접근 취소 UI를 구현했다. 원본 001~006 migration과 fixture/금액 엔진을 보존한다. 도구 41개와 역할 프롬프트 6개를 제공하며 native agent 자동 설치·실제 6개 역할 실행을 주장하지 않는다.
 
 실제 PostgreSQL의 두 테스트 계정으로 거래 1,000건씩 격리, code 단일 사용/PKCE/resource/callback, 다른 회사 차단, AI 승인 scope 차단, 웹 승인 후 Posted/시산표, refresh 회전/취소를 검사했다. 테스트 소유 DB/mock Auth의 결과이며 실제 Supabase 사용자·네이티브 앱 검증은 아니다.

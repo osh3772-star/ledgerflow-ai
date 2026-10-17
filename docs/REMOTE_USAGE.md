@@ -1,10 +1,14 @@
 # 설치 없이 사용하는 원격 장부
 
-2026-10-17. **원격 코드와 PostgreSQL 통합 검증은 준비했지만, 공개 운영 활성화는 Supabase DB 인증 오류로 보류 중이다.** 사이트의 /api/remote/config가 available:true일 때 실제 회계 흐름을 시작한다. false이면 공통 샘플 조회만 가능하다.
+2026-10-17 15:52 KST. **Supabase 회계 schema 설치·원격 배포를 완료했고, Cloudflare→Supabase DB 연결과 OAuth 앱 등록(HTTP 201)을 확인했다.** /api/remote/config는 available:true, 미인증 /mcp는 OAuth 안내와 HTTP 401을 반환한다. 실제 이메일 수신·사용자 로그인·AI 앱 OAuth·사용자 승인 후 Posted는 아직 별도 검증이 필요하다. 로그인 전은 공통 샘플 조회다.
 
 사이트: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/
 
 MCP: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp
+
+가입부터 결산까지 화면과 함께 읽는 [전체 워크플로우 안내](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/workflow/). 같은 내용은 [원본 문서](WORKFLOW_GUIDE.md)와 오프라인 HTML로도 제공한다.
+
+[실제 배포·회귀·브라우저 검증과 남은 항목](REMOTE_VALIDATION.md)을 확인한다. 테스트 계정의 결과를 실제 방문자 회계 처리로 집계하지 않는다.
 
 ## 방문자의 사용 순서
 
@@ -55,7 +59,9 @@ MCP 연결이 앱에 native agent·skill 파일을 자동 설치하거나 독립
 
 remote:deploy는 웹 build·공개 snapshot·키 노출 검사 후 실제 DB TLS/Auth 연결을 확인한다. 최초 빈 DB에는 기존 001~006 migration을 manifest 검증 방식으로 적용하고, 007은 별도 hash receipt로 원자적 upgrade한다. 기존 설치/receipt 불일치는 초기화하지 않고 중단한다. Auth 사용자를 SQL로 만들어 넣지 않는다.
 
-DB 정보·공개 CA·Supabase 설정·32바이트 세션 암호화 키는 **Cloudflare secrets**로 등록한다. 비밀값은 CLI 인자·Git·웹 자산에 넣지 않는다. 암호화 키는 ignored .env.local에 보관한다.
+DB 접속은 **Cloudflare Hyperdrive**를 사용한다. 배포 스크립트가 공개 Supabase CA를 등록하고 Direct connection origin에 verify-full을 적용하며, SQL 응답 캐시는 끈다. DB 비밀번호는 HTTPS 관리 API 본문으로 전달하며 OS 명령줄·Git·웹 자산에 넣지 않는다. 기존 Wrangler 인증은 메모리에서만 사용하고 해당 자격증명 조회의 디스크 로그도 끈다. Supabase URL·publishable key·32바이트 세션 암호화 키는 Cloudflare secrets로 등록한다. 암호화 키는 ignored .env.local에 보관한다.
+
+일반 Workerd의 node:tls에 로컬 Node용 CA 옵션을 그대로 전달하는 경로는 배포 검사에서 실패했다. Hyperdrive의 CA·호스트명 검증을 쓰는 경로에서 실제 OAuth client 설정 저장을 확인했다. TLS 검증을 끄지 않는다. [공식 Supabase 연결](https://developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/postgres-database-providers/supabase/), [인증서 검증](https://developers.cloudflare.com/hyperdrive/configuration/tls-ssl-certificates-for-hyperdrive/)
 
 pnpm site:deploy는 **공개 미리보기 전용**으로 원격 기능을 끈다. 실제 원격 장부 갱신은 pnpm remote:deploy를 사용한다. DB 인증 실패 시 원격 secrets 업로드·활성화 전에 중단한다.
 
@@ -64,7 +70,7 @@ pnpm site:deploy는 **공개 미리보기 전용**으로 원격 기능을 끈다
 ## 구조와 보안 경계
 
 - 기존 MCP 팩토리·공통 ERP/AccountingService·Decimal 엔진을 Cloudflare fetch transport에 재사용한다. 별도 MCP 제품·LLM API·오케스트레이터·스케줄러를 추가하지 않는다. Node 로컬 HTTP/stdio도 보존한다.
-- Worker는 native PostgreSQL을 기동하지 않고 pg 8.23.1로 외부 DB에 접속한다. [Cloudflare 공식 pg 연결](https://developers.cloudflare.com/workers/tutorials/postgres/)과 SDK Web Standard handler를 사용한다. build와 실제 Workerd DB/TLS 성공은 구분한다.
+- Worker는 native PostgreSQL을 기동하지 않고 pg 8.23.1과 Hyperdrive binding으로 외부 DB에 접속한다. 원본 CA와 verify-full 검증은 Hyperdrive가 담당하고 SQL 응답 캐시는 사용하지 않는다. 기존 트랜잭션과 SET LOCAL 회사 scope를 유지한다. SDK Web Standard handler와 실제 OAuth 설정 저장까지 확인했으며 실제 사용자 로그인·장부 처리 검증은 별도다.
 - 외부 Auth getUser와 이메일 인증으로 확인한 계정만 provisioning한다. 도구 입력의 사용자 ID·회사 ID로 신원을 선택하지 않는다.
 - 계정별 UUID의 회사·원천 거래 1,000건·증빙·보조자료를 원자적으로 적재한다. 원본 fixture/hash는 변경하지 않고 재로그인은 재적재하지 않는다. 소규모 포트폴리오용 최초 25개 작업공간 상한을 둔다.
 - 사람은 실제 Supabase user, MCP 작성자는 로그인 없는 서비스 actor다. 작성자 FK를 private actor registry로 확장하되 인간 결정자 FK·자기 승인 금지·승인 scope·hash·불변성·원자적 전기를 보존한다.

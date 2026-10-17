@@ -84,6 +84,53 @@ function RequestBox({title,prompt,hint,destination='chat'}:{title:string;prompt:
   </div>;
 }
 
+function WorkflowGuideLinks(){
+  return <section className="guide-workflow-entry" aria-labelledby="guide-workflow-title">
+    <div><span className="guide-kicker">처음부터 끝까지 · 전체 안내서</span><h2 id="guide-workflow-title">내가 할 일과 AI가 할 일을 순서대로 확인하세요.</h2>
+      <p>아래 빠른 시작에는 바로 보낼 요청문이 있습니다. 전체 안내서는 가입·앱 연결부터 전표 승인, 한 달 처리, 결산과 오류 복구까지 20단계로 설명합니다.</p></div>
+    <a className="guide-workflow-primary" href="/workflow/">전체 워크플로우 읽기 →</a>
+    <nav className="guide-workflow-topics" aria-label="전체 안내서의 주요 단계">
+      <a href="/workflow/#section-6"><strong>01 · AI 앱 연결</strong><span>코덱스·클로드와 같은 계정 연결</span></a>
+      <a href="/workflow/#section-8"><strong>02 · 첫 분개 요청</strong><span>기존 ERP 거래 한 건으로 시작</span></a>
+      <a href="/workflow/#section-11"><strong>03 · 내가 직접 승인</strong><span>전표·증빙·금액을 보는 기준</span></a>
+      <a href="/workflow/#section-15"><strong>04 · 보고서와 결산</strong><span>장부 반영 후 결과 확인</span></a>
+    </nav>
+  </section>;
+}
+
+function WorkflowCheckpoints(){
+  const resumeRequest=`get_system_status와 get_company_context로 연결과 내 회사를 먼저 확인해 줘.
+방금 작업한 거래 ID와 전표 ID를 기준으로 기존 초안·검증·승인·게시 상태를 조회해 줘.
+새 초안을 곧바로 만들지 말고, 마지막으로 완료된 단계와 이어서 할 일부터 알려줘.
+내가 사이트에서 승인하지 않은 전표는 게시하지 마. Posted는 DB 상태를 확인한 경우에만 보고해 줘.
+기간·처리한 ID·남은 ID·실패 사유·다음 행동을 구조화 Result로 정리해 줘.`;
+  return <section className="guide-section" aria-labelledby="guide-checkpoints-title">
+    <span className="guide-kicker">진행 중 헷갈릴 때</span><h2 id="guide-checkpoints-title">거래가 있다고 장부에 반영된 것은 아닙니다.</h2>
+    <p>시작할 자료는 미리 만든 가상 ERP 거래 1,000건입니다. 첫 요청은 이 중 1월 거래를 찾아 분개하는 일입니다. 새로운 거래를 먼저 만들 필요는 없습니다.</p>
+    <ol className="guide-checkpoints">
+      <li><strong>거래·증빙</strong><span>회사의 일을 설명하는 원천 자료</span></li>
+      <li><strong>초안·검증</strong><span>어떤 계정에 기록할지 준비·검사</span></li>
+      <li><strong>사용자 승인</strong><span>내가 사이트에서 내용 확인·결정</span></li>
+      <li><strong>장부 반영 완료</strong><span lang="en">Posted</span><span>이 상태의 전표만 보고서에 집계</span></li>
+    </ol>
+    <details className="guide-details"><summary>승인 전에 무엇을 봐야 하나요?</summary>
+      <ul><li>앱이 설명한 거래·전표 ID, 버전, 내용 hash가 같은지 봅니다.</li><li>거래일·귀속 월, 계정과 금액, 차변·대변 합계를 증빙과 대조합니다.</li><li>공공자료의 출처·적용일과 조회 실패·제외 사유, 회계 판단의 가정·불확실성을 확인합니다.</li><li>이해가 안 되면 먼저 설명을 요청합니다. 틀리면 반려하고, 맞으면 사이트에서 직접 승인합니다.</li></ul>
+      <p>AI 앱의 ‘도구 실행 허용’은 전표 승인이 아닙니다. 승인 후에는 앱에 장부 반영을 따로 요청합니다.</p>
+      <a href="/workflow/#section-11">전체 승인 체크리스트 →</a>
+    </details>
+    <details className="guide-details"><summary>반영했는데 보고서가 비어 있거나 숫자가 예상과 다르면?</summary>
+      <p>앱에 전표의 DB 상태가 Posted인지 먼저 확인하게 하세요. 사이트에서 해당 월을 선택하고 새로고침합니다. 시산표는 계정별 기록, 재무상태표는 기준일까지 쌓인 자산·부채·자본, 손익계산서는 선택 기간의 수익·비용을 보여줍니다.</p>
+      <p>승인 대기·미게시 전표는 보고서에 포함되지 않습니다. 실제 장부 전표와 연결된 거래를 확인한 뒤 차이를 설명하게 하세요.</p>
+      <a href="/workflow/#section-13">숫자가 이어지는 매출 분개 예제 →</a>
+    </details>
+    <details className="guide-details"><summary>앱이 멈추거나 승인 내용이 바뀌었다면?</summary>
+      <p>같은 작업을 처음부터 반복하기 전에 기존 전표와 승인 상태부터 확인합니다. 내용 hash가 달라졌으면 이전 승인을 재사용할 수 없습니다. 이미 게시한 전표의 정정은 역분개 절차를 검토하며, 게시 기록을 덮어쓰지 않습니다.</p>
+      <RequestBox title="중단한 작업 상태 확인 · 안전하게 이어가기" prompt={resumeRequest} hint="기간이나 거래·전표 ID를 알고 있다면 함께 적어 주세요. 이 요청은 사용자의 승인을 대신하지 않습니다."/>
+      <a href="/workflow/#section-18">오류별 해결·재개 방법 →</a>
+    </details>
+  </section>;
+}
+
 export function GuideWelcome({onOpen}:{onOpen:()=>void}){
   return <section className="guide-welcome" aria-labelledby="guide-welcome-title">
     <div><span className="guide-kicker">어디서 시작하나요?</span><h2 id="guide-welcome-title">ERP에 있는 1월 거래를 앱에 분개해 달라고 요청하세요.</h2>
@@ -95,6 +142,7 @@ export function GuideWelcome({onOpen}:{onOpen:()=>void}){
 function HostedBeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void}){
   const remoteMonth=monthRequest.replace('현재 프로젝트의','연결된 MCP 서버의').replace('docs/CLIENT_ROLES.md에 따라 필요한 역할의 스킬을 현재 대화에서 순서대로 적용해 줘.','서버가 제공하는 총괄·매출·매입·자금·결산·감사 중 필요한 역할 지침을 현재 대화에서 순서대로 적용해 줘.');
   return <div className="beginner-guide">
+    <WorkflowGuideLinks/>
     <section className="guide-intro"><span className="guide-kicker">설치 없는 원격 사용 안내</span><h2>사이트에서 내 장부를 열고, AI 앱에 연결하세요.</h2>
       <p>이 사이트 상단의 ‘로그인·시작하기’가 활성화된 경우 아래 순서로 사용합니다. ‘공개 샘플 조회 모드’라면 운영자가 원격 DB 연결을 준비 중인 상태이며, 아직 개인 장부를 처리할 수 없습니다.</p>
       <ol className="guide-steps">
@@ -113,6 +161,7 @@ function HostedBeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void
       <RequestBox title="2026년 1월 기존 ERP 거래 정리" prompt={remoteMonth} hint="한 건의 흐름을 확인한 뒤 사용하세요. 이미 게시한 거래는 다시 처리하지 않습니다."/>
       <RequestBox title="1월 중 내가 승인한 전표만 반영" prompt={monthPostRequest.replace('현재 프로젝트의','연결된 MCP 서버의')} hint="월말 수정분개·기간 마감은 별도 작업이며 사용자 승인이 필요합니다."/>
     </section>
+    <WorkflowCheckpoints/>
     <section className="guide-section"><h2>회계 역할 여섯 개는 어떻게 쓰나요?</h2><p>서버가 여섯 역할의 지침과 MCP 프롬프트를 제공합니다. 필요한 역할을 현재 앱 대화에서 선택합니다. 서버 연결이 앱에 스킬 파일을 자동 설치하거나 독립 에이전트 여섯 개를 자동 실행하지는 않습니다.</p>
       <div className="guide-role-table"><table><thead><tr><th>역할</th><th>업무</th><th>서버 프롬프트</th></tr></thead><tbody>{roles.map(([label,work,role])=><tr key={role}><td>{label}</td><td>{work}</td><td><code>{'ledgerflow-'+role}</code></td></tr>)}</tbody></table></div>
       <p>역할 정의·SDK 테스트와 실제 앱 실행은 구분합니다. 실제 사용 결과는 역할별 Result와 도구 호출 기록으로 확인합니다. 역할 이름이 승인 권한을 주지는 않습니다.</p>
@@ -126,6 +175,7 @@ function HostedBeginnerGuide({onNavigate}:{onNavigate:(target:GuideTarget)=>void
 export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(target:GuideTarget)=>void;hosted?:boolean}){
   if(hosted)return <HostedBeginnerGuide onNavigate={onNavigate}/>;
   return <div className="beginner-guide">
+    <WorkflowGuideLinks/>
     <section className="guide-intro" aria-labelledby="guide-intro-title">
       <span className="guide-kicker">회계 초보자를 위한 시작 안내</span>
       <h2 id="guide-intro-title">앱에 말하고, 사이트에서 확인하세요.</h2>
@@ -215,6 +265,7 @@ export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(tar
       <RequestBox title="두 번째 요청문 · 내가 승인한 뒤 장부에 반영" prompt={postRequest} hint="[전표 ID]는 첫 번째 작업에서 앱이 알려준 전표 ID로 바꿔 주세요. 승인하지 않은 전표는 반영되지 않습니다."/>
     </section>
 
+    <WorkflowCheckpoints/>
     <section className="guide-section" aria-labelledby="guide-public-title">
       <div className="guide-section-heading"><span className="guide-kicker">공공자료는 어디에 쓰이나요?</span><h2 id="guide-public-title">분개할 때 확인할 참고 근거를 함께 가져옵니다.</h2></div>
       <p>‘공공자료’ 메뉴에서 거래를 골라 조회하거나 앱에 분개 초안을 요청하세요. DART 공시기업 재무정보, 거래일에 맞는 세법 조문, 한국은행 금리 자료를 모아 보여줍니다. 새 전표에는 그때 확인한 자료가 승인 내용에 포함됩니다. 조회에 실패하면 ‘확인 필요’, 샘플 모드이면 ‘샘플 자료’로 표시합니다.</p>

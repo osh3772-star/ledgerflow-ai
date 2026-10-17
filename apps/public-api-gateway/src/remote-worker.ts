@@ -5,11 +5,11 @@ import {PostgresApiCache} from '@ledgerflow/data-access';
 import type {GatewayEnvironment} from './worker.js';
 export interface RemoteEnvironment {
  REMOTE_ENABLED?:string;REMOTE_ORIGIN?:string;SUPABASE_URL?:string;SUPABASE_PUBLISHABLE_KEY?:string;
- LEDGERFLOW_DATABASE_URL?:string;LEDGERFLOW_REMOTE_ENCRYPTION_KEY?:string;LEDGERFLOW_DATABASE_CA_PEM?:string;
+ LEDGERFLOW_REMOTE_ENCRYPTION_KEY?:string;HYPERDRIVE?:{connectionString:string};
 }
 export function remoteConfigured(env:RemoteEnvironment){
  return env.REMOTE_ENABLED==='true'&&Boolean(env.REMOTE_ORIGIN&&env.SUPABASE_URL&&env.SUPABASE_PUBLISHABLE_KEY&&
-  env.LEDGERFLOW_DATABASE_URL&&env.LEDGERFLOW_REMOTE_ENCRYPTION_KEY&&env.LEDGERFLOW_DATABASE_CA_PEM);
+  env.HYPERDRIVE?.connectionString&&env.LEDGERFLOW_REMOTE_ENCRYPTION_KEY);
 }
 export async function handleRemote(request:Request,environment:GatewayEnvironment&RemoteEnvironment):Promise<Response|undefined>{
  const path=new URL(request.url).pathname;
@@ -21,10 +21,10 @@ export async function handleRemote(request:Request,environment:GatewayEnvironmen
  }
  const origin=environment.REMOTE_ORIGIN!;
  if(new URL(origin).protocol!=='https:'||new URL(origin).origin!==origin)throw new Error('REMOTE_ORIGIN_INVALID');
- const connection=new URL(environment.LEDGERFLOW_DATABASE_URL!);
- for(const key of ['sslmode','sslcert','sslkey','sslrootcert'])connection.searchParams.delete(key);
- const pool=new pg.Pool({connectionString:connection.href,max:2,connectionTimeoutMillis:8000,statement_timeout:30000,
-  ssl:{rejectUnauthorized:true,ca:environment.LEDGERFLOW_DATABASE_CA_PEM!}});
+ // Hyperdrive authenticates the origin with the uploaded Supabase CA and
+ // verify-full hostname checks. Do not pass unsupported node:tls CA options
+ // to Workerd or relax certificate verification. SQL result caching is off.
+ const pool=new pg.Pool({connectionString:environment.HYPERDRIVE!.connectionString,max:2,connectionTimeoutMillis:8000,statement_timeout:30000});
  pool.on('error',()=>{ /* Driver details must not be exposed or logged. */ });
  try{
   const upstream:typeof fetch=(url,init)=>{const headers=new Headers(init?.headers);headers.set('Accept','application/json');

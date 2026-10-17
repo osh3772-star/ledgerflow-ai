@@ -1,0 +1,8 @@
+---
+import {renderWorkflowGuide} from '../../../../docs/render-workflow-guide.mjs';
+import source from '../../../../docs/WORKFLOW_GUIDE.md?raw';
+import css from '../../../../docs/workflow-guide.css?raw';
+// Build only from the repository-owned guide, never from user or API content.
+const {html}=await renderWorkflowGuide({website:true,source,css});
+---
+<Fragment set:html={html}/>

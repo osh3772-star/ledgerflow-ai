@@ -1,6 +1,6 @@
 # LedgerFlow architecture
 
-> 2026-10-17: 기존 서버 팩토리·41개 도구를 Cloudflare HTTP에 재사용하는 OAuth, 계정별 회사/ERP, 서비스 작성자와 인간 승인자 분리를 추가했다. 공개 활성화는 DB 인증 수정 후 진행하며 아래 이전 설명보다 [원격 구조·검증 경계](REMOTE_USAGE.md)가 우선한다. 새 MCP 제품이나 추론 runner는 없다.
+> 2026-10-17: 기존 서버 팩토리·41개 도구를 Cloudflare HTTP에 재사용하는 OAuth, 계정별 회사/ERP, 서비스 작성자와 인간 승인자 분리를 추가했다. 실제 Supabase 접속·TLS·Auth health 검사가 성공했으며 운영 상태와 실제 앱 검증 범위는 [원격 구조·검증 경계](REMOTE_USAGE.md)를 따른다. 새 MCP 제품이나 추론 runner는 없다.
 
 2026-10-16 현재 구현을 설명한다. 이전 Phase 기록은 당시 결과이며 현재 기능 목록은 이 문서와 MCP 카탈로그를 기준으로 한다.
 
@@ -25,16 +25,16 @@ flowchart TD
   P -. 공유 연결 모드 .-> G[Cloudflare 읽기 전용 HTTP 중계]
   G --> N
   P --> D
-  W[Astro + React 대시보드] --> H[같은 Node HTTP 프로세스의 웹 route]
+  W[Astro + React 대시보드] --> H[로컬 Node 또는 Cloudflare의 공통 웹 route]
   H --> A
   H --> E
   H --> S[Supabase Auth / private Storage]
-  HU[사용자 승인자: demo는 로그인 없음] --> H
+  HU[사용자 승인자: 로컬 demo 고정 / 원격 Supabase 인증] --> H
 ```
 
 MCP 서버 제품은 정확히 하나다. 기본 foreground 프로세스의 `http://127.0.0.1:8787/mcp`를 두 앱이 공유한다. 선택 stdio도 같은 서버 팩토리·서비스를 사용하며 한 프로세스가 HTTP 승인 화면과 stdio를 함께 제공한다. 별도 오케스트레이터·모델 API·무인 스케줄러는 없다. 사용자가 앱에서 작업을 요청하고 앱 종료/중단 시 실행도 중단된다.
 
-2026-10-16 공공자료의 회계 근거 첨부와 선택 Cloudflare 공유 중계를 추가했다. Worker는 공공 도구 11종만 중계하며 MCP·DB·장부·승인 서버가 아니다. 직접 mock/live와 gateway 모드는 같은 `PublicDataClient` 계약을 사용한다. 서버가 공공 클라이언트 인스턴스와 캐시를 회계·웹·MCP 도구에 재사용한다. 기존 마이그레이션·fixture·분개 금액 엔진을 교체하지 않는다. [연결·배포 명세](PUBLIC_GATEWAY.md)
+2026-10-16 공공자료의 회계 근거 첨부와 선택 Cloudflare 공유 중계를 추가했고, 10-17 동일 Worker에 인증된 원격 MCP·개인 장부 경로를 추가했다. `/v1/query`는 공공 도구 11종의 별도 HTTP 중계이며 MCP 서버가 아니다. `/mcp`는 기존 단일 MCP 팩토리를 재사용한다. 직접 mock/live와 gateway 모드는 같은 `PublicDataClient` 계약을 사용한다. 서버가 공공 클라이언트 인스턴스와 캐시를 회계·웹·MCP 도구에 재사용한다. 기존 마이그레이션·fixture·분개 금액 엔진을 교체하지 않는다. [연결·배포 명세](REMOTE_USAGE.md)
 
 `get_accounting_source`와 신규 분개는 `AccountingReferenceService`로 DART 재무 참고, 거래일 법령, ECOS 금리 참고를 수집한다. 실사업자 매핑이 없는 합성 거래처는 국세청 자동 조회에서 제외한다. 개별 실패는 명시하고 수집 전체 기한은 18초로 제한한다. 새 전표 JSONB의 선택 필드 `publicReferences`를 기존 hash에 포함해 승인 대상을 고정한다. 이 필드에는 기본값을 부여하지 않아 기존 payload/hash를 보존한다. 참조자료가 금액·계정을 변경하지 않으며 AI는 그 적합성과 불확실성을 설명한다. 승인·검증·전기는 기존 독립 DB 제어를 따른다.
 
@@ -164,23 +164,25 @@ erDiagram
 
 ## 인증과 보안
 
-localhost 개발 경계에서 서버에 회사와 신원을 고정한다. 역할 prompt는 인증이 아니다. MCP는 선택 bearer로 앱 접속을 제한한다. 원격 OAuth/HTTPS MCP는 아직 제공하지 않으며 현재 서버는 loopback만 허용한다. Host/Origin·입력 크기·strict Zod·parameter SQL·CSP·no-store를 적용한다.
+localhost 개발 경계에서 서버에 회사와 신원을 고정한다. 역할 prompt는 인증이 아니다. 로컬 MCP는 선택 bearer로 앱 접속을 제한하며 Node listener는 loopback만 허용한다. 원격은 Cloudflare HTTPS와 OAuth PKCE를 사용하고, 확인된 Supabase 사용자와 회사에 토큰을 바인딩한다. Host/Origin·입력 크기·strict Zod·parameter SQL·CSP·no-store를 적용한다.
 
-사용자 승인은 MCP 밖 `/api/human/*`에서 HttpOnly/SameSite 쿠키와 CSRF token, 30분 세션을 사용한다. 로컬 demo는 로그인 없이 같은 출처 브라우저 세션을 자동 준비하고 별도 fixture operator 신원을 사용한다. 이는 동일 PC의 합성 개발 환경 신뢰 모델이며 인간 신원 인증은 아니다. 지속 DB에는 익명 operator를 주지 않고 외부 인간 JWT와 매 요청 getUser 검증을 요구한다. 로그인 폼·password login API는 제거했다. 승인자 자격은 DB에서 재검사한다. [Supabase Auth getUser](https://supabase.com/docs/reference/javascript/auth-getuser)
+사용자 승인은 MCP 밖 `/api/human/*`에서 HttpOnly/SameSite 쿠키와 CSRF token을 사용한다. 로컬 demo는 로그인 없이 같은 출처 브라우저 세션을 자동 준비하고 별도 fixture operator 신원을 사용한다. 이는 동일 PC의 합성 개발 환경 신뢰 모델이며 인간 신원 인증은 아니다. 지속 DB에는 익명 operator를 주지 않고 외부 인간 JWT와 매 요청 getUser 검증을 요구한다. 로컬 demo의 로그인 폼은 없고, 원격의 `/api/remote/*`는 Supabase 인증과 암호화한 7일 웹 세션을 사용한다. 승인자 자격은 DB에서 재검사한다. [Supabase Auth getUser](https://supabase.com/docs/reference/javascript/auth-getuser)
 
 Storage는 private `ledgerflow-evidence` bucket과 회사-prefix RLS다. 인간 JWT로 기존 증빙의 canonical JSON을 upload(upsert=false)하고 충돌 시 download/hash 검증으로 재시도한다. 원천 증빙은 불변이며 별도 `evidence_objects`가 보관 경로를 기록한다. 이 기능은 합성 JSON 보관에 한정하고 실제 PDF OCR/정부 발행 원본을 구현했다고 표시하지 않는다. [Storage upload](https://supabase.com/docs/reference/javascript/storage-from-upload), [Storage RLS](https://supabase.com/docs/guides/storage/security/access-control)
 
 ## 배포와 월 운영비
 
-기본 권장 실행은 Node 로컬 foreground + native PostgreSQL 또는 기존 PostgreSQL/Supabase다. demo DB는 종료 시 제거되고 같은 1,000건으로 재생성되므로 보관할 장부는 postgres profile을 사용한다. Cloudflare에 현재 backend를 배포하지 않는다. 설치 SDK는 Node stdio/HTTP 구현을 제공하지만 전체 앱의 native PostgreSQL binary·파일 감사·Node listener·메모리 인간 세션은 Workers에서 검증되지 않았으며 일반 nodejs_compat만으로 호환이 입증되지 않는다. Astro 정적 output은 Pages 대상이 가능하나 별도 HTTPS backend/auth 설계가 먼저 필요하다. [Workers Node compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/), [Astro Cloudflare deployment](https://docs.astro.build/en/guides/deploy/cloudflare/)
+로컬 실행은 Node foreground + native PostgreSQL 또는 기존 PostgreSQL/Supabase다. demo DB는 종료 시 제거되고 같은 1,000건으로 재생성되므로 보관할 장부는 postgres profile을 사용한다. 공유 실행은 Astro 정적 자산과 동일 MCP 팩토리의 Web Standard handler를 Cloudflare Worker에서 제공하고 Hyperdrive를 통해 외부 Supabase에 연결한다. Hyperdrive는 업로드한 Supabase CA와 verify-full로 호스트를 검증하며 SQL 응답 캐시는 끈다. native PostgreSQL binary·파일 감사·Node listener·메모리 인간 세션을 Worker에 그대로 올리지 않는다. Worker는 pg 연결·DB 세션·DB 감사 경로를 사용한다. 실제 Worker의 OAuth 설정 저장을 확인했으며 사용자 인증·앱 검증은 별도 기록한다. [원격 사용과 배포](REMOTE_USAGE.md), [Cloudflare TLS 검증](https://developers.cloudflare.com/hyperdrive/configuration/tls-ssl-certificates-for-hyperdrive/)
 
 | 시나리오 | 월 추가비용 예상 | 조건 |
 | --- | --- | --- |
 | 로컬 DB·MCP·대시보드 + 이미 구독 중인 앱 | 프로젝트 모델 API 0원, 호스팅 0원 | 기존 앱 구독/사용 한도·PC 전력 비용 별도 |
 | Supabase Free + 로컬 Node | DB/Storage $0 | 500MB DB, 1GB Storage, 제한 내 사용; 유휴 중단 고려 |
 | Supabase Pro + 로컬 Node | 기본 $25/월부터 | 추가 사용·프로젝트 비용 별도, 현 시점 기본 가격 |
-| Cloudflare 공공자료 중계 | Free 한도 내 $0 | 기관 쿼터·CPU/요청 제한, 공유 토큰 필요. 장부 backend는 로컬 |
-| Pages 정적 사이트 | 무료 플랜 검토 가능 | 서버 API 기능은 별도 호스트 필요, 현재 미배포 |
+| Cloudflare 정적 화면·원격 MCP·공공자료 중계 | Free 한도 내 $0 | 원격은 외부 DB·Auth 필요, 기관 쿼터·CPU/요청 제한. 로컬 중계는 공유 토큰 사용 |
+| 가입 인증 메일 | 발송 서비스 설정에 따름 | 실제 SMTP 발송·수신 확인 필요. 기본 Supabase 메일 제한과 별도 |
+
+Hyperdrive는 Free 한도 내 하루 SQL statement 100,000개를 제공한다. 이 한도는 거래 건수가 아니라 SELECT·변경·트랜잭션 내 SQL 등의 호출 수이며 초과하면 요청이 실패할 수 있다. 무료 범위를 초과하는 유료 전환을 자동으로 진행하지 않는다. [공식 Hyperdrive 요금·쿼터](https://developers.cloudflare.com/hyperdrive/platform/pricing/)
 
 Supabase 무료 한도와 Pro 가격은 공식 가격표를 확인했다. 공공 API는 발급받은 무료 이용권한과 승인 쿼터 내 사용한다. 추가 유료 모델 API 호출 경로는 코드에 없다. 앱 native 추론 사용량/실제 비용은 측정되지 않았고 무제한이라고 가정하지 않는다. [Supabase pricing](https://supabase.com/pricing), [Pages limits](https://developers.cloudflare.com/pages/platform/limits/)
 

@@ -26,8 +26,9 @@ export async function startMcpHttp(dependencies: ServerDependencies, port = 8787
           return new Response('Same-origin human request required',{status:403});
         return dependencies.humanRouter(request);
       }
-      if(request.method==='GET'&&(url.pathname==='/'||url.pathname.startsWith('/_astro/'))){
-        const root=resolve('apps/web/dist'),target=resolve(root,url.pathname==='/'?'index.html':'.'+url.pathname);
+      if(request.method==='GET'&&(url.pathname==='/'||url.pathname==='/workflow'||url.pathname==='/workflow/'||url.pathname.startsWith('/_astro/'))){
+        const page=url.pathname==='/'?'index.html':url.pathname==='/workflow'||url.pathname==='/workflow/'?'workflow/index.html':'.'+url.pathname;
+        const root=resolve('apps/web/dist'),target=resolve(root,page);
         if(!target.startsWith(root+sep)||url.pathname.includes('..'))return new Response('Not found',{status:404});
         try{
           const actual=await realpath(target);if(!actual.startsWith(root+sep))return new Response('Not found',{status:404});

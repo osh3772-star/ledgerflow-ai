@@ -1,6 +1,6 @@
 # Implementation plan
 
-2026-10-17 원격 확장은 [원격 사용·배포 계획](REMOTE_USAGE.md)을 따른다. 기존 41개 도구/6개 역할/공통 엔진을 보존하며 Auth → 계정별 회사 provisioning/RLS → OAuth MCP → 사람 웹 승인 → Posted/시산표 순서로 검증한다. 실제 DB 인증·SMTP·네이티브 앱 확인이 남아 있으며 코드 검증과 구분한다.
+2026-10-17 원격 확장은 [원격 사용·배포 계획](REMOTE_USAGE.md)을 따른다. 기존 41개 도구/6개 역할/공통 엔진을 보존하며 Auth → 계정별 회사 provisioning/RLS → OAuth MCP → 사람 웹 승인 → Posted/시산표 순서로 검증한다. 실제 DB 접속·TLS·Auth health는 15:41 KST에 성공했다. 실제 메일 수신·네이티브 앱·인간 승인 수용 검증은 코드 검증과 구분한다.
 
 2026-10-16 현재 사용자가 요청한 미구현 기능을 작은 검증 단위로 추가했다. 단일 공유 MCP, 앱 주도 추론, 기존 ERP/Decimal/PostgreSQL/공공 API probe를 유지한다. 수정 전 공개 소스 99개를 키 제외 백업했으며 이전 M1 백업 58개도 보존한다.
 
@@ -17,6 +17,8 @@
 | M9 공공자료 회계 근거 | 공통 AccountingReferenceService, 거래일 법령·DART·ECOS·국세청 제외 사유, 선택 JSONB snapshot | 실제 과거 거래일 조회, 기존 gold 금액 불변, hash 결합·동시 멱등·인간 승인 통합 테스트 |
 | M10 공유 API 중계 | Cloudflare 읽기 전용 Worker, 로컬 gateway client, 토큰 연결/비밀값 등록 CLI | 실제 Wrangler dry build, 인증·쿼터·입력·캐시 테스트, 실제 배포 후 origin 확인. MCP 1개·원본 키 비공개 유지 |
 | M11 공개 웹 미리보기 | 기존 Worker Assets, 공통 서비스의 합성 자료 export, 공개 읽기 전용 route·화면 안내 | 1,000건·12개월 조회, 공개 세션/변경 차단, 배포 파일 비밀값 검사, 실제 HTTPS 페이지/API 확인. 장부 운영은 로컬에 유지 |
+| M12 계정별 원격 장부 | 외부 Auth·계정별 회사/ERP·OAuth PKCE·웹 승인·같은 MCP 팩토리 | 기존 248개 검사에 격리·승인 후 Posted 포함. 실제 Worker DB 연결·메일·앱 연결은 별도 확인 |
+| M13 전체 사용 안내 | 기존 빠른 시작 보강 + `/workflow/` 전체 안내, 동일 원본의 오프라인 HTML | 웹 build, 21개 목차·12개 복사 블록·링크 무결성·비밀값 검사, 실제 공개 화면·문서 확인 |
 
 ## 테스트 전략
 
@@ -48,13 +50,13 @@
 4. 앱이 approval 상태를 다시 조회한 뒤 post를 호출하고 DB Posted·시산표를 확인한다.
 5. Supabase 개발 프로젝트에서 Auth 사용자와 membership/principal/scopes를 명시적으로 provision하고 migration을 적용한다. source seed는 테스트용 Auth UUID 그대로 운영에 적재하지 않는다.
 6. Storage 원문 보관·다른 회사 JWT 접근 거절·권한 철회·로그아웃·만료를 실제 환경에서 확인한다.
-7. 원격 서버는 HTTPS·OAuth/클라이언트별 신원·외부 세션 저장소를 먼저 설계한다. 현재 loopback 서버를 인터넷에 직접 노출하지 않는다.
+7. 구현된 Cloudflare HTTPS·OAuth/클라이언트별 신원·DB 세션 저장소를 실제 배포에서 검증한다. 현재 loopback 서버를 인터넷에 직접 노출하지 않는다.
 
 새 도구/기능은 catalog → 공통 서비스 → 독립 엔진/제한 RPC → 테스트 → 문서 순서로 추가한다. 배포 자체를 구현 완료 증거로 대체하지 않는다. foreground 사용자 요청을 벗어난 자동 승인·상시 agent runner·cron을 도입하지 않는다.
 
 ## 다음 최소 단위
 
-최신 사용자 지시에 따라 추가 Supabase 설정 요청을 보류하고 [로컬 포트폴리오 실행판](PORTFOLIO_READY.md)을 마무리한다. `pnpm start`로 웹 build와 기존 단일 demo 서버를 켜며 저장된 클라우드 설정과 지속 DB 통제를 보존한다. 아래 hosted 계획은 향후 재개 범위이며 현재 사용자의 선행 작업이 아니다.
+현재 최소 단위는 연결에 성공한 기존 Supabase의 schema를 검증·설치하고, 보강한 사용 안내와 원격 장부를 같은 Worker에 배포하는 것이다. 이후 실제 이메일 수신·가입·앱 OAuth와 status/context·사용자 직접 승인 후 Posted를 확인한다. 운영자의 사용자 신원이나 장부 승인 결정을 개발자가 만들어 대신하지 않는다. 기존 `pnpm start` 로컬 demo도 보존한다.
 
 핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 사용자 지시에 따라 현재 최소 단위는 **기존 Supabase 연결값 3개 준비 → TLS/Auth health/DB metadata 읽기 전용 진단**이다. [단계별 연결 계획](SUPABASE_SETUP.md)을 따른다. 실제 Claude Code/Codex 공유 Draft·인간 승인·Posted 수용 테스트도 남아 있으며 DB 접속만으로 완료 처리하지 않는다.
 

@@ -42,7 +42,8 @@
     "deploy:check": "tsx scripts/check-deployment.ts",
     "session:key": "tsx scripts/init-session-key.ts",
     "container:smoke": "tsx scripts/container-smoke.ts",
-    "web:build": "pnpm --filter @ledgerflow/web build",
+    "docs:workflow": "node docs/render-workflow-guide.mjs",
+    "web:build": "pnpm docs:workflow && pnpm --filter @ledgerflow/web build",
     "web:dev": "pnpm --filter @ledgerflow/web dev",
     "evaluate": "tsx scripts/evaluate-accounting.ts",
     "check": "pnpm typecheck && pnpm test"

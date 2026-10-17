@@ -8,6 +8,7 @@ import {loadServerEnvironment} from './server-env.js';
 import {databasePoolOptions} from './postgres-connection.js';
 import {buildInitialMigrationBundle,inspectInitialSchema,applyInitialSchema} from './supabase-initialization.js';
 import {checkSupabaseConnection} from './supabase-readiness.js';
+import {ensureHyperdrive} from './cloudflare-hyperdrive.js';
 
 // Owner's explicit source-deployment command, never exposed through MCP/web.
 // Fail before uploads or activation if DB authentication/schema checks fail.
@@ -50,24 +51,27 @@ async function main(){
  const ca=await readFile(caFile,'utf8');if(!ca.includes('-----BEGIN CERTIFICATE-----'))throw new Error('DATABASE_CA_INVALID');
  const require=createRequire(resolve('apps/public-api-gateway/package.json'));
  const wrangler=resolve(dirname(require.resolve('wrangler/package.json')),'bin/wrangler.js');
+ const hyperdrive=await ensureHyperdrive(wrangler,resolve('apps/public-api-gateway'),process.env,ca);
  const payload={SUPABASE_URL:process.env.SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY:process.env.SUPABASE_PUBLISHABLE_KEY,
-  LEDGERFLOW_DATABASE_URL:process.env.LEDGERFLOW_DATABASE_URL,LEDGERFLOW_REMOTE_ENCRYPTION_KEY:process.env.LEDGERFLOW_REMOTE_ENCRYPTION_KEY,LEDGERFLOW_DATABASE_CA_PEM:ca};
+  LEDGERFLOW_REMOTE_ENCRYPTION_KEY:process.env.LEDGERFLOW_REMOTE_ENCRYPTION_KEY};
  const upload=spawn(process.execPath,[wrangler,'secret','bulk'],{cwd:resolve('apps/public-api-gateway'),stdio:['pipe','pipe','pipe'],windowsHide:true});
  upload.stdout.resume();upload.stderr.resume();upload.stdin.on('error',()=>{});upload.stdin.end(JSON.stringify(payload));
  if(await new Promise<number>((done,reject)=>{upload.once('error',reject);upload.once('close',code=>done(code??1));})!==0)throw new Error('REMOTE_SECRET_UPLOAD_FAILED');
  const base=JSON.parse(await readFile('apps/public-api-gateway/wrangler.jsonc','utf8'));
  base.main=resolve('apps/public-api-gateway/src/worker.ts');base.assets.directory=resolve('apps/web/dist');base.vars.REMOTE_ENABLED='true';
+ base.hyperdrive=[{binding:'HYPERDRIVE',id:hyperdrive.id}];
  await mkdir('.ledgerflow/remote-deploy',{recursive:true});
  const config=resolve('.ledgerflow/remote-deploy/wrangler.json');await writeFile(config,JSON.stringify(base,null,2));
  const deploy=spawn(process.execPath,[wrangler,'deploy','--config',config],{cwd:resolve('apps/public-api-gateway'),stdio:['ignore','pipe','pipe'],windowsHide:true});
  // A failed deployment must not echo private connection/driver/provider errors.
  deploy.stdout.resume();deploy.stderr.resume();
  if(await new Promise<number>((done,reject)=>{deploy.once('error',reject);deploy.once('close',code=>done(code??1));})!==0)throw new Error('REMOTE_WORKER_DEPLOY_FAILED');
- console.log(JSON.stringify({remoteDeployed:true,url:base.vars.REMOTE_ORIGIN,mcpUrl:base.vars.REMOTE_ORIGIN+'/mcp',secretsPrinted:false,
+ console.log(JSON.stringify({remoteDeployed:true,url:base.vars.REMOTE_ORIGIN,mcpUrl:base.vars.REMOTE_ORIGIN+'/mcp',hyperdrive:{cachingDisabled:true,tlsMode:'verify-full'},secretsPrinted:false,
   remainingChecks:['Supabase email confirmation redirect allowlist','Two real user logins','Native Codex/Claude OAuth and tools']}));
 }
 try{await main();}catch(error){
  const safe=['DATABASE_AUTHENTICATION_FAILED','DATABASE_CA_FILE_REQUIRED','DATABASE_CA_INVALID','REMOTE_KEY_INVALID','REMOTE_SECRET_UPLOAD_FAILED','REMOTE_WORKER_DEPLOY_FAILED',
   'REMOTE_MIGRATION_HASH_MISMATCH','REMOTE_SCHEMA_REVIEW_REQUIRED','SUPABASE_CHECK_FAILED'];
- console.error(JSON.stringify({remoteDeployed:false,errorCode:error instanceof Error&&safe.includes(error.message)?error.message:'REMOTE_DEPLOYMENT_BLOCKED',secretsPrinted:false}));process.exitCode=1;
+ const code=error instanceof Error?error.message:'';
+ console.error(JSON.stringify({remoteDeployed:false,errorCode:safe.includes(code)||/^HYPERDRIVE_(?:[A-Z_]+|API_\d+)$/u.test(code)?code:'REMOTE_DEPLOYMENT_BLOCKED',secretsPrinted:false}));process.exitCode=1;
 }

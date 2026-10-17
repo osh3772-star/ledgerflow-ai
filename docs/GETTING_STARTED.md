@@ -1,5 +1,7 @@
 # 공유받은 사람의 첫 사용과 선택적 로컬 설치
 
+**[사이트의 전체 워크플로우 안내](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/workflow/)**에서 가입·앱 연결 → 첫 분개 → 사용자 승인 → 장부 반영 → 월말 보고서까지 순서대로 확인할 수 있습니다. 요청문 복사, 승인 체크리스트, 오류 시 재개 방법도 제공합니다. [같은 안내의 원본 문서](WORKFLOW_GUIDE.md)
+
 먼저 [공개 사이트](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)를 엽니다. 서버·Node.js·DB 설치 없이 사용하는 **원격 로그인 → AI 앱 MCP 연결 → 사용자 웹 승인 → 장부 반영** 절차는 [원격 사용법](REMOTE_USAGE.md)을 따릅니다.
 
 개발 소스·로컬 실행 참고: [LedgerFlow 공개 저장소](https://github.com/osh3772-star/ledgerflow-ai). 일반 방문자에게는 위 Cloudflare 사이트 주소를 공유하세요.
