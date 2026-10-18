@@ -1,4 +1,9 @@
 export type LearningSetup={personal:boolean;prompt:string;companyId:string;expiresAt:string};
+export type LearningAccess=
+ | {mode:'checking'|'anonymous'|'error'|'unavailable'}
+ | {mode:'guest';companyId:string}
+ | {mode:'personal';setup:LearningSetup|null};
+export const isPersonalSession=(identity:{signedIn:boolean;mode?:string})=>identity.signedIn&&identity.mode!=='guest';
 export function personalSetupPrompt(origin:string,claimCode:string){
  return `나는 이 사이트에서 Google 로그인한 내 장부에 AI를 연결하고 싶어.
 https://github.com/osh3772-star/ledgerflow-ai

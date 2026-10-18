@@ -4,7 +4,15 @@ import {readFile,writeFile} from 'node:fs/promises';
 export async function syncLearningDocs(){
  const c=JSON.parse(await readFile(new URL('./learning-start.json',import.meta.url),'utf8'));
  const block=(text,fence='```')=>fence+'text\n'+text+'\n'+fence;
- const personal=`**이미 사이트에서 Google 로그인했나요?** 사이트 상단 **AI 연결·장부 관리** 또는 **처음 사용하기**에서 **내 Google 장부에 연결** 요청문을 복사하세요. 10분 일회용 코드로 현재 웹 장부에 바로 연결합니다. 발급받은 AI 연결은 7일이며 사이트에서 취소할 수 있습니다. 아래 공통 요청문은 **로그인 없이 새 임시 연습을 시작할 때만** 사용합니다.
+ const personal=`**로그인 여부에 따라 사용하는 요청문이 다릅니다.**
+
+| 현재 상태 | 사용할 요청문 | 연결되는 장부 | 승인하는 곳 |
+| --- | --- | --- | --- |
+| 비로그인 · 새 체험 | 아래 비로그인 전용 요청문 | 새 임시 회사 · 24시간 | AI가 준 전표별 임시 승인 링크 |
+| Google 로그인 완료 | 사이트의 내 Google 장부 연결 요청문 | 지금 사이트에서 보는 내 회사 | 사이트의 사용자 승인 메뉴 |
+| 이미 임시 장부 연결됨 | 재설치 없이 같은 AI 폴더에서 학습 계속 | 기존 임시 회사 | 기존 전표별 승인 링크 |
+
+**Google 로그인했다면 아래 비로그인 요청문을 사용하지 마세요.** 사이트 상단 **AI 연결·장부 관리** 또는 **처음 사용하기**에서 **내 Google 장부 연결 요청문 복사**를 누르세요. 10분 일회용 코드가 들어 있어 현재 웹 장부에 바로 연결합니다. 발급받은 AI 연결은 7일이며 사이트에서 취소할 수 있습니다.
 
 이미 게스트로 연습했다면 **같은 AI 작업 폴더**에 개인 요청문을 보내세요. 빈 Google 장부가 있어도 기존 전표가 있는 임시 장부를 연결하며 빈 회사는 삭제하지 않습니다. 또는 기존 임시 승인 화면의 **Google로 이 장부 연결·보관하기**를 사용하세요. 양쪽 모두 작업 기록이 있으면 자동으로 합치거나 덮어쓰지 않고 선택이 필요하다고 알려 줍니다.
 
@@ -24,6 +32,8 @@ ${purpose}
 ## 처음 시작하기 — 이 요청문 하나면 됩니다
 
 ${start}
+
+### 비로그인 전용 · 새 임시 장부 시작 요청문
 
 ${block(c.setupPrompt)}
 
@@ -85,6 +95,8 @@ ${purpose}
 
 ${start}
 
+### 비로그인 전용 · 새 임시 장부 시작 요청문
+
 ${block(c.setupPrompt)}
 
 ${caution}
@@ -114,6 +126,8 @@ ${purpose}
 [GitHub 저장소 열기](${c.repositoryUrl})
 
 ${start}
+
+### 비로그인 전용 · 새 임시 장부 시작 요청문
 
 ${block(c.setupPrompt,'~~~')}
 

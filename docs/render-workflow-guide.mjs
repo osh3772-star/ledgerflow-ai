@@ -21,7 +21,7 @@ function inline(value){
  return output+escape(value.slice(cursor));
 }
 const lines=source.split(/\r?\n/),parts=[],toc=[];
-let chapter=false,list=null;
+let chapter=false,list=null,codeIndex=0;
 function closeList(){if(list){parts.push('</'+list+'>');list=null;}}
 const cells=line=>line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(v=>v.trim());
 for(let i=0;i<lines.length;i++){
@@ -31,7 +31,9 @@ for(let i=0;i<lines.length;i++){
  if(line.startsWith('~~~')){
   closeList();const language=line.slice(3).trim(),code=[];
   while(++i<lines.length&&!lines[i].trim().startsWith('~~~'))code.push(lines[i]);
-  parts.push('<div class="code-block"><div class="code-toolbar"><span>'+(language==='text'?'흐름 / 복사용 요청문':'터미널 명령')+'</span><button class="copy" type="button">복사</button></div><pre><code>'+escape(code.join('\n'))+'</code></pre></div>');
+  const first=codeIndex++===0;
+  if(first&&website)parts.push('<p data-start-session role="status">로그인 상태를 확인한 뒤 해당 연결 방법을 안내합니다.</p>');
+  parts.push('<div class="code-block"'+(first?' data-guest-setup'+(website?' hidden':''):'')+'><div class="code-toolbar"><span>'+(first?'비로그인 전용 · 새 임시 장부 시작':language==='text'?'흐름 / 복사용 요청문':'터미널 명령')+'</span><button class="copy" type="button">복사</button></div><pre><code>'+escape(code.join('\n'))+'</code></pre></div>');
   continue;
  }
  const heading=line.match(/^(#{2,3}) (.+)$/);
@@ -62,18 +64,25 @@ for(let i=0;i<lines.length;i++){
 }
 closeList();if(chapter)parts.push('</section>');
 function initialize(website){
- const notify=document.querySelector('[role=status]');
+ const notify=document.querySelector('.sr-status');
  if(website){
   const status=document.querySelector('[data-server-status]');
+  const start=document.querySelector('[data-guest-setup]'),startNotice=document.querySelector('[data-start-session]');
+  const showLink=text=>{startNotice.textContent=text+' ';const link=document.createElement('a');link.href='/#learning-start';link.textContent='내 로그인 상태에 맞는 요청문 받기 →';startNotice.append(link);};
   fetch('/api/remote/config',{credentials:'omit',redirect:'error',signal:AbortSignal.timeout(8000)})
    .then(async response=>{if(!response.ok)throw new Error();return response.json();})
-   .then(config=>{
-    const ready=config.available&&config.googleLogin?.enabled;
-    status.querySelector('strong').textContent=ready?'Google로 내 연습 장부를 열 수 있어요.':config.available?'Google 로그인을 준비 중이에요.':'지금은 예시 자료를 둘러볼 수 있어요.';
-    status.querySelector('p').textContent=ready?'아래 시작 요청문을 코덱스·클로드 코드에 보내세요. 본인 로그인과 연결 허용만 직접 진행하면 됩니다.':config.available?'잠시 후 다시 확인해 주세요. 먼저 아래 요청문과 첫 거래 학습 순서를 살펴볼 수 있어요.':'아래에서 거래가 장부와 보고서로 이어지는 과정을 먼저 읽어보세요. 개인 장부 연결은 준비 중입니다.';
-   }).catch(()=>{status.querySelector('strong').textContent='현재 서버 상태를 확인하지 못했습니다.';status.querySelector('p').textContent='대시보드 상단의 안내를 확인하세요. 이 문서의 절차만으로 서버 연결 성공을 판단하지 않습니다.';});
+   .then(async config=>{
+    if(!config.available){status.querySelector('strong').textContent='지금은 예시 자료를 둘러볼 수 있어요.';status.querySelector('p').textContent='원격 연결이 준비되면 상태에 맞는 요청문을 제공합니다.';showLink('현재는 연결 요청문을 표시하지 않습니다.');return;}
+    const response=await fetch('/api/remote/session',{credentials:'same-origin',redirect:'error',signal:AbortSignal.timeout(8000)});if(!response.ok)throw new Error();const session=await response.json();
+    if(session.signedIn&&session.mode!=='guest'){
+     status.querySelector('strong').textContent='Google 로그인 완료 · 내 장부 연결';status.querySelector('p').textContent='사이트의 내 장부 전용 요청문을 사용하세요. 비로그인 설치문은 표시하지 않습니다.';showLink('내 장부 연결은 일회용 코드가 필요한 개인 요청문으로 진행합니다.');
+    }else if(session.mode==='guest'){
+     status.querySelector('strong').textContent='임시 장부 연결됨 · 재설치 없이 계속 학습';status.querySelector('p').textContent='같은 AI 작업 폴더에서 첫 거래 요청문으로 이어가세요.';showLink('이미 연결된 임시 장부가 있어 새 설치문을 표시하지 않습니다.');
+    }else{start.hidden=false;status.querySelector('strong').textContent='비로그인 · 새 임시 장부로 체험';status.querySelector('p').textContent='아래 비로그인 전용 요청문으로 24시간 체험을 시작합니다. Google 장부를 쓰려면 먼저 사이트에서 로그인하세요.';startNotice.textContent='현재 비로그인 상태입니다. 아래 요청문은 새 임시 장부를 만듭니다.';}
+   }).catch(()=>{status.querySelector('strong').textContent='로그인 상태를 확인하지 못했습니다.';status.querySelector('p').textContent='잘못된 장부에 연결되지 않도록 설치문을 표시하지 않습니다.';showLink('사이트를 새로고침해 현재 로그인 상태를 확인해 주세요.');});
  }
  for(const button of document.querySelectorAll('.copy'))button.addEventListener('click',async()=>{
+  if(button.closest('[hidden]'))return;
   const value=button.closest('.code-block').querySelector('code').textContent;
   try{if(!navigator.clipboard?.writeText)throw new Error('clipboard');await navigator.clipboard.writeText(value);}
   catch{
@@ -105,7 +114,7 @@ const html=[
 '<div class="tags"><span>코딩 지식 없이 시작</span><span>가상 한국회사 · 한빛유통</span><span>연습 거래 1,000건</span><span>AI가 설명하고 내가 확인</span></div></div></header>',
 '<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>처음 연결부터 보고서까지</strong>'+nav+'</nav><main class="main">',
 status,
-'<section class="readme" aria-label="핵심 학습 순서"><h2>이 순서로 한 번 해보세요.</h2><div class="quickflow"><span>시작 요청문 복사</span><b>→</b><span>본인 로그인·연결 허용</span><b>→</b><span>첫 분개 요청</span><b>→</b><span>내가 사이트에서 승인</span><b>→</b><span>AI에게 장부 반영 요청</span><b>→</b><span>보고서 숫자 이해</span></div><p>처음 준비는 아래 요청문 하나로 AI에게 맡기세요. 이후에는 AI 대화창과 이 사이트를 오가며 공부합니다.</p><a href="#section-2">시작 요청문으로 바로 이동 →</a></section>',
+'<section class="readme" aria-label="핵심 학습 순서"><h2>이 순서로 한 번 해보세요.</h2><div class="quickflow"><span>로그인 상태에 맞는 요청문</span><b>→</b><span>AI와 내 장부 연결</span><b>→</b><span>첫 분개 요청</span><b>→</b><span>내가 직접 승인</span><b>→</b><span>AI에게 장부 반영 요청</span><b>→</b><span>보고서 숫자 이해</span></div><p>비로그인 체험과 내 Google 장부 연결 중 현재 상태에 맞는 요청문을 사용하세요. 이후에는 AI 대화창과 승인 화면을 오가며 공부합니다.</p><a href="#section-2">로그인 상태별 시작 방법으로 이동 →</a></section>',
 parts.join('\n'),
 '</main></div><footer class="footer">가상회사 회계 업무 체험 · 자료 검토와 최종 승인은 사람에게 있습니다.<br>이 안내 페이지에서 거래 생성·승인·장부 반영을 실행하지 않습니다.<a class="to-top" href="#top">문서 맨 위로 ↑</a></footer><div class="sr-status" role="status" aria-live="polite"></div>',
 '<script>('+initialize.toString()+')('+JSON.stringify(website)+');</script></body></html>'
