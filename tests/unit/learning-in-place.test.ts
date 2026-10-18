@@ -27,9 +27,11 @@ describe('in-place guest installer preserves current work and private active con
   const result=await install('codex');expect(result).toMatchObject({mcpProtocolVerified:true,nativeClientVerified:false,roles:6});
   expect(result.protocol).toMatchObject({get_system_status:true,get_company_context:true,companyName:'한빛유통'});
   expect(await readFile(join(target,'notes.txt'),'utf8')).toBe('私のノート');expect(await readFile(join(target,'AGENTS.md'),'utf8')).toContain('# My instructions');
-  const settings=await readFile(join(home,'.codex/config.toml'),'utf8'),parsed=toml(settings) as any;
-  expect(parsed.model).toBe('my-model');expect(parsed.mcp_servers.other.url).toBe('https://example.test/mcp');
-  expect(parsed.mcp_servers['ledgerflow-accounting-mcp'].http_headers_helper).toContain('mcp-headers.mjs');expect(settings).not.toContain(token);
+  const homeBefore='model = \"my-model\"\n[mcp_servers.other]\nurl = \"https://example.test/mcp\"\n';
+  expect(await readFile(join(home,'.codex/config.toml'),'utf8')).toBe(homeBefore);
+  const settings=await readFile(join(target,'.codex/config.toml'),'utf8'),parsed=toml(settings) as any;
+  expect(parsed.mcp_servers['ledgerflow-accounting-mcp'].url).toContain('/mcp/g/'+token);
+  expect(parsed.mcp_servers['ledgerflow-accounting-mcp'].http_headers_helper).toBeUndefined();
   const again=await install('codex');expect(again.nativeClientVerified).toBe(false);
   expect((await readFile(join(target,'AGENTS.md'),'utf8')).match(/ledgerflow-learning:start/gu)).toHaveLength(1);
   expect(JSON.stringify(result)).not.toContain(token);expect(await readFile(join(target,'.gitignore'),'utf8')).toContain('/.ledgerflow/');
@@ -41,15 +43,20 @@ describe('in-place guest installer preserves current work and private active con
   expect(await readFile(join(target,'docs/CLIENT_ROLES.md'),'utf8')).toBe('My custom contract');
   expect(await readFile(join(target,'AGENTS.md'),'utf8')).toContain('.ledgerflow/CLIENT_ROLES.md');
  });
- it('registers Claude helper in both scopes while retaining other settings and servers',async()=>{
-  const home=join(root,'claude-home');await mkdir(home,{recursive:true});await writeFile(join(home,'.claude.json'),JSON.stringify({theme:'dark',mcpServers:{other:{url:'https://other.test'}}}));
-  await install('claude');const c=JSON.parse(await readFile(join(home,'.claude.json'),'utf8'));
-  expect(c.theme).toBe('dark');expect(c.mcpServers.other.url).toBe('https://other.test');expect(c.mcpServers['ledgerflow-accounting-mcp'].headersHelper).toContain('mcp-headers.mjs');
-  expect(await readFile(join(root,'claude','.mcp.json'),'utf8')).not.toContain(token);
+ it('keeps Claude global settings unchanged and merges only the workspace config',async()=>{
+  const home=join(root,'claude-home'),target=join(root,'claude');await mkdir(home,{recursive:true});await mkdir(target,{recursive:true});
+  const original=JSON.stringify({theme:'dark',mcpServers:{other:{url:'https://other.test'}}});await writeFile(join(home,'.claude.json'),original);
+  await writeFile(join(target,'.mcp.json'),JSON.stringify({mcpServers:{other:{url:'https://other.test'}}}));
+  await install('claude');expect(await readFile(join(home,'.claude.json'),'utf8')).toBe(original);
+  const c=JSON.parse(await readFile(join(target,'.mcp.json'),'utf8'));
+  expect(c.mcpServers.other.url).toBe('https://other.test');expect(c.mcpServers['ledgerflow-accounting-mcp']).toEqual({type:'http',url:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp/g/'+token});
  });
- it('registers a pinned Antigravity remote connection only in its private global config',async()=>{
-  const r=await install('antigravity');const c=JSON.parse(await readFile(join(root,'antigravity-home/.gemini/config/mcp_config.json'),'utf8'));
-  expect(c.mcpServers['ledgerflow-accounting-mcp']).toMatchObject({serverUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp',headers:{Authorization:'Bearer '+token}});
+ it('registers Antigravity inside its workspace plugin and never creates global configuration',async()=>{
+  const r=await install('antigravity');const c=JSON.parse(await readFile(join(root,'antigravity/.agents/plugins/ledgerflow-learning/mcp_config.json'),'utf8'));
+  expect(c.mcpServers['ledgerflow-accounting-mcp']).toEqual({serverUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp/g/'+token});
+  await expect(readFile(join(root,'antigravity-home/.gemini/config/mcp_config.json'),'utf8')).rejects.toMatchObject({code:'ENOENT'});
+  expect(await readFile(join(root,'antigravity/GEMINI.md'),'utf8')).toContain('현재 docs/MCP_CATALOG.json');
+  expect(await readFile(join(root,'antigravity/docs/MCP_CATALOG.json'),'utf8')).toContain('propose_journal_entry');
   expect(JSON.stringify(r)).not.toContain(token);
  });
  it('limits its TOML mutation to the owned server, including old credential subtables',()=>{

@@ -4,6 +4,27 @@ import type {SourceSnapshot} from '@ledgerflow/accounting-core';
 import {PostgresTransactionReader} from './transaction-reader.js';
 
 export class PostgresAccountingRepository extends PostgresTransactionReader{
+  async learningSale(companyId:string,from:string,to:string){
+    return this.withScope(companyId,'erp:read',async c=>{
+      const row=(await c.query(`SELECT t.id FROM public.business_transactions t
+        WHERE t.company_id=$1 AND t.kind='sale' AND t.recognition_on BETWEEN $2::date AND $3::date
+          AND NOT EXISTS(SELECT 1 FROM public.journal_entries p WHERE p.company_id=t.company_id AND p.transaction_id=t.id AND p.entry_type='source' AND (p.state='Posted' OR p.discarded_at IS NULL))
+        ORDER BY t.recognition_on,t.id LIMIT 1`,[companyId,from,to])).rows[0];
+      if(!row)throw new DomainError('NO_UNPROCESSED_SALE','이 기간에 미전기 매출이 없습니다.');
+      return {transactionId:String(row.id)};
+    });
+  }
+  async recordPreparation(companyId:string,client:string,result:{taskId:string}){
+    return this.withScope(companyId,'erp:read',async c=>{
+      if(!(await c.query("SELECT private.has_company_scope($1,'accounting:write') allowed",[companyId])).rows[0].allowed)throw new DomainError('FORBIDDEN','준비 결과 기록 권한이 없습니다.');
+      await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['learning-result/'+companyId+'/'+client+'/'+result.taskId]);
+      const existing=(await c.query(`SELECT r.id AS "runId",t.id AS "taskId" FROM public.agent_tasks t
+        JOIN public.agent_runs r ON r.company_id=t.company_id AND r.id=t.run_id
+        WHERE t.company_id=$1 AND t.task_key=$2 AND r.client=$3 AND r.created_by=auth.uid() LIMIT 1`,[companyId,result.taskId,client])).rows[0];
+      if(existing)return {...existing,recorded:true};
+      return (await c.query('SELECT public.record_agent_result($1,$2,NULL,$3::jsonb) AS result',[companyId,client,JSON.stringify(result)])).rows[0].result;
+    });
+  }
   async source(companyId:string,transactionId:string):Promise<SourceSnapshot>{
     return this.withScope(companyId,'erp:read',async c=>{
       const row=(await c.query('SELECT t.*,occurred_on::text AS occurred_text,recognition_on::text AS recognition_text FROM public.business_transactions t WHERE company_id=$1 AND id=$2',[companyId,transactionId])).rows[0];

@@ -43,7 +43,7 @@
     "session:key": "tsx scripts/init-session-key.ts",
     "container:smoke": "tsx scripts/container-smoke.ts",
     "docs:workflow": "node docs/render-workflow-guide.mjs",
-    "web:build": "pnpm docs:workflow && pnpm --filter @ledgerflow/web build",
+    "web:build": "pnpm docs:workflow && tsx scripts/build-learning-bundle.ts && pnpm --filter @ledgerflow/web build",
     "web:dev": "pnpm --filter @ledgerflow/web dev",
     "evaluate": "tsx scripts/evaluate-accounting.ts",
     "check": "pnpm typecheck && pnpm test"
@@ -57,6 +57,7 @@
     "@ledgerflow/public-data": "workspace:*",
     "@ledgerflow/test-data": "workspace:*",
     "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/server": "2.3.1",
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
     "embedded-postgres": "17.10.0-beta.17",

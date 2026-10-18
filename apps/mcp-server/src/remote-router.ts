@@ -12,6 +12,7 @@ import {HUMAN_SESSION_TTL_MS} from './human-session-store.js';
 import {RemoteGoogleAuth,googleCookie} from './remote-google-auth.js';
 import {GuestLearning,guestCookie} from './guest-learning.js';
 import {randomBytes} from 'node:crypto';
+import {learningBundleSchema,createBootstrapFiles} from './learning-bootstrap.js';
 
 export const REMOTE_PATHS=['/mcp','/oauth/','/.well-known/','/api/remote/'];
 export async function boundedBody(request:Request,max=16384){
@@ -21,7 +22,7 @@ export async function boundedBody(request:Request,max=16384){
   return Buffer.concat(chunks).toString('utf8');
 }
 const cookie=(value:string,clear=false)=>'lf_remote='+value+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age='+(clear?'0':'604800');
-const json=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
+const json=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, nofollow, noarchive',...headers}});
 export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfiguration;publicData:PublicDataClient;assets:{fetch:(request:Request)=>Promise<Response>};authFetch?:typeof fetch}){
   const auth=new RemoteAuth(options.pool,options.auth,options.authFetch);
   const google=new RemoteGoogleAuth(auth);
@@ -59,6 +60,20 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         return options.assets.fetch(new Request(origin+'/',{headers:{Accept:'text/html'}}));
       }
       if(path==='/api/remote/config'&&request.method==='GET')return json({available:true,mcpUrl:resource,authentication:'guest_capability_or_google_supabase_pkce',tenantMode:'isolated_guest_or_per_user_company',guest:{enabled:true,ttlSeconds:86400,provisionUrl:origin+'/api/remote/guest'},googleLogin:await google.configuration()});
+      if(path==='/api/remote/bootstrap'){
+        if(request.method!=='GET')return json({error:'METHOD_NOT_ALLOWED'},405);
+        if(request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'SAME_ORIGIN_REQUIRED'},403);
+        if(request.headers.get('purpose')==='prefetch'||request.headers.get('sec-purpose')?.includes('prefetch'))return json({error:'PREFETCH_NOT_ALLOWED'},400);
+        const params=z.strictObject({client:z.enum(['codex','claude','antigravity']),requestId:z.uuid()}).parse(Object.fromEntries(url.searchParams));
+        const asset=await options.assets.fetch(new Request(origin+'/learning-bundle.json'));
+        if(!asset.ok)return json({error:'LEARNING_BUNDLE_UNAVAILABLE'},503);
+        const bundle=learningBundleSchema.parse(await asset.json());
+        const created=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});
+        return json({version:1,server:'ledgerflow-accounting-mcp',companyId:created.companyId,expiresAt:created.expiresAt,
+          ...createBootstrapFiles(bundle,params.client,origin+'/mcp/g/'+created.token),
+          verification:{nativeClientVerified:false,nextTools:['get_system_status','get_company_context']},
+          security:'세션 URL은 비밀이다. 응답을 공개하거나 URL을 채팅에 출력하지 말고 현재 폴더의 비공개 MCP 설정에만 기록한다.'});
+      }
       if(path==='/api/remote/guest'&&request.method==='POST'){
         if(!request.headers.get('content-type')?.startsWith('application/json')||request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'INVALID_REQUEST'},403);
         const created=await guest.provision(JSON.parse(await boundedBody(request)));
@@ -90,11 +105,15 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         }catch{headers.set('Location',origin+'/?auth_error=google_failed');}
         return new Response(null,{status:303,headers});
       }
-      if(path==='/mcp'){
+      if(path==='/mcp'||path.startsWith('/mcp/')){
+        const pathToken=path.match(/^\/mcp\/g\/(lf_guest_[A-Za-z0-9_-]{43})$/u)?.[1];
+        if(path!=='/mcp'&&!pathToken)return json({error:'INVALID_ENDPOINT'},400,cors);
         if(url.search)return json({error:'INVALID_ENDPOINT'},400,cors);
         if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
         const authorization=request.headers.get('authorization');
-        let inbound=request,guestToken=authorization?authorization.match(/^Bearer (lf_guest_[A-Za-z0-9_-]{43})$/u)?.[1]:request.headers.get('mcp-session-id')??undefined;
+        const headerToken=authorization?authorization.match(/^Bearer (lf_guest_[A-Za-z0-9_-]{43})$/u)?.[1]:request.headers.get('mcp-session-id')??undefined;
+        if(pathToken&&(authorization&&authorization!=='Bearer '+pathToken||request.headers.has('mcp-session-id')&&request.headers.get('mcp-session-id')!==pathToken))return json({error:'GUEST_CREDENTIAL_MISMATCH'},403,cors);
+        let inbound=request,guestToken=pathToken??headerToken;
         let workspace=guestToken?await guest.byToken(guestToken):undefined;
         if(guestToken&&!workspace)return json({error:'GUEST_SESSION_EXPIRED'},403,cors);
         if(!workspace&&!request.headers.has('authorization')){
@@ -114,9 +133,9 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         }
         dependencies.humanRouter=async()=>json({error:'HUMAN_WEB_ONLY'},403);
         const handler=createMcpHandler(()=>createLedgerFlowServer(dependencies),{legacy:'stateless',maxRequestBodySize:65536,maxSubscriptions:0,keepAliveMs:0,onerror:()=>{}});
-        if(workspace){const headers=new Headers(inbound.headers);headers.delete('mcp-session-id');inbound=new Request(inbound,{headers});}
+        if(workspace){const headers=new Headers(inbound.headers);headers.delete('mcp-session-id');inbound=new Request(new Request(resource,inbound),{headers});}
         try{const response=await handler.fetch(inbound),body=await response.arrayBuffer();
-          return new Response(body,{status:response.status,headers:{...Object.fromEntries(response.headers),...cors,...(guestToken?{'Mcp-Session-Id':guestToken}:{}),'Cache-Control':'no-store'}});
+          return new Response(body,{status:response.status,headers:{...Object.fromEntries(response.headers),...cors,...(guestToken?{'Mcp-Session-Id':guestToken}:{}),'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, nofollow, noarchive'}});
         }finally{await handler.close();}
       }
       const guestBrowser=await guest.browser(request);

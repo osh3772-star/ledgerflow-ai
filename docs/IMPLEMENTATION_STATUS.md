@@ -1,5 +1,19 @@
 # Implementation and verification status
 
+## 2026-10-18 첫 매출 통합 준비와 터미널 없는 설치
+
+기본 첫 매출 학습을 get_system_status → get_company_context → propose_journal_entry의 정상 경로 3회로 묶었다. validateAndRequestApproval:true는 기존 독립 엔진/DB 검증과 승인 요청을 사용하고, firstSale은 아직 게시/진행 중인 초안이 없는 첫 매출을 선택한다. 같은 idempotencyKey로 부분 완료를 재개한다. client를 지정하면 서버의 **기계적 준비 결과**도 한 번만 기록하므로 별도 거래·증빙·validate·request·기계적 record 호출이 필요 없다. 응답에 거래·증빙·검증·승인 상태·사람 전용 approvalUrl을 포함한다. AI의 판단이나 인간의 결정을 자동화했다는 뜻이 아니다.
+
+기본 설치는 공개 GET /api/remote/bootstrap?client=...&requestId=<이번 요청의 새 UUID>에서 임시 회사와 파일 번들을 한 번 받아 현재 폴더의 파일 도구로 병합한다. Node/Git/터미널·홈 파일·외부 MCP 스키마 조회는 기본 단계에서 제거했다. Antigravity는 workspace plugin의 mcp_config.json, Claude/Codex는 프로젝트 설정에 24시간 /mcp/g/<guestToken> 주소를 넣는다. 세션 URL은 비밀이므로 공개/커밋하지 않는다. 이미 추적 중인 파일은 .gitignore만으로 보호되지 않는다고 명시했다. 선택적 Node 스크립트도 글로벌 설정·header helper 사용을 제거하고 홈 파일 보존 테스트로 바꿨다.
+
+현재 폴더의 핵심 input schema 7개와 역할/규칙을 함께 제공한다. 호스트의 ~/.gemini/antigravity/mcp/*.json을 읽는 대신 이 문서를 참조하도록 AGENTS/GEMINI/매출 스킬에 명시했다. 실제 registry에서 전체 41개 카탈로그와 학습 bundle을 build하며 모델·DB·추가 MCP listener를 실행하지 않는다.
+
+검증: 전체 pnpm check 278개/42개 파일을 통과했다. 이후 매입 통합 준비를 매출 역할로 잘못 기록하지 않는 회귀를 추가하고 해당 통합 suite 10개와 타입 검사를 별도 재실행해 통과했다. CWD 설정 병합/홈 파일 보존 unit 6개도 통과했다. 통합 옵션의 재시도·승인 pending·전표/Result 각 1개·미승인 전기 거부·다른 회사 거부와 path 자격증명/혼합 신원 거부를 확인했다. 최초 동시 요청에서도 전표·준비 기록 각 1개인 회귀도 전체 검사에 포함해 통과했다. 기존 fixture·migrations는 수정하지 않았으며 추가 migration은 없다.
+
+2026-10-18 14:41 KST 공개 서버에서 GET 한 번으로 파일 21개·핵심 스키마 7개를 받았고, 인증 헤더 없이 path URL로 연결해 실제 status/context 성공과 발급 회사 일치·도구 41개·통합 옵션 명세를 확인했다. no-store/no-referrer 응답, 웹 3페이지/Worker build, 비밀값 노출 0건도 확인했다. 운영 분개 생성·승인·전기는 실행하지 않았다.
+
+실제 Antigravity/Codex/Claude UI에서 팝업 횟수를 측정한 것은 아니다. CWD 파일 도구·앱의 플러그인 갱신·최초 도구 허용 정책은 호스트가 관리하며 임의로 끄지 않는다. 오류·추가 판단·자료 부족은 3회보다 많은 호출이 필요할 수 있다. [현재 시작 지침](START_HERE.md) · [도구 계약](MCP_TOOLS.md)
+
 ## 2026-10-18 로그인 없는 임시 학습 시작
 
 공유 MCP 하나와 기존 6역할·1,000건 fixture·회계 엔진·공공 API를 유지한 채, 현재 폴더에 역할/규칙을 병합하는 설치와 24시간 guest 회사 자동 발급을 추가했다. Google과 MCP OAuth는 임시 연습 시작에서 제외하고, 보관한 개인 장부의 기존 인증으로 남겨 두었다. 009는 기존 001~008을 수정하지 않고 guest scope·검토 티켓·결정 주체 FK를 추가한다.

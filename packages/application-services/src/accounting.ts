@@ -9,7 +9,43 @@ export class AccountingService{
   constructor(readonly repository:PostgresAccountingRepository,private referenceReview?:AccountingReferenceService){}
   async source(input:unknown){const q=documentInput.parse(input),snapshot=await this.repository.source(q.companyId,q.transactionId);
     return this.referenceReview?{...snapshot,publicReferences:await this.referenceReview.collect(snapshot)}:snapshot;}
-  async propose(input:unknown){const q=proposeInput.parse(input);
+  async propose(input:unknown){
+    const q=proposeInput.parse(input),prior=await this.repository.byKey(q.companyId,q.idempotencyKey);
+    const selected=q.firstSale&&!prior?await this.repository.learningSale(q.companyId,q.firstSale.from,q.firstSale.to):undefined;
+    const transactionId=q.transactionId??prior?.transactionId??selected!.transactionId;
+    const key=q.idempotencyKey;
+    if(q.firstSale){const source=await this.repository.source(q.companyId,transactionId);
+      if(source.transaction.kind!=='sale'||source.transaction.recognitionOn<q.firstSale.from||source.transaction.recognitionOn>q.firstSale.to)
+        throw new DomainError('IDEMPOTENCY_CONFLICT','기존 학습 키의 거래가 요청 기간과 다릅니다.');}
+    let journal:Journal;
+    try{journal=await this.draft({companyId:q.companyId,transactionId,idempotencyKey:key});}
+    catch(error){
+      // A timeout retry can select the next row while the first request saves
+      // the original one. The immutable winner for this key still takes priority.
+      if(!q.firstSale||!(error instanceof DomainError)||error.code!=='IDEMPOTENCY_CONFLICT')throw error;
+      const winner=await this.repository.byKey(q.companyId,key);if(!winner)throw error;
+      const source=await this.repository.source(q.companyId,winner.transactionId);
+      if(source.transaction.kind!=='sale'||source.transaction.recognitionOn<q.firstSale.from||source.transaction.recognitionOn>q.firstSale.to)throw error;
+      journal=await this.draft({companyId:q.companyId,transactionId:winner.transactionId,idempotencyKey:key});
+    }
+    if(!q.validateAndRequestApproval)return journal;
+    if(journal.discardedAt)throw new DomainError('JOURNAL_DISCARDED','폐기한 초안입니다.');
+    const ref={companyId:q.companyId,journalId:journal.id};
+    if(journal.state!=='Posted'){
+      journal=await this.validate(ref) as Journal;
+      journal=await this.requestApproval(ref) as Journal;
+    }
+    const approval=await this.approval(ref),source=await this.repository.source(q.companyId,journal.payload.transactionId);
+    // This records only deterministic preparation, never an invented AI review.
+    const result=agentResultSchema.parse({taskId:'prepare/'+journal.id+'/'+journal.version,role:'sales',status:'completed',
+      transactionIds:[journal.payload.transactionId],toolTraceIds:[],findings:['결정론적 초안·검증·승인 요청 준비. AI 검토·사용자 결정·전기는 수행하지 않음.'],
+      missingEvidence:[],riskFlags:['전문가 검토 미완료'],blockedReasons:[],humanApprovalRequired:true,journalPosted:false});
+    const roleResult=q.client&&source.transaction.kind==='sale'&&journal.state!=='Posted'?await this.repository.recordPreparation(q.companyId,q.client,result):null;
+    return {...journal,preparation:{validation:'passed' as const,approvalStatus:approval?.status??null,
+      transaction:source.transaction,documents:await this.documents({companyId:q.companyId,transactionId:journal.payload.transactionId}),
+      roleResult,humanApprovalRequired:approval?.status==='pending',journalPosted:journal.state==='Posted',execution:'deterministic_service_no_llm' as const}};
+  }
+  private async draft(q:{companyId:string;transactionId:string;idempotencyKey:string}){
     const existing=await this.repository.byKey(q.companyId,q.idempotencyKey);
     if(existing){
       if(existing.transactionId!==q.transactionId)throw new DomainError('IDEMPOTENCY_CONFLICT','동일 키의 거래 참조가 다릅니다.');

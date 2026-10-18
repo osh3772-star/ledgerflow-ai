@@ -21,7 +21,17 @@ export const journalSchema=z.strictObject({id:uuidSchema,companyId:uuidSchema,pa
   discardedAt:z.string().nullable().default(null),discardReason:z.string().nullable().default(null),approvalUrl:z.string().url().optional()});
 export type Journal=z.output<typeof journalSchema>;
 export const companyInput=z.strictObject({companyId:uuidSchema});
-export const proposeInput=companyInput.extend({transactionId:uuidSchema,idempotencyKey:z.string().min(1).max(128)});
+export const proposeInput=companyInput.extend({transactionId:uuidSchema.optional(),idempotencyKey:z.string().min(1).max(128),
+  validateAndRequestApproval:z.boolean().optional(),
+  firstSale:z.strictObject({from:dateSchema,to:dateSchema}).refine(v=>v.from<=v.to).optional(),
+  client:z.enum(['codex','claude_code','antigravity']).optional()})
+ .refine(v=>Boolean(v.transactionId)!==Boolean(v.firstSale),{message:'transactionId 또는 firstSale 중 하나만 지정하세요.'})
+ .refine(v=>!v.firstSale||v.validateAndRequestApproval===true,{message:'firstSale은 통합 준비 옵션과 함께 사용하세요.'});
+export const preparedJournalSchema=journalSchema.extend({preparation:z.strictObject({
+  validation:z.literal('passed'),approvalStatus:z.enum(['pending','approved','rejected']).nullable(),
+  transaction:z.json(),documents:z.json(),roleResult:z.json().nullable(),
+  humanApprovalRequired:z.boolean(),journalPosted:z.boolean(),execution:z.literal('deterministic_service_no_llm'),
+ }).optional()});
 export const journalInput=companyInput.extend({journalId:uuidSchema});
 export const postInput=journalInput.extend({expectedHash:z.string().regex(/^[a-f0-9]{64}$/u)});
 export const discardInput=postInput.extend({reason:z.string().min(1).max(500)});

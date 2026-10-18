@@ -77,7 +77,7 @@ export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(tar
   </section>
   <section className="guide-section"><h2>자주 묻는 질문</h2>
    <details className="guide-details"><summary>다른 사람이 연습하면 내 장부도 바뀌나요?</summary><p>임시 세션마다 회사와 거래가 따로 저장됩니다. Google로 보관한 장부는 계정별로 분리됩니다. 공개 화면의 읽기 전용 예시와도 다릅니다.</p></details>
-   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>현재 폴더에 설정하지만 앱 자체의 연결 새로고침이 필요할 수 있습니다. AI에게 ‘실제 연결과 내 회사를 확인해 줘. 아직 분개하지 마’라고 요청하세요. 설치 스크립트의 MCP 통신 검사와 현재 앱의 호출 성공을 구분해 확인하세요. Google 로그인은 임시 연습에 필요 없습니다. 파일만 준비됐다는 답은 연결 성공이 아닙니다.</p></details>
+   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>현재 폴더에 설정하지만 앱 자체의 연결 새로고침이 필요할 수 있습니다. AI에게 ‘실제 연결과 내 회사를 확인해 줘. 아직 분개하지 마’라고 요청하세요. 현재 폴더의 핵심 도구 명세로 앱의 실제 호출을 확인하세요. Google 로그인은 임시 연습에 필요 없습니다. 파일만 준비됐다는 답은 연결 성공이 아닙니다.</p></details>
    <details className="guide-details"><summary>승인했는데 보고서가 그대로예요.</summary><p>승인 후 장부 반영 요청까지 했는지 확인하세요. AI에게 전표가 실제 반영 완료 상태인지 물어보고 사이트에서 해당 월을 선택한 뒤 새로고침하세요. 이미 반영한 전표를 중복으로 만들지 않습니다.</p></details>
    <details className="guide-details"><summary>추가 유료 AI API를 신청해야 하나요?</summary><p>이 프로젝트를 위해 별도 OpenAI·Gemini API 키를 만들지 않습니다. 사용하는 코덱스·클로드 코드의 계정과 이용 한도는 필요합니다. 사이트와 AI 앱 모두 무제한 사용을 보장하지는 않습니다.</p></details>
   </section>

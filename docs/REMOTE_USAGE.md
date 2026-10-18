@@ -1,5 +1,8 @@
 # 로그인 없이 시작하는 원격 회계 학습
 
+> 현재 기본 설치: 공개 GET /api/remote/bootstrap에서 임시 회사+핵심 스키마+6역할 번들을 받아 CWD 파일 도구로 병합한다. Git/Node 실행·홈 설정·외부 MCP 스키마 읽기는 기본 경로에서 제거했다. Antigravity는 workspace plugin의 mcp_config.json, Claude/Codex는 프로젝트 설정에 단기 guest URL을 등록한다. 첫 매출은 status/context/propose 통합 옵션의 정상 경로 3회다. 아래 이전 header helper/글로벌 설치 설명은 구형 기록이며 [현재 시작 지침](START_HERE.md)이 우선한다.
+
+
 공개 사이트: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/
 
 MCP: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp
@@ -8,12 +11,11 @@ MCP: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp
 
 ## 실제 흐름
 
-1. AI가 docs/START_HERE.md를 읽고 현재 CWD에서 create-learning-workspace.ts --in-place --client <현재앱>을 실행한다.
-2. 서버가 키별로 회사·합성 ERP 1,000건·작성자와 검토자 주체를 원자적으로 만든다. Supabase Auth에 가짜 사용자를 추가하지 않는다.
-3. 키는 ignored .ledgerflow/guest-session.json에 저장한다. Codex·Claude 설정에는 비공개 파일을 읽는 header helper를, Antigravity의 비공개 글로벌 설정에는 해당 Authorization 헤더를 등록한다. 다른 서버와 개인 파일은 유지한다.
-4. 스크립트가 initialize·목록·get_system_status·get_company_context를 실제 호출한다. 현재 앱에서도 두 도구를 호출해 회사가 일치하는지 별도로 검사한다. 실행 중 도구 갱신·신뢰 확인은 앱 정책을 따르며 모든 앱의 무클릭 성공을 보장하지 않는다.
-5. 첫 거래를 요청하면 초안→검증→request_journal_approval에서 approvalUrl을 돌려준다. 사람이 링크를 열어 내용을 확인하고 승인/반려한다. 링크 열기 자체는 승인이나 전기가 아니다.
-6. 사용자가 승인 후 반영을 요청하면 AI가 승인/hash를 확인해 post_journal_entry를 호출하고 실제 Posted와 시산표를 확인한다.
+1. AI가 START_HERE를 URL로 읽고 현재 앱에 맞는 bootstrap GET을 한 번 수행한다. 새 requestId로 캐시 혼선을 피한다.
+2. 반환된 역할/규칙/핵심 스키마와 세션별 MCP 설정을 현재 폴더 안에만 병합한다. 세션 URL과 응답은 공개하지 않는다. 이미 추적 중인 설정은 .gitignore만으로 보호되지 않으므로 비밀 URL을 커밋하지 않는다.
+3. 현재 앱이 get_system_status와 get_company_context를 호출하고 bootstrap의 회사와 비교한다. 실행 중 새 연결 읽기·신뢰/도구 허용은 앱 정책에 따르며 무클릭을 보장하지 않는다.
+4. 첫 매출 요청은 propose_journal_entry(validateAndRequestApproval:true,firstSale,고정 idempotencyKey,client)로 준비한다. 서버가 거래 선택·증빙·공공자료 snapshot·초안·독립 검증·승인 요청·기계적 준비 기록을 수행한다. AI는 반환 자료를 설명하고 링크를 보여준 뒤 멈춘다.
+5. 사람이 전용 링크에서 승인/반려한다. 승인 후 별도 반영 요청을 받아야 post_journal_entry와 시산표를 호출한다. 미승인 전기는 거절된다.
 
 ## 세션과 승인 경계
 

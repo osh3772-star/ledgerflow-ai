@@ -2399,7 +2399,7 @@
     },
     {
       "name": "propose_journal_entry",
-      "description": "결정론적 Draft와 공공 참고자료 snapshot을 저장합니다. 참고자료도 승인 hash에 포함되며 금액 계산·승인은 독립적으로 검증합니다.",
+      "description": "기본은 Draft만 저장합니다. validateAndRequestApproval:true면 독립 검증·승인 요청까지 준비하고 멈춥니다. firstSale:{from,to}로 첫 미전기 매출을 선택할 수 있고 client 지정 시 매출의 기계적 준비 결과도 기록합니다. 응답의 증빙·근거·사람 전용 approvalUrl을 설명하세요. 승인·전기는 실행하지 않습니다.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2417,11 +2417,39 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128
+          },
+          "validateAndRequestApproval": {
+            "type": "boolean"
+          },
+          "firstSale": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          "client": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "claude_code",
+              "antigravity"
+            ]
           }
         },
         "required": [
           "companyId",
-          "transactionId",
           "idempotencyKey"
         ],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -2811,6 +2839,67 @@
               "approvalUrl": {
                 "type": "string",
                 "format": "uri"
+              },
+              "preparation": {
+                "type": "object",
+                "properties": {
+                  "validation": {
+                    "type": "string",
+                    "const": "passed"
+                  },
+                  "approvalStatus": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "approved",
+                          "rejected"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "transaction": {
+                    "$ref": "#/$defs/__schema1"
+                  },
+                  "documents": {
+                    "$ref": "#/$defs/__schema2"
+                  },
+                  "roleResult": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/__schema3"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "humanApprovalRequired": {
+                    "type": "boolean"
+                  },
+                  "journalPosted": {
+                    "type": "boolean"
+                  },
+                  "execution": {
+                    "type": "string",
+                    "const": "deterministic_service_no_llm"
+                  }
+                },
+                "required": [
+                  "validation",
+                  "approvalStatus",
+                  "transaction",
+                  "documents",
+                  "roleResult",
+                  "humanApprovalRequired",
+                  "journalPosted",
+                  "execution"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
@@ -2903,6 +2992,99 @@
                 },
                 "additionalProperties": {
                   "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          },
+          "__schema1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema1"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema1"
+                }
+              }
+            ]
+          },
+          "__schema2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema2"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema2"
+                }
+              }
+            ]
+          },
+          "__schema3": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema3"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema3"
                 }
               }
             ]

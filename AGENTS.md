@@ -20,6 +20,14 @@ The disposable localhost demo has no login; its browser session uses a fixed
 operator distinct from the MCP writer. Persistent personal workspaces require an external verified JWT. Explicitly authorized temporary synthetic guest workspaces use scoped, expiring capability credentials instead; never treat guest review as verified human identity. request_journal_approval returns a journal-bound approvalUrl for humans only. Do not open/exchange that link or decide on behalf of the user. Never report posting unless DB state is Posted.
 All ERP rows are synthetic; public data is reference material only.
 
+For learner installation, use the public bootstrap response and CWD file tools;
+do not access home/global MCP settings or host schema files outside the workspace.
+Use the workspace docs/MCP_CATALOG.json. The normal first-sale path is exactly
+get_system_status, get_company_context, then propose_journal_entry with
+validateAndRequestApproval=true, firstSale, a stable idempotencyKey and client.
+Its returned documents/validation/roleResult replace repeated preparation calls.
+The recorded result is deterministic preparation, not a fabricated AI review.
+
 The local MCP endpoint is a trusted development boundary with a server-bound
 ERP reader. Agent role prompts are not authentication. Do not fetch secrets, use
 SQL/shell/DB access as a substitute for missing accounting tools, self-approve,

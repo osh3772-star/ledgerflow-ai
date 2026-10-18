@@ -1,5 +1,8 @@
 # Native client accounting roles
 
+첫 매출의 정상 학습 경로는 get_system_status → get_company_context → propose_journal_entry 3회다. 마지막 호출의 validateAndRequestApproval:true와 firstSale:{from,to}, 고정 idempotencyKey, 현재 client로 선택·초안·검증·승인 요청·기계적 준비 Result를 묶는다. 반환된 증빙/검증/roleResult가 있으면 같은 작업의 조회·검증·승인요청·record_agent_result를 반복하지 않는다. 기계적 준비를 AI 판단이라고 부르지 않으며 AI는 응답을 읽고 설명과 Task/Result를 대화에 남긴다. 오류·불충분한 증빙·추가 AI 판단은 필요한 별도 호출을 허용한다. 현재 폴더의 MCP 카탈로그를 우선하며 호스트 홈의 스키마를 열지 않는다.
+
+
 임시 학습은 Google 로그인 없이 세션 키별 회사에서 시작한다. request_journal_approval의 approvalUrl은 사람에게만 보여주고 AI는 열거나 결정 API를 호출하지 않는다. 링크는 전표/version/hash에 묶이며 실명 확인이 없는 학습용 승인이다. 24시간 후 접근이 만료되며 Google 보관 이후에는 검증된 사용자 OAuth와 웹 승인을 사용한다. Antigravity도 같은 역할 계약과 MCP 하나를 사용하며 record_agent_result의 client는 antigravity다.
 
 

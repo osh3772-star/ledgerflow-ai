@@ -23,8 +23,8 @@ export default function LearningStart(){
   <PromptBox title="처음 시작하기 · 그대로 복사하세요" prompt={learning.setupPrompt} hint="이 요청문 안에 GitHub 주소도 들어 있어요. 설치 명령어나 API 키를 따로 입력할 필요가 없습니다."/>
   <p>Antigravity · 안티그래비티에서도 같은 요청문을 사용할 수 있어요.</p>
   <ol className="guide-setup-list"><li><strong>AI가 현재 폴더에 준비합니다.</strong> 기존 파일을 보존하며 회계 역할 6개와 현재 앱 연결을 등록하고, 내 임시 회사와 연습 거래 1,000건을 자동 발급받습니다.</li>
-   <li><strong>Google 로그인 없이 연결합니다.</strong> 폴더를 다시 열지 않고 임시 키로 연습합니다. 설치 스크립트의 실제 통신 검사와 현재 앱의 도구 호출 결과를 각각 확인합니다.</li>
-   <li><strong>첫 거래를 요청합니다.</strong> AI가 내 회사를 실제 호출로 확인하면 시작하세요. 분개를 검토할 때 AI가 준 전용 링크에서 직접 승인합니다.</li></ol>
+   <li><strong>Google 로그인 없이 연결합니다.</strong> 폴더를 다시 열지 않고 임시 키로 연습합니다. 터미널과 홈 폴더 접근 없이 URL 읽기·현재 폴더 파일 쓰기로 준비하고, 현재 앱에서 도구를 직접 확인합니다.</li>
+   <li><strong>첫 거래를 요청합니다.</strong> 상태 확인 → 회사 확인 → 통합 분개 준비의 정상 경로 3회 호출로 시작합니다. AI가 준 전용 링크에서 직접 승인합니다.</li></ol>
   <p className="guide-install-note">임시 장부 접근은 24시간입니다. 기록을 보관할 때만 Google을 연결하세요. 공유 학습 서버는 정원이 있어 새 발급이 제한될 수 있습니다. 앱 자체가 새 설정을 즉시 읽지 못하면 연결 새로고침이나 보안 확인이 필요할 수 있어요. AI는 그 결과를 성공과 구분해 알려줍니다.</p>
   <p className="guide-install-note">MCP는 AI와 이 사이트의 회계 도구를 연결하는 통로입니다. 회계 서버·데이터베이스·공공 API 키는 이미 준비돼 있어 직접 설치하거나 발급받지 않습니다. 일반 웹 채팅에 요청문만 보내는 것으로 앱 설정이 바뀌지는 않습니다.</p>
  </section>;

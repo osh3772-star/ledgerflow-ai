@@ -12,3 +12,4 @@ supabase/.branches/
 .wrangler/
 .dev.vars
 .dev.vars.*
+apps/web/public/learning-bundle.json

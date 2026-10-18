@@ -2,6 +2,14 @@
 
 서버 제품: `ledgerflow-accounting-mcp`. SDK v2. HTTP/stdio 공통 registry. 현재 **41개 도구**이며 `tools/list`의 전체 input/output JSON Schema는 [MCP_CATALOG.json](MCP_CATALOG.json)에 저장한다. 이 문서의 입력 요약보다 catalog와 strict Zod 계약을 우선한다.
 
+## 첫 매출 통합 준비
+
+propose_journal_entry의 기존 transactionId/idempotencyKey 호출은 Draft만 만든다. validateAndRequestApproval:true를 추가하면 동일한 독립 엔진/DB 검증과 승인 요청을 순서대로 수행하며 승인·전기는 실행하지 않는다. transactionId 대신 firstSale:{from,to}를 지정하면 게시되거나 진행 중인 초안이 없는 첫 매출을 선택한다. 같은 요청은 같은 idempotencyKey로 재시도해 부분 완료 상태를 이어 쓴다.
+
+정상 첫 학습은 get_system_status → get_company_context → propose_journal_entry의 3회다. client(codex/claude_code/antigravity)를 전달하면 기계적 준비 결과도 별도 도구 호출 없이 기록한다. preparation은 거래·증빙·validation·approvalStatus·roleResult와 execution:deterministic_service_no_llm을 포함한다. 반환 결과를 AI가 검토했다는 증거로 표현하지 않는다. 승인 대기의 guest에는 approvalUrl이 포함된다. 이미 승인/반려/게시한 전표의 상태를 되돌리지 않는다. 오류는 추가 조회가 필요할 수 있고 부분 Draft는 유지되므로 3회 무조건 성공을 주장하지 않는다.
+
+bootstrap API는 MCP 도구가 아니며 단일 MCP 도구 수는 41개 그대로다. 경로 권한 /mcp/g/<guestToken>과 기존 헤더를 지원하며 서로 다른 자격증명을 섞으면 거절한다. 키 없는 표준 /mcp와 보관한 개인 장부 OAuth도 유지한다. [터미널 없는 시작 경로](START_HERE.md)
+
 ## 공통 계약
 
 호출 전에 `get_system_status`와 `get_company_context`를 사용한다. companyId를 받는 도구는 서버에 묶인 회사만 허용한다. 도구별 readOnlyHint를 설정한다. 공개 API 입력에는 회사/전표 쓰기 권한이 없다.

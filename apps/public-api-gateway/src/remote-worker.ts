@@ -15,7 +15,7 @@ export async function handleRemote(request:Request,environment:GatewayEnvironmen
  const path=new URL(request.url).pathname;
  if(!remoteConfigured(environment)){
   if(path==='/api/remote/config')return Response.json({available:false,reason:'REMOTE_DATABASE_SETUP_REQUIRED'},{headers:{'Cache-Control':'no-store'}});
-  if(path==='/mcp'||path.startsWith('/oauth/')||path.startsWith('/.well-known/')||path.startsWith('/api/remote/'))
+  if(path==='/mcp'||path.startsWith('/mcp/')||path.startsWith('/oauth/')||path.startsWith('/.well-known/')||path.startsWith('/api/remote/'))
    return Response.json({error:'REMOTE_DATABASE_SETUP_REQUIRED'},{status:503,headers:{'Cache-Control':'no-store'}});
   return undefined;
  }

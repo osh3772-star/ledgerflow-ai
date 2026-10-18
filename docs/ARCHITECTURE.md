@@ -1,5 +1,8 @@
 # LedgerFlow architecture
 
+> 현재 기본 설치: 공개 GET /api/remote/bootstrap에서 임시 회사+핵심 스키마+6역할 번들을 받아 CWD 파일 도구로 병합한다. Git/Node 실행·홈 설정·외부 MCP 스키마 읽기는 기본 경로에서 제거했다. Antigravity는 workspace plugin의 mcp_config.json, Claude/Codex는 프로젝트 설정에 단기 guest URL을 등록한다. 첫 매출은 status/context/propose 통합 옵션의 정상 경로 3회다. 아래 이전 header helper/글로벌 설치 설명은 구형 기록이며 [현재 시작 지침](START_HERE.md)이 우선한다.
+
+
 > 2026-10-18 최신 시작 방식: 현재 폴더에 비파괴적으로 역할/규칙을 병합하고, 공유 서버에서 24시간 임시 회사와 1,000건을 자동 발급한다. OAuth 없는 MCP 초기화와 비공개 guest 헤더를 지원한다. 009는 회사별 guest scope와 전표별 인간 웹 승인 티켓을 추가하며 기존 001~008은 수정하지 않는다. Google은 보관을 선택할 때만 연결한다. [현재 실행 지침](START_HERE.md) · [세션/승인/용량 경계](REMOTE_USAGE.md). 아래 Google 로그인 설명은 보관한 개인 장부에 해당한다.
 
 

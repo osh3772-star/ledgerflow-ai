@@ -1,46 +1,72 @@
 # AI가 수행할 학습 시작 설정
 
-회계 자동화와 회계 흐름을 공부하는 한 사람의 환경을 현재 열린 폴더에 준비한다. Codex·Claude Code·Antigravity에서 파일 작업이 가능한 AI가 이 지침을 수행한다. 서버는 이미 실행 중이며 추가 서버·DB·모델 API·스케줄러를 설치하지 않는다.
+기본 설치는 **터미널 없이 URL 읽기와 현재 폴더 파일 쓰기만** 사용한다. 회계 자동화와 회계 흐름을 공부하는 한 사람을 위한 학습 공간이다. 현재 CWD를 유지하고 홈 디렉토리·글로벌 앱 설정·호스트 MCP 스키마에 접근하지 않는다.
 
-## 1. 현재 앱과 CWD를 유지한다
+## 1. 현재 앱에 맞는 번들을 한 번 받는다
 
-공개 저장소 https://github.com/osh3772-star/ledgerflow-ai 의 main을 읽는다. checkout이 없으면 별도 캐시 위치에 소스를 내려받되 현재 앱의 열린 폴더는 바꾸지 않는다. 기존 checkout의 수정 사항을 강제 reset하지 않는다. 설치는 현재 폴더(CWD)를 대상으로 하며 소스 스크립트는 절대 경로로 실행한다. 사용하는 앱과 현재 폴더를 환경에서 확인한다. Node 24를 재사용하며 pnpm·DB 설치는 필요 없다.
+현재 앱을 codex, claude, antigravity 중 하나로 정한다. 기본 URL 읽기 도구로 다음 공개 endpoint를 GET한다. requestId는 **이번 요청용 새 UUID**로 바꾸며 예시 문자열을 그대로 쓰거나 다른 사람의 URL/응답을 재사용하지 않는다. requestId는 캐시 혼선을 피하기 위한 값이고 서버가 발급하는 비밀 키는 별도의 암호학적 난수다.
 
 ```text
-node <받아둔-저장소의-절대경로>/scripts/create-learning-workspace.ts --in-place --client codex
+https://ledgerflow-public-reference-gateway.eric5833.workers.dev/api/remote/bootstrap?client=<현재앱>&requestId=<새-UUID>
 ```
 
-현재 앱에 따라 마지막 값은 codex, claude, antigravity 중 하나다. 앱을 추측해 세 앱 설정을 모두 변경하지 않는다. --directory를 생략하면 CWD에 설치한다. 기존 파일이 있다는 이유로 실패하지 않으며, 명시적으로 다른 경로를 선택할 때만 --directory를 사용한다.
+응답에는 임시 회사 ID·만료 시각, 기존 6개 역할, 규칙 문서, 로컬 핵심 도구 명세, 해당 앱의 MCP 설정 파일 내용이 함께 있다. 회사는 세션별로 격리되고 합성 거래 1,000건이 준비된다. Google·API 키·Node·Git 설치는 필요 없다. GET도 학습 공간을 하나 만들므로 필요 없이 다시 열거나 검색엔진·공개 링크에 등록하지 않는다. 이전 설치가 유효하면 현재 폴더의 기존 연결을 재사용한다. 잘리거나 실패한 응답을 성공으로 취급하지 않는다.
 
-## 2. 스크립트가 준비하는 것
+이 응답의 MCP URL은 24시간 비밀 권한이다. **전체 응답이나 세션 URL을 채팅·로그·스크린샷에 출력하지 않는다.** 해당 URL은 /mcp/g/<guestToken> 형식이며 인증 헤더나 홈의 자격증명 파일이 필요 없다. URL 경로도 호스트/클라이언트 로그에 남을 수 있으므로 합성 임시 장부에만 사용하고 공개하지 않는다. 보관한 개인 장부의 기존 OAuth는 유지한다.
 
-- 기존 사용자 파일을 보존하며 .agents/skills의 6개 역할, CLAUDE.md·AGENTS.md·GEMINI.md의 관리 블록, docs/CLIENT_ROLES.md를 생성·병합한다. 수정된 기존 역할 파일은 보존하고 결과에 표시한다. 기존 역할 계약 문서가 다르면 덮어쓰지 않고 .ledgerflow/CLIENT_ROLES.md를 사용한다. 새 문서는 현재 대화에서 직접 읽는다. 앱의 다음 턴 자동 발견과 구분한다.
-- 서버 POST /api/remote/guest에서 임시 회사와 합성 거래 1,000건을 발급받는다. 같은 bootstrap으로 재실행하면 같은 회사로 돌아간다. 키는 ignored .ledgerflow/guest-session.json에만 보관하고 출력·커밋하지 않는다. 서버의 공공 API 키나 .env.local은 읽지 않는다.
-- 현재 앱의 활성 설정에 ledgerflow-accounting-mcp 하나를 등록한다. 다른 MCP 서버·프로젝트·개인 설정은 유지하며 변경 전 내용은 ignored .ledgerflow/install-backups에 보관한다. 잘못된 JSON, 해석하기 어려운 TOML, 심볼릭 링크 경로는 덮어쓰지 않는다.
-- Codex: ~/.codex/config.toml 및 현재 .codex/config.toml의 해당 서버 테이블만 병합한다. http_headers_helper는 로컬 비공개 세션 파일을 읽는 작은 스크립트다. Claude Code: ~/.claude.json 및 .mcp.json에 같은 서버의 headersHelper를 병합한다. Antigravity: ~/.gemini/config/mcp_config.json에 serverUrl과 해당 세션의 Authorization 헤더를 병합한다. 공개 프로젝트 파일에는 원문 키를 넣지 않는다.
-- Antigravity는 .agents/plugins/ledgerflow-learning에 공식 plugin.json, skills/의 6개 기존 스킬, rules/의 회계 통제를 준비한다. 플러그인 안에 MCP 설정을 중복 추가하지 않는다. 공식 workspace 플러그인 경로이며 실행 중 발견·활성화 여부는 실제 앱에서 별도로 확인한다.
-- JSON-RPC initialize → tools/list → get_system_status → get_company_context를 실제 원격 MCP로 호출하고 결과의 회사가 발급된 회사와 같은지 확인한다. 이 검사에서는 분개·승인·전기를 하지 않는다.
+## 2. 현재 폴더에만 파일을 병합한다
 
-공용 주소: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp
+응답의 files/mergePolicies/sensitivePaths를 사용한다. 새 폴더로 이동하거나 git clone·node·run_command를 호출하지 않는다. mkdir/파일 쓰기는 앱의 현재 폴더 파일 도구로 수행한다. 앱이 파일 쓰기나 MCP 갱신 자체를 허용하지 않는 경우 무제한 권한/샌드박스 우회 설정을 바꾸지 않고 그 한계를 알린다.
 
-공개 서버는 Authorization 없는 initialize 요청에도 임시 회사를 자동 발급하고 Mcp-Session-Id로 연결한다. 세션 ID를 유지하지 않는 앱은 반드시 설치 스크립트가 발급한 Authorization 키를 사용한다. guest 헤더가 거절되면 Google 로그인으로 바꿔 잘못된 회사에 연결하지 말고 만료/등록 오류부터 확인한다.
+- AGENTS.md·CLAUDE.md·GEMINI.md는 기존 내용 뒤 관리 블록으로 병합한다. 같은 블록이 있으면 해당 블록만 갱신한다.
+- 기존 사용자 코드·스킬·문서는 보존한다. 같은 경로의 역할/계약 문서가 다른 내용이면 덮어쓰지 말고 .ledgerflow 아래 대체 경로에 넣어 관리 블록의 참조를 바꾼다.
+- docs/MCP_CATALOG.json은 핵심 도구의 **현재 input schema**와 출력 요약이다. 카탈로그 전체 41개 도구의 복제가 아니라 첫 거래와 후속 전기에 필요한 부분집합이다. 다른 기능의 스키마는 앱이 이미 제공하는 MCP 목록을 사용한다. ~/.gemini/antigravity/mcp/*.json을 view_file로 읽지 않는다.
+- 비밀 MCP 설정을 쓰기 **전에** 해당 경로를 현재 .gitignore에 병합한다. 다른 서버의 항목은 유지하고 ledgerflow-accounting-mcp 하나만 병합한다. 이미 Git 추적 중인 설정은 .gitignore만으로 보호되지 않으므로 비밀 URL을 커밋 대상으로 두지 않는다. 안전하게 제외됐는지 확인할 수 없으면 그 파일 쓰기를 보류하고 상태를 보고한다.
 
-## 3. 현재 앱에서 바로 연결을 확인한다
+앱별 프로젝트 설정:
 
-설정 후 현재 앱의 공식 MCP 갱신 기능이 있으면 사용하고 실제 도구 get_system_status → get_company_context를 순서대로 호출한다. CLI가 있으면 codex mcp list 또는 claude mcp list로 등록 상태를 점검할 수 있지만 목록 자체는 호출 성공의 증거가 아니다. 이미 등록된 다른 OAuth 자격증명이 helper보다 우선할 수 있으므로 반환된 companyId가 설치 결과와 같은지도 비교한다. 기존 OAuth 연결을 임의로 로그아웃하거나 다른 계정으로 바꾸지 않는다.
+| 앱 | 현재 폴더의 경로 | 연결 필드 |
+| --- | --- | --- |
+| Antigravity | .agents/plugins/ledgerflow-learning/mcp_config.json | mcpServers.ledgerflow-accounting-mcp.serverUrl |
+| Claude Code | .mcp.json | type:http, url |
+| Codex | .codex/config.toml | mcp_servers.ledgerflow-accounting-mcp.url |
 
-Google 로그인·MCP OAuth 동의·폴더 다시 열기를 학습 시작 필수 단계로 안내하지 않는다. 글로벌 설정 변경과 임시 Authorization 헤더 등록은 이 시작 요청의 허용 범위다. 사용자 키·브라우저 쿠키·Google 비밀번호를 요청하지 않는다.
+Antigravity 플러그인에는 plugin.json·skills·rules와 위 MCP 설정 하나가 들어간다. 같은 서버를 글로벌 설정에 추가하지 않는다. ~/.gemini·~/.claude·~/.codex의 파일을 읽거나 쓰지 않는다. 기존 글로벌 연결이 앱에서 우선 선택되더라도 홈 파일을 뒤져 고치지 말고 실제 회사가 일치하는지 확인하고 필요한 앱 화면만 설명한다.
 
-앱 자체의 프로젝트 신뢰·도구 실행 권한·기업 정책은 우회하거나 임의로 허용 처리하지 않는다. 일부 앱은 실행 중 설정을 다시 읽지 못하므로 **모든 앱의 100% 무클릭·동일 턴 연결 성공은 보장할 수 없다**. 가능한 갱신을 먼저 시도하고 남은 앱 절차만 정확히 안내한다. 일반 웹 채팅은 로컬 설정에 접근하지 못할 수 있다.
+## 3. 현재 앱에서 실제 연결을 확인한다
 
-공식 근거: [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp), [Codex header helper](https://learn.chatgpt.com/docs/config-file/config-reference), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Antigravity MCP](https://antigravity.google/docs/mcp), [Antigravity 플러그인](https://antigravity.google/docs/plugins).
+새로 쓴 AGENTS/역할 계약을 현재 대화에서 직접 읽는다. 현재 폴더의 카탈로그로 get_system_status → get_company_context를 실제 호출하고, 회사 ID가 bootstrap 응답과 같은지 비교한다. 외부 스키마 파일 읽기나 터미널의 별도 SDK smoke 검사를 기본 설치 절차에 추가하지 않는다.
 
-## 4. 회계 작업과 직접 승인은 분리한다
+앱이 제공하는 공식 연결 갱신이 있으면 사용한다. 설정 파일 준비와 실제 앱 호출 성공은 별도다. 모든 앱/버전의 즉시 hot reload·도구 허용 팝업 0회를 보장하지 않으며 권한 확인을 대신 승인하거나 보안 설정을 끄지 않는다. 일반 웹 채팅처럼 현재 폴더 파일을 쓸 수 없는 환경에서도 설치됐다고 주장하지 않는다.
 
-회계 작업 전에 역할 계약과 해당 스킬만 읽는다. request_journal_approval의 approvalUrl은 사람이 직접 열어 해당 전표를 확인하고 승인/반려하는 화면이다. 링크를 열기만 해서는 승인되지 않는다. AI는 링크 교환 API·브라우저 승인·SQL·사용자 쿠키를 이용해 자신이 만든 전표를 승인하지 않는다. 링크는 임시 학습용 권한이며 실명 확인을 대체하지 않는다.
+## 4. 첫 매출은 정상 경로 3회로 준비한다
 
-승인 후 사용자가 장부 반영을 요청하면 도구로 승인/hash를 재확인하고 Posted일 때만 완료를 보고한다. 보관하려는 경우에만 승인 화면에서 Google을 연결한다. 이때 기존 계정 장부가 있으면 자동 병합하지 않는다. 보관 후 AI 앱은 Google 개인 장부 OAuth로 연결을 전환한다.
+처음부터 시작하면 다음 3회의 실제 MCP 도구 호출로 준비한다.
 
-## 5. 완료 보고
+1. get_system_status({})
+2. get_company_context({})
+3. propose_journal_entry의 통합 옵션
 
-짧게 설정 준비, MCP 프로토콜 두 도구 호출, 현재 앱의 두 도구 호출을 각각 성공/미확인으로 보고한다. 회사·도구 수·만료 시각은 실제 반환값으로 확인한다. 설정·SDK/HTTP 검사만 성공했는데 현재 앱 연결까지 성공했다고 쓰지 않는다. 역할 6개 파일 준비와 실제 사용 역할도 구분한다. 마지막에 docs/learning-start.json의 firstRequest를 보여준다. 설치 단계에서 거래·분개·승인·전기는 실행하지 않는다.
+```json
+{
+  "companyId": "<get_company_context가 반환한 회사 UUID>",
+  "idempotencyKey": "first-sale-2026-01",
+  "firstSale": {"from":"2026-01-01","to":"2026-01-31"},
+  "validateAndRequestApproval": true,
+  "client": "antigravity"
+}
+```
+
+client는 현재 앱에 맞게 codex/claude_code/antigravity로 바꾼다. transactionId를 이미 알면 firstSale 대신 지정한다. 새 요청의 첫 매출 선택은 게시/진행 중인 초안이 없는 매출 한 건을 선택한다. **같은 학습의 재시도는 같은 idempotencyKey**를 사용해 기존 초안을 이어 쓴다.
+
+통합 응답의 preparation에는 증빙·거래·독립 검증 결과·승인 상태와 기계적 준비 결과 기록이 있다. 같은 준비 작업에 대해 거래 조회·증빙 조회·validate·request·record_agent_result를 다시 호출하지 않는다. 서버의 기계적 기록을 AI가 검토했다는 증거로 표현하지 않는다. AI는 반환된 자료를 읽고 쉬운 설명과 Task/Result를 대화에 남긴다. 실패/불충분한 증빙/추가 AI 판단은 필요한 추가 호출을 허용하며 3회 성공을 꾸미지 않는다.
+
+approvalUrl은 사람에게만 보여주고 멈춘다. AI는 링크를 열거나 교환·결정 API를 호출하지 않는다. 승인 요청 생성은 인간 승인이나 전기가 아니다. 사람이 웹에서 승인하고 장부 반영을 따로 요청한 뒤에만 상태/hash를 확인해 전기한다. DB가 Posted일 때만 완료를 보고한다.
+
+## 5. 완료 보고와 선택적 CLI
+
+설정 준비/실제 앱 두 도구 호출/역할 파일 준비를 성공 또는 미확인으로 짧게 보고한다. 원문 세션 URL이나 키는 제외한다. 설치 단계에서는 분개·승인·전기를 하지 않고 docs/learning-start.json의 firstRequest를 보여준다.
+
+터미널을 **사용자가 별도로 원하고 허용한 경우에만** 기존 create-learning-workspace.ts --in-place --client <현재앱>을 선택적으로 사용할 수 있다. 이 경로도 CWD 안의 설정만 변경하며 홈·글로벌 설정·header helper를 쓰지 않는다. 기본 설치의 필수 단계가 아니다.
+
+공식 경로 근거: [Antigravity 플러그인](https://antigravity.google/docs/plugins), [Antigravity MCP](https://antigravity.google/docs/mcp), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp).

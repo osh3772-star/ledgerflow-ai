@@ -6,6 +6,7 @@ import {startLocalPostgres} from '../../scripts/local-postgres.js';
 import {createRemoteRouter} from '../../apps/mcp-server/src/remote-router.js';
 import {GuestLearning} from '../../apps/mcp-server/src/guest-learning.js';
 import {verifyLearningMcp} from '../../scripts/learning-in-place.js';
+import {collectLearningBundle} from '../../scripts/build-learning-bundle.js';
 
 describe('isolated guest learning and journal-bound human review',()=>{
  const origin='https://guest.example',key=Buffer.alloc(32,19).toString('base64');
@@ -31,8 +32,9 @@ describe('isolated guest learning and journal-bound human review',()=>{
  }
  beforeAll(async()=>{
   db=await startLocalPostgres();const publicData=new PublicDataService({},'mock');guest=new GuestLearning(db.pool,origin,key,publicData);
+  const bundle=(await collectLearningBundle()).bundle;
   router=createRemoteRouter({pool:db.pool,publicData,auth:{origin,encryptionKey:key,supabaseUrl:'https://auth.example',publishableKey:'test'},
-   authFetch:async()=>Response.json({external:{google:true}}),assets:{fetch:async()=>new Response('test')}});
+   authFetch:async()=>Response.json({external:{google:true}}),assets:{fetch:async request=>new URL(request.url).pathname==='/learning-bundle.json'?Response.json(bundle):new Response('test')}});
   a=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});b=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});
  });
  afterAll(async()=>{for(const c of clients)await c.close();if(db)await db.stop();});
@@ -96,5 +98,57 @@ describe('isolated guest learning and journal-bound human review',()=>{
   expect((await db.pool.query('SELECT company_id FROM private.remote_workspaces WHERE user_id=$1',[user])).rows[0].company_id).toBe(fresh.companyId);
   const second=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});
   await expect(guest.claim(second.id,user)).rejects.toMatchObject({code:'WORKSPACE_CONFLICT'});
+ });
+ it('prepares the first sale with exactly three calls, records once, and never approves or posts',async()=>{
+  const fresh=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')}),c=await connect(fresh.token);
+  const s=await tool(c,'get_system_status'),ctx=await tool(c,'get_company_context');
+  expect(s.ok&&ctx.ok).toBe(true);
+  const input={companyId:ctx.data.companyId,idempotencyKey:'first-sale-january',firstSale:{from:'2026-01-01',to:'2026-01-31'},validateAndRequestApproval:true,client:'antigravity'};
+  const prepared=await tool(c,'propose_journal_entry',input);
+  expect(prepared.ok).toBe(true);expect(prepared.data).toMatchObject({state:'Approval',preparation:{validation:'passed',approvalStatus:'pending',humanApprovalRequired:true,journalPosted:false,roleResult:{recorded:true}}});
+  expect(prepared.data.approvalUrl).toContain('/guest/approval/#ticket=');expect(prepared.data.preparation.documents.length).toBeGreaterThan(0);
+  const repeated=await Promise.all([tool(c,'propose_journal_entry',input),tool(c,'propose_journal_entry',input)]);
+  expect(repeated.every(r=>r.ok&&r.data.id===prepared.data.id&&r.data.hash===prepared.data.hash)).toBe(true);
+  const counts=(await db.pool.query(`SELECT (SELECT count(*)::int FROM public.journal_entries WHERE company_id=$1) journals,
+    (SELECT count(*)::int FROM public.agent_tasks WHERE company_id=$1) tasks,
+    (SELECT count(*)::int FROM public.approval_requests WHERE company_id=$1 AND status='pending') pending,
+    (SELECT count(*)::int FROM public.journal_entries WHERE company_id=$1 AND state='Posted') posted`,[fresh.companyId])).rows[0];
+  expect(counts).toEqual({journals:1,tasks:1,pending:1,posted:0});
+  expect((await tool(c,'post_journal_entry',{companyId:fresh.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash})).error.code).toBe('APPROVAL_REQUIRED');
+  expect((await tool(c,'propose_journal_entry',{...input,companyId:a.companyId})).error.code).toBe('FORBIDDEN');
+  expect((await tool(c,'propose_journal_entry',{...input,idempotencyKey:'missing-sale',firstSale:{from:'2028-01-01',to:'2028-01-31'}})).error.code).toBe('NO_UNPROCESSED_SALE');
+ });
+ it('bootstraps a workspace plugin by one GET, uses a path credential, and rejects mixed identities',async()=>{
+  const response=await call('/api/remote/bootstrap?client=antigravity&requestId='+randomUUID());expect(response.status).toBe(200);
+  expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('referrer-policy')).toBe('no-referrer');
+  const result=await response.json(),path='.agents/plugins/ledgerflow-learning/mcp_config.json';
+  const config=JSON.parse(result.files[path]),url=config.mcpServers['ledgerflow-accounting-mcp'].serverUrl;
+  expect(Object.keys(result.files).every(p=>!p.startsWith('/')&&!p.includes('..')&&!p.includes('~'))).toBe(true);
+  expect(result.files['AGENTS.md']).toContain('외부 스키마 대신');expect(result.files['GEMINI.md']).toContain('view_file로 읽지 않는다');
+  expect(JSON.parse(result.files['docs/MCP_CATALOG.json']).tools.find((t:any)=>t.name==='propose_journal_entry').inputSchema.properties.validateAndRequestApproval).toBeDefined();
+  const c=new Client({name:'workspace-path-client',version:'1'});clients.push(c);
+  await c.connect(new StreamableHTTPClientTransport(new URL(url),{fetch:fetcher}));
+  expect((await tool(c,'get_system_status')).ok).toBe(true);expect((await tool(c,'get_company_context')).data.companyId).toBe(result.companyId);
+  expect((await fetcher(url,{method:'POST',headers:{Authorization:'Bearer '+a.token,'Content-Type':'application/json'},body:'{}'})).status).toBe(403);
+  expect((await call('/mcp/g/lf_guest_'+'z'.repeat(43),{})).status).toBe(403);
+  expect((await call('/mcp/g/bad',{})).status).toBe(400);
+  expect((await call('/api/remote/bootstrap?client=antigravity&requestId='+randomUUID(),undefined,{Purpose:'prefetch'})).status).toBe(400);
+ });
+ it('concurrent first requests share one immutable journal and one mechanical result',async()=>{
+  const fresh=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')}),c=await connect(fresh.token);
+  await tool(c,'get_system_status');await tool(c,'get_company_context');
+  const input={companyId:fresh.companyId,idempotencyKey:'concurrent-first-sale',firstSale:{from:'2026-01-01',to:'2026-01-31'},validateAndRequestApproval:true,client:'codex'};
+  const results=await Promise.all([tool(c,'propose_journal_entry',input),tool(c,'propose_journal_entry',input)]);
+  expect(results.every(r=>r.ok)).toBe(true);expect(results[0].data.id).toBe(results[1].data.id);expect(results[0].data.hash).toBe(results[1].data.hash);
+  const counts=(await db.pool.query('SELECT (SELECT count(*)::int FROM public.journal_entries WHERE company_id=$1) journals,(SELECT count(*)::int FROM public.agent_tasks WHERE company_id=$1) tasks',[fresh.companyId])).rows[0];
+  expect(counts).toEqual({journals:1,tasks:1});
+ });
+ it('does not mislabel a non-sale composite proposal as a sales-role result',async()=>{
+  const fresh=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')}),c=await connect(fresh.token);
+  await tool(c,'get_system_status');await tool(c,'get_company_context');
+  const transaction=(await tool(c,'get_transactions',{companyId:fresh.companyId,from:'2026-01-01',to:'2026-01-31',kind:'purchase'})).data.items[0];
+  const result=await tool(c,'propose_journal_entry',{companyId:fresh.companyId,transactionId:transaction.id,idempotencyKey:'purchase-composite',validateAndRequestApproval:true,client:'codex'});
+  expect(result.ok).toBe(true);expect(result.data.state).toBe('Approval');expect(result.data.preparation.roleResult).toBeNull();
+  expect((await db.pool.query('SELECT count(*)::int n FROM public.agent_tasks WHERE company_id=$1',[fresh.companyId])).rows[0].n).toBe(0);
  });
 });
