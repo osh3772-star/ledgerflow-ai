@@ -1,5 +1,8 @@
 # Native client accounting roles
 
+임시 학습은 Google 로그인 없이 세션 키별 회사에서 시작한다. request_journal_approval의 approvalUrl은 사람에게만 보여주고 AI는 열거나 결정 API를 호출하지 않는다. 링크는 전표/version/hash에 묶이며 실명 확인이 없는 학습용 승인이다. 24시간 후 접근이 만료되며 Google 보관 이후에는 검증된 사용자 OAuth와 웹 승인을 사용한다. Antigravity도 같은 역할 계약과 MCP 하나를 사용하며 record_agent_result의 client는 antigravity다.
+
+
 원격에서는 같은 MCP 서버의 instructions와 역할 프롬프트 6개를 사용한다. 서버·역할 파일 설치 없이 필요한 역할을 앱 대화에서 선택하지만 native agent/skill 자동 설치나 6개 독립 실행을 뜻하지 않는다. 원격 토큰은 계정별 회사의 서비스 작성자에 연결되고 인간 웹 세션에는 사용할 수 없다. 아래 Task/Result·권한·승인 원칙은 동일하다. [원격 연결](REMOTE_USAGE.md)
 
 Claude Code·Codex가 AI 추론과 사용자 요청 업무를 담당한다. 각 앱의 agent 6개와 skill 6개는 같은 MCP 서버를 사용한다. 필요한 역할만 선택하고 사용자가 위임/병렬 작업을 요청할 때만 native subagent를 생성한다. 역할 이름이나 prompt는 DB 권한 인증이 아니다.

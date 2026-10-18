@@ -26,6 +26,7 @@ async function main(){
    const upgrades=[
     {file:'202610170007_remote_workspaces.sql',receipt:'remote_schema_receipt',table:'remote_workspaces',lock:7},
     {file:'202610170008_google_login.sql',receipt:'remote_google_schema_receipt',table:'remote_login_flows',lock:8},
+    {file:'202610180009_guest_learning.sql',receipt:'remote_guest_schema_receipt',table:'guest_workspaces',lock:9},
    ] as const;
    for(const upgrade of upgrades){
     const sql=await readFile('supabase/migrations/'+upgrade.file,'utf8'),hash=createHash('sha256').update(sql).digest('hex');
@@ -74,7 +75,7 @@ async function main(){
  deploy.stdout.resume();deploy.stderr.resume();
  if(await new Promise<number>((done,reject)=>{deploy.once('error',reject);deploy.once('close',code=>done(code??1));})!==0)throw new Error('REMOTE_WORKER_DEPLOY_FAILED');
  console.log(JSON.stringify({remoteDeployed:true,url:base.vars.REMOTE_ORIGIN,mcpUrl:base.vars.REMOTE_ORIGIN+'/mcp',hyperdrive:{cachingDisabled:true,tlsMode:'verify-full'},secretsPrinted:false,
-  remainingChecks:['Supabase Google provider and callback allowlist','Two real Google user logins','Native Codex/Claude OAuth and tools']}));
+  remainingChecks:['Native Codex/Claude/Antigravity tool calls','Human guest review acceptance','Optional Google guest workspace claiming']}));
 }
 try{await main();}catch(error){
  const safe=['DATABASE_AUTHENTICATION_FAILED','DATABASE_CA_FILE_REQUIRED','DATABASE_CA_INVALID','REMOTE_KEY_INVALID','REMOTE_SECRET_UPLOAD_FAILED','REMOTE_WORKER_DEPLOY_FAILED',

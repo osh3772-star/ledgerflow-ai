@@ -73,7 +73,7 @@ export default {async fetch(request:Request,environment:GatewayEnvironment){
     return Response.json({service:'ledgerflow-accounting-mcp',remoteConfigured:true,ledgerAccess:'authenticated_per_user',databaseProbePerformed:false},{headers:{'Cache-Control':'no-store'}});
   if(path.startsWith('/api/')||path.startsWith('/oauth/')||path.startsWith('/.well-known/')||path==='/mcp'){
     if(environment.REMOTE_ENABLED==='true'&&path!=='/api/remote/config'){
-      const authRoute=path.startsWith('/oauth/')||path.startsWith('/api/remote/google/')||['/api/remote/login','/api/remote/signup'].includes(path);
+      const authRoute=path.startsWith('/oauth/')||path.startsWith('/api/remote/google/')||['/api/remote/login','/api/remote/signup','/api/remote/guest','/api/remote/guest-review/open'].includes(path)||path==='/mcp'&&!request.headers.has('authorization')&&!request.headers.has('mcp-session-id');
       const limiter=authRoute?environment.AUTH_RATE_LIMITER:environment.REMOTE_RATE_LIMITER;
       if(!limiter)return Response.json({error:'REMOTE_RATE_LIMITER_REQUIRED'},{status:503});
       if(!(await limiter.limit({key:createHash('sha256').update(request.headers.get('cf-connecting-ip')??'unknown').digest('hex')})).success)

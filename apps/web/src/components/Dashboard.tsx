@@ -40,7 +40,7 @@ export default function Dashboard(){
   const [referenceLoading,setReferenceLoading]=useState(false);
   const [referenceTransactionId,setReferenceTransactionId]=useState('');
   const [publicPreview,setPublicPreview]=useState(false),[snapshotAt,setSnapshotAt]=useState(''),[previewReference,setPreviewReference]=useState<unknown>();
-  const [hosted,setHosted]=useState(false);
+  const [hosted,setHosted]=useState(false),[guestWorkspace,setGuestWorkspace]=useState(false);
   const referenceRequest=useRef(0);
   const current=company?.periods[period],query=current?'from='+current.from+'&to='+current.to:'from=2026-01-01&to=2026-01-31';
   async function refresh(){
@@ -49,6 +49,7 @@ export default function Dashboard(){
       const context=await api('/api/context');setCompany(context.company);setStorageConfigured(context.evidenceStorageConfigured);setPublicConfiguration(context.publicApi);
       setPublicPreview(context.publicPreview===true);setSnapshotAt(String(context.snapshotAt??''));setPreviewReference(context.publicReferenceExample?.report);
       setHosted(context.publicPreview===true||context.remoteWorkspace===true);
+      setGuestWorkspace(context.guestWorkspace===true);
       if(context.humanApprovalMode!=='unavailable'){
         try{const session=await api('/api/human/session');setCsrf(session.csrf);}catch{setCsrf(undefined);}
       }else setCsrf(undefined);
@@ -125,7 +126,8 @@ export default function Dashboard(){
           <p className="hash mono">{String(doc.sha256)}</p><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(doc.content,null,2)}</pre></details>)}</div>
         <p className="hash mono">승인 대상 <BilingualText english="hash" korean="내용 검증값"/>: {selected.hash}</p><p>사용자 승인 상태: <strong><CodeLabel value={selected.discardedAt?'Discarded':approval?.status??'요청 전'}/></strong></p>
         {csrf&&storageConfigured&&<button className="secondary" disabled={archived} onClick={()=>void archiveEvidence()}>{archived?'증빙 보관 완료':'증빙 원문 보관'}</button>}
-        {tab==='approval'&&!selected.discardedAt&&selected.state==='Approval'&&approval?.status==='pending'&&<>
+        {guestWorkspace&&tab==='approval'&&<p className="notice">임시 장부의 승인은 AI가 준 해당 전표의 전용 승인 링크에서 진행하세요. 링크가 만료됐다면 AI에게 새 링크를 요청하세요.</p>}
+        {!guestWorkspace&&tab==='approval'&&!selected.discardedAt&&selected.state==='Approval'&&approval?.status==='pending'&&<>
           <div className="decision"><p>전표와 증빙을 검토한 뒤 승인하거나 반려하세요. 승인 후 앱에서 전기를 요청합니다.</p>
             <button className="secondary danger" disabled={!csrf} onClick={()=>void decide('rejected')}>반려</button>
             <button className="primary" disabled={!csrf} onClick={()=>void decide('approved')}>이 전표 승인</button>

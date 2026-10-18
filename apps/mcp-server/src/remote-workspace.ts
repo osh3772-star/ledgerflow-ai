@@ -6,7 +6,7 @@ import {uuidSchema,DomainError} from '@ledgerflow/contracts';
 export type Workspace={userId:string;companyId:string;writerId:string};
 // Bulk fixture import: avoid thousands of sequential DB round trips at the edge.
 // Only this internal allowlisted schema is accepted; it is not a web/SQL tool.
-async function insertRemoteFoundation(client:PoolClient,data:FullErpSeed){
+export async function insertRemoteFoundation(client:PoolClient,data:FullErpSeed){
   const company=data.companies[0]!;
   await client.query('INSERT INTO public.companies(id,name,data_origin,policy_version) VALUES($1,$2,$3,$4)',[company.id,company.name,company.origin,company.policyVersion]);
   await client.query('INSERT INTO public.fiscal_periods(id,company_id,fiscal_year,start_date,end_date) SELECT id,"companyId",2026,start,"end" FROM jsonb_to_recordset($1::jsonb) AS r(id uuid,"companyId" uuid,start date,"end" date)',[JSON.stringify(data.periods)]);

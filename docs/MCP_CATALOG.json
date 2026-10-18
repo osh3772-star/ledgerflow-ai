@@ -2807,6 +2807,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -3316,6 +3320,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -3963,6 +3971,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -4070,7 +4082,7 @@
     },
     {
       "name": "request_journal_approval",
-      "description": "검증된 전표에 인간 승인 요청을 만듭니다. AI가 승인 결정할 수 없습니다.",
+      "description": "검증된 전표에 인간 승인 요청을 만듭니다. 게스트는 사람 전용 approvalUrl을 반환합니다. AI가 링크를 열거나 승인 결정할 수 없습니다.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4472,6 +4484,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -5110,6 +5126,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -6138,6 +6158,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -7038,6 +7062,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "approvalUrl": {
+                "type": "string",
+                "format": "uri"
               }
             },
             "required": [
@@ -7416,7 +7444,8 @@
             "type": "string",
             "enum": [
               "codex",
-              "claude_code"
+              "claude_code",
+              "antigravity"
             ]
           },
           "runId": {

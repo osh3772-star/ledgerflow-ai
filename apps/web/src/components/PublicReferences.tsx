@@ -8,7 +8,7 @@ export function PublicApiStatus({configuration}:{configuration:unknown}){
     <span>외부 공시·법령·금리를 가상회사의 거래 금액으로 합산하지 않습니다.</span></section>;
 }
 export function PublicSiteNotice({snapshotAt}:{snapshotAt:string}){
-  return <section className="notice data-origin-note" aria-label="공개 미리보기 안내"><strong>둘러보는 예시 · 내 연습 장부와는 달라요</strong><p>학습용으로 만든 가상 거래 1,000건과 공공자료 예시입니다. Google로 로그인하면 내 전용 연습 장부가 준비됩니다. ‘처음 사용하기’의 요청문을 AI 앱에 보내고 거래 한 건부터 공부해 보세요.</p><p>아직 장부에 반영한 전표가 없어서 보고서는 ‘장부 반영 전’으로 표시됩니다. 예시 자료 준비 시각: {snapshotAt||'확인 중'}</p><a href="/workflow/">처음 연결부터 보고서까지 학습 순서 →</a></section>;
+  return <section className="notice data-origin-note" aria-label="공개 미리보기 안내"><strong>둘러보는 예시 · 내 연습 장부와는 달라요</strong><p>학습용으로 만든 가상 거래 1,000건과 공공자료 예시입니다. 시작 요청문을 보내면 로그인 없이 내 전용 임시 장부가 준비됩니다. ‘처음 사용하기’의 요청문을 AI 앱에 보내고 거래 한 건부터 공부해 보세요.</p><p>아직 장부에 반영한 전표가 없어서 보고서는 ‘장부 반영 전’으로 표시됩니다. 예시 자료 준비 시각: {snapshotAt||'확인 중'}</p><a href="/workflow/">처음 연결부터 보고서까지 학습 순서 →</a></section>;
 }
 export function PublicReferences({report}:{report:unknown}){
   const value=object(report),items=Array.isArray(value.items)?value.items.map(object):[];

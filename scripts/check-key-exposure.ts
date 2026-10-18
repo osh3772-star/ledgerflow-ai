@@ -13,6 +13,8 @@ try {
   if(process.argv.includes('--web-build'))visit('apps/web/dist');
   const serverSecrets=['LEDGERFLOW_MCP_TOKEN','LEDGERFLOW_SESSION_ENCRYPTION_KEY','LEDGERFLOW_REMOTE_ENCRYPTION_KEY','LEDGERFLOW_DATABASE_URL','SUPABASE_PUBLISHABLE_KEY','LEDGERFLOW_PUBLIC_GATEWAY_TOKEN']
     .map(name=>environment[name]?.trim()).filter((value):value is string=>Boolean(value));
+  try{const guest=JSON.parse(readFileSync('.ledgerflow/guest-session.json','utf8'));for(const value of [guest.token,guest.bootstrapKey])if(typeof value==='string'&&value.length>=32)serverSecrets.push(value);}
+  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   const variants = [...Object.values(keys),...serverSecrets].flatMap((key) => {
     try { return [key, encodeURIComponent(key), decodeURIComponent(key)]; } catch { return [key]; }
   });

@@ -18,7 +18,7 @@ export type JournalPayload=z.output<typeof journalPayloadSchema>;
 export const journalSchema=z.strictObject({id:uuidSchema,companyId:uuidSchema,payload:journalPayloadSchema,
   hash:z.string().regex(/^[a-f0-9]{64}$/u),version:z.number().int().positive(),
   state:z.enum(['Draft','Validated','Approval','Posted']),idempotencyKey:z.string(),postedAt:z.string().nullable(),
-  discardedAt:z.string().nullable().default(null),discardReason:z.string().nullable().default(null)});
+  discardedAt:z.string().nullable().default(null),discardReason:z.string().nullable().default(null),approvalUrl:z.string().url().optional()});
 export type Journal=z.output<typeof journalSchema>;
 export const companyInput=z.strictObject({companyId:uuidSchema});
 export const proposeInput=companyInput.extend({transactionId:uuidSchema,idempotencyKey:z.string().min(1).max(128)});

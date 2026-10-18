@@ -17,7 +17,7 @@ Use get_system_status for the current ERP, accounting and public reference tool
 catalog. Draft, validation, approval requests, posting and trial balance now have
 implementations. Human decisions occur through a separate web route, never an MCP approval tool.
 The disposable localhost demo has no login; its browser session uses a fixed
-operator distinct from the MCP writer. Persistent DBs require an external verified JWT. Never report posting unless DB state is Posted.
+operator distinct from the MCP writer. Persistent personal workspaces require an external verified JWT. Explicitly authorized temporary synthetic guest workspaces use scoped, expiring capability credentials instead; never treat guest review as verified human identity. request_journal_approval returns a journal-bound approvalUrl for humans only. Do not open/exchange that link or decide on behalf of the user. Never report posting unless DB state is Posted.
 All ERP rows are synthetic; public data is reference material only.
 
 The local MCP endpoint is a trusted development boundary with a server-bound

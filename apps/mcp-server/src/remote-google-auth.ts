@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {DomainError} from '@ledgerflow/contracts';
 import {RemoteAuth,digest} from './remote-auth.js';
 
-const flowSchema=z.strictObject({verifier:z.string().regex(/^[A-Za-z0-9_-]{43}$/u),returnTo:z.string().max(10000)});
+const flowSchema=z.strictObject({verifier:z.string().regex(/^[A-Za-z0-9_-]{43}$/u),returnTo:z.string().max(10000),claimGuestId:z.uuid().optional()});
 export const GOOGLE_FLOW_COOKIE='__Host-lf_google';
 export const googleCookie=(value:string,clear=false)=>GOOGLE_FLOW_COOKIE+'='+value+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age='+(clear?'0':'600');
 export function googleReturnTo(value:string,origin:string){
@@ -31,7 +31,7 @@ export class RemoteGoogleAuth {
     decipher.setAAD(Buffer.from(this.auth.config.origin+'/google-pkce-v1/'+binding));decipher.setAuthTag(bytes.subarray(-16));
     return flowSchema.parse(JSON.parse(Buffer.concat([decipher.update(bytes.subarray(12,-16)),decipher.final()]).toString('utf8')));
   }
-  async begin(input:unknown){
+  async begin(input:unknown,claimGuestId?:string){
     const q=z.strictObject({returnTo:z.string().max(10000).default('/')}).parse(input);
     const returnTo=googleReturnTo(q.returnTo,this.auth.config.origin);
     if(returnTo!=='/')await this.auth.authorization(new URL(returnTo,this.auth.config.origin));
@@ -41,7 +41,7 @@ export class RemoteGoogleAuth {
     const token=randomBytes(32).toString('hex'),verifier=randomBytes(32).toString('base64url'),binding=digest(token);
     await this.auth.pool.query('DELETE FROM private.remote_login_flows WHERE expires_at<=now()');
     await this.auth.pool.query('INSERT INTO private.remote_login_flows(token_hash,encrypted_flow,expires_at) VALUES($1,$2,now()+interval \'10 minutes\')',
-      [binding,this.seal({verifier,returnTo},binding)]);
+      [binding,this.seal({verifier,returnTo,...(claimGuestId?{claimGuestId}: {})},binding)]);
     const redirect=new URL(this.auth.config.supabaseUrl+'/auth/v1/authorize');
     redirect.search=new URLSearchParams({provider:'google',redirect_to:this.auth.config.origin+'/api/remote/google/callback',
       code_challenge:createHash('sha256').update(verifier).digest('base64url'),code_challenge_method:'s256',scopes:'openid email profile'}).toString();
@@ -58,6 +58,6 @@ export class RemoteGoogleAuth {
     const code=z.string().min(1).max(4096).parse(url.searchParams.get('code'));
     const tokens=await this.auth.provider('token?grant_type=pkce',{auth_code:code,code_verifier:flow.verifier});
     const session=await this.auth.createBrowserSession(tokens,true);
-    return {...session,returnTo:googleReturnTo(flow.returnTo,this.auth.config.origin)};
+    return {...session,returnTo:googleReturnTo(flow.returnTo,this.auth.config.origin),...(flow.claimGuestId?{claimGuestId:flow.claimGuestId}:{})};
   }
 }

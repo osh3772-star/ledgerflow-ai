@@ -16,6 +16,12 @@
 
 Authentication: localhost 고정 서버 신원, 선택 bearer. Permission: ERP 조회 erp:read, ERP 생성 erp:write + preparer/admin, 회계 쓰기 accounting:write, 마감 accounting:close. 인간 approve 권한은 web 전용이다. AI role prompt는 scope를 대체하지 않는다.
 
+원격 임시 학습은 OAuth 없이 `POST /api/remote/guest`의 세션 키 또는 최초 MCP initialize의 `Mcp-Session-Id`로 회사가 고정된다. 키는 24시간 후 만료된다. 영구 개인 장부의 기존 Google/OAuth도 유지한다. 발급 API는 MCP 도구가 아니므로 도구 수는 41개 그대로다.
+
+임시 모드의 `request_journal_approval` 성공 `data`에는 선택 필드 `approvalUrl`이 추가된다. URL은 `https://<site>/guest/approval/#ticket=<일회용 검토 티켓>`이며 회사·전표·version·hash에 묶인다. payload/hash에는 URL을 넣지 않는다. 사용자가 링크를 직접 열고 명시적으로 승인/반려한다. AI는 링크를 교환하거나 결정 API를 호출하지 않는다. 15분이 지나거나 사용한 링크는 같은 도구로 재발급받는다. 이 학습용 capability는 Google로 확인한 인간 신원과 동등하지 않다. [전체 보안 경계](REMOTE_USAGE.md)
+
+`record_agent_result.client`는 `codex | claude_code | antigravity`다. 역할 6개·기존 Task/Result·허용 scope는 동일하다.
+
 Audit: `{at,server,actor,profile,traceId,tool,companyId,outcome,durationMs,errorCode?}`. 인자·인증키·민감 원문을 기록하지 않는다. 파일/DB audit 실패는 `AUDIT_UNAVAILABLE`로 응답하며 이미 원자적으로 완료된 command는 멱등성 키/DB 상태로 재확인한다.
 
 공통 오류: `INVALID_INPUT/FORBIDDEN/NOT_FOUND`. 회계 오류: `UNBALANCED/ACCOUNT_INVALID/EVIDENCE_MISMATCH/HASH_MISMATCH/LINE_PAYLOAD_MISMATCH/PERIOD_CLOSED/DUPLICATE_POSTING/APPROVAL_REQUIRED/JOURNAL_DISCARDED/IDEMPOTENCY_CONFLICT/CLOSE_INCOMPLETE`. 외부: `PROVIDER_REJECTED/PROVIDER_UNAVAILABLE/RATE_LIMITED/API_BUDGET_EXHAUSTED/SCHEMA_MISMATCH/NO_DATA`. 원문 에러/키 URL은 반환하지 않는다.

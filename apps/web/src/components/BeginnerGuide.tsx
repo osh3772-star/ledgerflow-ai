@@ -45,7 +45,7 @@ export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(tar
   <section className="guide-section" aria-labelledby="guide-steps-title"><span className="guide-kicker">첫 학습 · 매출 한 건</span><h2 id="guide-steps-title">AI 대화창과 이 사이트를 오가며 공부합니다.</h2>
    <ol className="guide-steps">
     <li><span className="guide-step-number">1</span><div><h3>AI에게 한 건을 설명해 달라고 요청</h3><p>아래 ‘첫 거래 연습’ 요청문을 코덱스·클로드 코드 대화창에 보내세요. AI가 자료를 읽고 분개 초안과 검사 결과를 설명합니다.</p></div></li>
-    <li><span className="guide-step-number">2</span><div><h3>사이트에서 내용 확인 후 직접 승인</h3><p>이 사이트로 돌아와 새로고침 → 사용자 승인 → 전표 보기를 누르세요. 거래일·계정·금액·증빙을 확인합니다. 이해가 안 되면 AI에게 먼저 물어보세요.</p><button className="guide-link-button" onClick={()=>onNavigate('approval')}>사용자 승인 열기 →</button></div></li>
+    <li><span className="guide-step-number">2</span><div><h3>사이트에서 내용 확인 후 직접 승인</h3><p>AI가 준 승인 링크를 직접 여세요. 임시 연습은 Google 로그인 없이 전표 확인 화면이 열립니다. 거래일·계정·금액·증빙을 확인합니다. 이해가 안 되면 AI에게 먼저 물어보세요.</p><button className="guide-link-button" onClick={()=>onNavigate('approval')}>사용자 승인 열기 →</button></div></li>
     <li><span className="guide-step-number">3</span><div><h3>AI에게 장부에 반영해 달라고 요청</h3><p>직접 승인한 뒤 ‘승인 후 장부 반영’ 요청문을 보내세요. AI가 승인 여부를 다시 확인하고 반영합니다. 앱에서 도구 실행을 허용하는 것과 전표 승인은 다릅니다.</p></div></li>
     <li><span className="guide-step-number">4</span><div><h3>보고서에서 달라진 숫자 확인</h3><p>사이트를 새로고침하고 2026년 1월을 선택하세요. AI에게 그 숫자가 어떤 거래에서 왔는지 설명해 달라고 요청할 수 있습니다.</p><button className="guide-link-button" onClick={()=>onNavigate('reports')}>재무 보고서 열기 →</button></div></li>
    </ol>
@@ -76,8 +76,8 @@ export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(tar
    <p>자료의 출처·조회 시각과 ‘실제 조회 / 샘플 / 확인 필요 / 조회 제외’ 표시를 함께 읽어보세요.</p>
   </section>
   <section className="guide-section"><h2>자주 묻는 질문</h2>
-   <details className="guide-details"><summary>다른 사람이 연습하면 내 장부도 바뀌나요?</summary><p>Google 계정마다 개인 장부가 따로 저장됩니다. 로그인 전에는 모두 같은 읽기 전용 예시를 봅니다. 개인 장부에서 한 분개·승인은 다른 계정의 장부나 공통 예시를 바꾸지 않습니다.</p></details>
-   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>앱이 새 연결을 읽도록 학습 폴더를 열거나 연결을 다시 시작해야 할 수 있습니다. AI에게 ‘실제 연결과 내 회사를 확인해 줘. 아직 분개하지 마’라고 요청하세요. Google 로그인과 연결 허용이 남아 있으면 먼저 마칩니다. 파일만 준비됐다는 답은 연결 성공이 아닙니다.</p></details>
+   <details className="guide-details"><summary>다른 사람이 연습하면 내 장부도 바뀌나요?</summary><p>임시 세션마다 회사와 거래가 따로 저장됩니다. Google로 보관한 장부는 계정별로 분리됩니다. 공개 화면의 읽기 전용 예시와도 다릅니다.</p></details>
+   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>현재 폴더에 설정하지만 앱 자체의 연결 새로고침이 필요할 수 있습니다. AI에게 ‘실제 연결과 내 회사를 확인해 줘. 아직 분개하지 마’라고 요청하세요. 설치 스크립트의 MCP 통신 검사와 현재 앱의 호출 성공을 구분해 확인하세요. Google 로그인은 임시 연습에 필요 없습니다. 파일만 준비됐다는 답은 연결 성공이 아닙니다.</p></details>
    <details className="guide-details"><summary>승인했는데 보고서가 그대로예요.</summary><p>승인 후 장부 반영 요청까지 했는지 확인하세요. AI에게 전표가 실제 반영 완료 상태인지 물어보고 사이트에서 해당 월을 선택한 뒤 새로고침하세요. 이미 반영한 전표를 중복으로 만들지 않습니다.</p></details>
    <details className="guide-details"><summary>추가 유료 AI API를 신청해야 하나요?</summary><p>이 프로젝트를 위해 별도 OpenAI·Gemini API 키를 만들지 않습니다. 사용하는 코덱스·클로드 코드의 계정과 이용 한도는 필요합니다. 사이트와 AI 앱 모두 무제한 사용을 보장하지는 않습니다.</p></details>
   </section>

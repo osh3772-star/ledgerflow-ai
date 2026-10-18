@@ -117,7 +117,7 @@ export class AccountingService{
     return {monthly:monthlyDepreciation(q.cost,q.residual,q.months),currency:'KRW',method:'straight_line_monthly_rounded',requiresHumanReview:true};}
   async audit(input:unknown){const q=rangeInput.parse(input);return this.repository.audit(q.companyId,q.from,q.to);}
   async recordAgentResult(input:unknown){
-    const q=companyInput.extend({client:z.enum(['codex','claude_code']),runId:uuidSchema.optional(),result:agentResultSchema}).parse(input);
+    const q=companyInput.extend({client:z.enum(['codex','claude_code','antigravity']),runId:uuidSchema.optional(),result:agentResultSchema}).parse(input);
     return this.repository.recordResult(q.companyId,q.client,q.runId,q.result);
   }
 }

@@ -10,6 +10,8 @@ import {remoteServices} from './remote-services.js';
 import {createHumanRouter} from './human-routes.js';
 import {HUMAN_SESSION_TTL_MS} from './human-session-store.js';
 import {RemoteGoogleAuth,googleCookie} from './remote-google-auth.js';
+import {GuestLearning,guestCookie} from './guest-learning.js';
+import {randomBytes} from 'node:crypto';
 
 export const REMOTE_PATHS=['/mcp','/oauth/','/.well-known/','/api/remote/'];
 export async function boundedBody(request:Request,max=16384){
@@ -23,6 +25,7 @@ const json=(data:unknown,status=200,headers:Record<string,string>={})=>Response.
 export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfiguration;publicData:PublicDataClient;assets:{fetch:(request:Request)=>Promise<Response>};authFetch?:typeof fetch}){
   const auth=new RemoteAuth(options.pool,options.auth,options.authFetch);
   const google=new RemoteGoogleAuth(auth);
+  const guest=new GuestLearning(options.pool,options.auth.origin,options.auth.encryptionKey,options.publicData);
   const origin=options.auth.origin,resource=origin+'/mcp';
   const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization,Content-Type,MCP-Protocol-Version,MCP-Session-Id','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Expose-Headers':'WWW-Authenticate,MCP-Session-Id'};
   const unauthorized=()=>json({error:'MCP_LOGIN_REQUIRED'},401,{'WWW-Authenticate':'Bearer resource_metadata="'+origin+'/.well-known/oauth-protected-resource/mcp"',...cors});
@@ -55,11 +58,24 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         await auth.authorization(url);
         return options.assets.fetch(new Request(origin+'/',{headers:{Accept:'text/html'}}));
       }
-      if(path==='/api/remote/config'&&request.method==='GET')return json({available:true,mcpUrl:resource,authentication:'google_supabase_pkce',tenantMode:'per_user_company',googleLogin:await google.configuration()});
+      if(path==='/api/remote/config'&&request.method==='GET')return json({available:true,mcpUrl:resource,authentication:'guest_capability_or_google_supabase_pkce',tenantMode:'isolated_guest_or_per_user_company',guest:{enabled:true,ttlSeconds:86400,provisionUrl:origin+'/api/remote/guest'},googleLogin:await google.configuration()});
+      if(path==='/api/remote/guest'&&request.method==='POST'){
+        if(!request.headers.get('content-type')?.startsWith('application/json')||request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'INVALID_REQUEST'},403);
+        const created=await guest.provision(JSON.parse(await boundedBody(request)));
+        return json({token:created.token,mcpUrl:created.mcpUrl,companyId:created.companyId,expiresAt:created.expiresAt,reused:created.reused},created.reused?200:201);
+      }
+      if(path==='/api/remote/guest-review/open'&&request.method==='POST'){
+        if(request.headers.get('origin')!==origin||request.headers.get('sec-fetch-site')!=='same-origin'||!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'SAME_ORIGIN_REQUIRED'},403);
+        const opened=await guest.openReview(JSON.parse(await boundedBody(request)));
+        return json({ready:true,csrf:opened.csrf},200,{'Set-Cookie':guestCookie(opened.token),'Referrer-Policy':'no-referrer'});
+      }
       if(path==='/api/remote/login'||path==='/api/remote/signup')return json({error:'GOOGLE_LOGIN_REQUIRED'},410);
       if(path==='/api/remote/google/start'){
         if(request.method!=='POST'||request.headers.get('origin')!==origin||!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'SAME_ORIGIN_REQUIRED'},403);
-        const flow=await google.begin(JSON.parse(await boundedBody(request)));
+        const body=z.strictObject({returnTo:z.string().default('/'),claimGuest:z.boolean().optional()}).parse(JSON.parse(await boundedBody(request)));
+        const browser=body.claimGuest?await guest.browser(request):undefined;
+        if(body.claimGuest&&!browser)throw new DomainError('GUEST_EXPIRED','보관할 임시 장부를 확인하세요.');
+        const flow=await google.begin({returnTo:body.returnTo},browser?.workspace.id);
         return json({redirect:flow.redirect},200,{'Set-Cookie':googleCookie(flow.token)});
       }
       if(path==='/api/remote/google/callback'){
@@ -68,24 +84,63 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         headers.append('Set-Cookie',googleCookie('',true));
         try{
           const login=await google.finish(request);
-          try{await provisionWorkspace(options.pool,login.session.userId);}
+          try{if(login.claimGuestId)await guest.claim(login.claimGuestId,login.session.userId);else await provisionWorkspace(options.pool,login.session.userId);}
           catch(error){await options.pool.query('DELETE FROM private.remote_browser_sessions WHERE token_hash=$1',[digest(login.token)]);throw error;}
-          headers.set('Location',origin+login.returnTo);headers.append('Set-Cookie',cookie(login.token));
+          headers.set('Location',origin+login.returnTo);headers.append('Set-Cookie',cookie(login.token));headers.append('Set-Cookie',guestCookie('',true));
         }catch{headers.set('Location',origin+'/?auth_error=google_failed');}
         return new Response(null,{status:303,headers});
       }
       if(path==='/mcp'){
         if(url.search)return json({error:'INVALID_ENDPOINT'},400,cors);
         if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
-        const userId=await auth.bearer(request);if(!userId)return unauthorized();
-        const row=(await options.pool.query('SELECT company_id,writer_id FROM private.remote_workspaces WHERE user_id=$1',[userId])).rows[0];
-        if(!row)return unauthorized();
-        const dependencies=remoteServices(options.pool,{userId,companyId:row.company_id,writerId:row.writer_id},'mcp',options.publicData);
+        const authorization=request.headers.get('authorization');
+        let inbound=request,guestToken=authorization?authorization.match(/^Bearer (lf_guest_[A-Za-z0-9_-]{43})$/u)?.[1]:request.headers.get('mcp-session-id')??undefined;
+        let workspace=guestToken?await guest.byToken(guestToken):undefined;
+        if(guestToken&&!workspace)return json({error:'GUEST_SESSION_EXPIRED'},403,cors);
+        if(!workspace&&!request.headers.has('authorization')){
+          if(request.method!=='POST')return json({error:'MCP_INITIALIZE_REQUIRED'},405,{...cors,Allow:'POST,OPTIONS'});
+          const text=await boundedBody(request,65536),message=JSON.parse(text);
+          if(message?.jsonrpc!=='2.0'||message?.method!=='initialize'||message.id===undefined)return json({error:'MCP_INITIALIZE_REQUIRED'},428,cors);
+          const created=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});workspace=created;guestToken=created.token;
+          inbound=new Request(request,{body:text});
+        }
+        let dependencies:ReturnType<typeof remoteServices>;
+        if(workspace)dependencies=guest.services(workspace,'mcp');
+        else{
+          const userId=await auth.bearer(request);if(!userId)return unauthorized();
+          const row=(await options.pool.query('SELECT company_id,writer_id FROM private.remote_workspaces WHERE user_id=$1',[userId])).rows[0];
+          if(!row)return unauthorized();
+          dependencies=remoteServices(options.pool,{userId,companyId:row.company_id,writerId:row.writer_id},'mcp',options.publicData);
+        }
         dependencies.humanRouter=async()=>json({error:'HUMAN_WEB_ONLY'},403);
         const handler=createMcpHandler(()=>createLedgerFlowServer(dependencies),{legacy:'stateless',maxRequestBodySize:65536,maxSubscriptions:0,keepAliveMs:0,onerror:()=>{}});
-        try{const response=await handler.fetch(request),body=await response.arrayBuffer();
-          return new Response(body,{status:response.status,headers:{...Object.fromEntries(response.headers),...cors,'Cache-Control':'no-store'}});
+        if(workspace){const headers=new Headers(inbound.headers);headers.delete('mcp-session-id');inbound=new Request(inbound,{headers});}
+        try{const response=await handler.fetch(inbound),body=await response.arrayBuffer();
+          return new Response(body,{status:response.status,headers:{...Object.fromEntries(response.headers),...cors,...(guestToken?{'Mcp-Session-Id':guestToken}:{}),'Cache-Control':'no-store'}});
         }finally{await handler.close();}
+      }
+      const guestBrowser=await guest.browser(request);
+      if(guestBrowser){
+        const dependencies=guest.services(guestBrowser.workspace,'human'),reader=dependencies.accounting!;
+        if(path==='/api/remote/session'&&request.method==='GET')return json({signedIn:true,mode:'guest',expiresAt:guestBrowser.workspace.expiresAt,csrf:guestBrowser.csrf});
+        if(path==='/api/remote/guest-review'&&request.method==='GET')return json(await guest.review(guestBrowser));
+        if(path==='/api/remote/connections'&&request.method==='GET')return json([]);
+        if(request.method==='POST'){
+          guest.csrf(request,guestBrowser);
+          if(path==='/api/remote/guest-review/decision')return json(await guest.decide(guestBrowser,JSON.parse(await boundedBody(request))));
+          if(path==='/api/remote/logout'){
+            await options.pool.query('DELETE FROM private.guest_browser_sessions WHERE token_hash=$1',[digest(guestBrowser.token)]);
+            return json({signedIn:false},200,{'Set-Cookie':guestCookie('',true)});
+          }
+          return json({error:'GUEST_REVIEW_PAGE_REQUIRED'},403);
+        }
+        if(path==='/api/human/session'&&request.method==='GET')return json({ready:true,csrf:guestBrowser.csrf});
+        if(path.startsWith('/api/')&&!path.startsWith('/api/remote/')){
+          const human=createHumanRouter({reader,accounting:()=>reader,companyId:guestBrowser.workspace.companyId,companyContext:dependencies.getCompanyContext,
+           erp:dependencies.service as import('@ledgerflow/application-services').ErpService,publicApiConfiguration:()=>options.publicData.configuration()});
+          const response=await human(request);
+          return path==='/api/context'&&response.ok?json({...await response.json() as object,remoteWorkspace:true,guestWorkspace:true}):response;
+        }
       }
       // Browser sessions never fall back to another tenant or the shared preview.
       const identity=await auth.browser(request);

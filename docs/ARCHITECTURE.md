@@ -1,5 +1,8 @@
 # LedgerFlow architecture
 
+> 2026-10-18 최신 시작 방식: 현재 폴더에 비파괴적으로 역할/규칙을 병합하고, 공유 서버에서 24시간 임시 회사와 1,000건을 자동 발급한다. OAuth 없는 MCP 초기화와 비공개 guest 헤더를 지원한다. 009는 회사별 guest scope와 전표별 인간 웹 승인 티켓을 추가하며 기존 001~008은 수정하지 않는다. Google은 보관을 선택할 때만 연결한다. [현재 실행 지침](START_HERE.md) · [세션/승인/용량 경계](REMOTE_USAGE.md). 아래 Google 로그인 설명은 보관한 개인 장부에 해당한다.
+
+
 > 2026-10-17: 기존 서버 팩토리·41개 도구를 Cloudflare HTTP에 재사용하는 OAuth, 계정별 회사/ERP, 서비스 작성자와 인간 승인자 분리를 추가했다. 실제 Supabase 접속·TLS·Auth health 검사가 성공했으며 운영 상태와 실제 앱 검증 범위는 [원격 구조·검증 경계](REMOTE_USAGE.md)를 따른다. 새 MCP 제품이나 추론 runner는 없다.
 
 방문자 로그인은 Google → Supabase 서버 PKCE → 기존 암호화 브라우저 세션이다. 이메일·비밀번호 입력과 원격 password/signup 경로는 종료했다. 008은 쿠키 해시와 결합한 10분 단일 사용 암호화 login flow만 추가하며 기존 001~007과 회계 엔진을 변경하지 않는다. 실제 Google 제공자 등록은 [운영 설정](GOOGLE_LOGIN_SETUP.md)을 따른다.

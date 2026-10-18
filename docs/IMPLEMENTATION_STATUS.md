@@ -1,5 +1,22 @@
 # Implementation and verification status
 
+## 2026-10-18 로그인 없는 임시 학습 시작
+
+공유 MCP 하나와 기존 6역할·1,000건 fixture·회계 엔진·공공 API를 유지한 채, 현재 폴더에 역할/규칙을 병합하는 설치와 24시간 guest 회사 자동 발급을 추가했다. Google과 MCP OAuth는 임시 연습 시작에서 제외하고, 보관한 개인 장부의 기존 인증으로 남겨 두었다. 009는 기존 001~008을 수정하지 않고 guest scope·검토 티켓·결정 주체 FK를 추가한다.
+
+- 현재 CWD에 설치하고 수정된 기존 역할/계약·개인 파일을 보존한다. AGENTS/CLAUDE/GEMINI는 관리 블록을 병합한다. 선택한 앱의 활성 설정만 백업 후 변경한다. Codex·Claude는 비공개 header helper, Antigravity는 비공개 글로벌 Authorization과 공식 workspace plugin 구조를 사용한다.
+- 무키 MCP initialize는 세션별 회사를 배정한다. 설치 스크립트는 고정 guest 키로 initialize→목록→status→context를 실제 호출해 회사 일치를 확인한다. 재실행은 같은 bootstrap/회사로 돌아간다. 앱 신뢰·보안 설정은 우회하지 않는다.
+- request_journal_approval은 해당 회사/전표/version/hash의 15분 단일 교환 approvalUrl을 반환한다. 사람은 전용 페이지에서 확인 후 승인/반려한다. 열기만으로 승인하지 않고 작성자 scope에 approve를 추가하지 않는다. Google로 확인한 신원과 같은 보장은 없는 합성 학습용 링크이며 AI에게 열기/교환/결정 실행을 금지한다.
+- Google 보관은 선택이다. 기존 개인 장부와의 충돌은 덮어쓰지 않으며 승인 후 미전기 건은 먼저 반영해야 한다. 보관 전환 후 옛 guest 키는 폐기한다. 만료는 접근 철회이며 불변 기록 자동 삭제가 아니다. 누적 guest 20개·개인 25개 포트폴리오 상한을 둔다.
+
+실제 Cloudflare 배포 후 2026-10-18 14:03 KST 검사에서 세 앱용 설정 생성과 실제 MCP status/context 호출이 같은 한빛유통 회사·41개 도구로 성공했다. **설정 검사는 별도 테스트 홈에서 수행했으며 현재 앱의 글로벌 설정을 바꾸거나 앱 안의 도구를 실제 실행했다는 뜻이 아니다.** SDK로 거래 1,000건의 UUID 중복 없음, 무키 initialize 성공, 세션 회사 유지, 다른 guest 회사 분리, 타사 회사 조회 FORBIDDEN을 확인했다. 첫 운영 probe는 실패했고 같은 세션 재실행에서 성공했으므로 무중단/100% 성공을 주장하지 않는다. 운영 전표 생성·승인·전기는 실행하지 않았다.
+
+`pnpm check` 275개/42개 파일 통과, Astro 3페이지 build, Worker dry build 및 공개 키 노출 0건을 확인했다. 실제 PostgreSQL fixture에서 guest 격리·작성자 승인 scope 차단·승인 전 전기 거부·티켓 재사용/잘못된 Origin/CSRF 차단·테스트 인간 승인 후 Posted/시산표·권한 철회·만료·Google 보관 충돌/키 철회를 검사한다. 기존 Google/OAuth 10개와 Workerd 암호화 2개도 유지한다. 예전 별도 폴더 전용 테스트는 CWD 기본값·명시 앱·기존 디렉터리·인자 거부·순수 Node 실행으로 변경하고 기존 파일 보존/설정 병합 검사는 별도로 확장했다.
+
+현재 실행 중인 Codex·Claude Code·Antigravity의 도구 hot reload와 실제 네이티브 호출은 **미확인**이다. 현재 대화의 제공 도구에는 LedgerFlow가 노출돼 있지 않았다. SDK·HTTP 호출 성공을 네이티브 앱 성공으로 표시하지 않는다. 공식 앱 갱신/신뢰 절차가 필요한 환경의 완전 무클릭 보장은 하지 않는다. 실제 사람의 운영 승인과 Google 보관 전환도 테스트 harness 결과와 구분한다.
+
+[시작 실행 지침](START_HERE.md) · [현재 사용 흐름과 보안 경계](REMOTE_USAGE.md)
+
 ## 2026-10-18 회계 자동화 학습 안내 개편
 
 사이트와 GitHub의 첫 안내를 **회계 자동화 기술과 회계 흐름을 공부하는 사람** 하나의 대상으로 통일했다. 첫 화면은 ‘처음 사용하기’이며 GitHub 주소가 포함된 시작 요청문 하나를 제공한다. 서버·DB 설치와 배포 설명을 첫 학습 경로에서 제거하고, 기능 → 첫 매출 한 건 → 직접 승인 → 장부 반영 → 보고서 읽기 → 한 달 정리 순서로 안내한다.

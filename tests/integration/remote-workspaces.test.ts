@@ -137,7 +137,7 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   await expect(provisionWorkspace(db.pool,randomUUID())).rejects.toThrow('AUTH_USER_REQUIRED');
  });
  it('discovers OAuth and requires S256, registered callbacks, matching resource and single-use codes',async()=>{
-  const anonymous=await call('/mcp',post({}));expect(anonymous.status).toBe(401);expect(anonymous.headers.get('www-authenticate')).toContain('/.well-known/oauth-protected-resource/mcp');
+  const anonymous=await call('/mcp',post({}));expect(anonymous.status).toBe(428);expect(anonymous.headers.has('www-authenticate')).toBe(false);
   expect((await (await call('/.well-known/oauth-protected-resource/mcp')).json()).resource).toBe(resource);
   expect((await (await call('/.well-known/oauth-authorization-server')).json()).code_challenge_methods_supported).toEqual(['S256']);
   expect((await call('/oauth/register',post({redirect_uris:['javascript:alert(1)']}))).status).toBe(400);
