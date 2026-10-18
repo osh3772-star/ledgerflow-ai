@@ -1,5 +1,13 @@
 # LedgerFlow architecture
 
+## 현재 기본값: 학습 폴더 자동 신뢰·MCP 등록
+
+아래의 수동 Save → Restart 설명은 이전 구현 기록이다. 현재 시작 요청문은 CWD에 받은 `.ledgerflow/connect-codex.mjs`를 한 번 실행한다. 공식 Codex 설정 API의 한 트랜잭션에서 현재 학습 폴더만 `trusted`로 upsert하고 기존 `ledgerflow-accounting-mcp` 항목을 갱신한다. 다른 프로젝트/서버/도구 승인 정책은 보존하고 드라이브·홈 전체 신뢰는 거절한다. 설정 스냅샷은 제외된 CWD에 보관한다. 학습 폴더의 required=true와 공유 앱 등록의 required=false는 목적이 다르며, 키 만료가 무관한 작업을 막지 않는다.
+
+설정 기록 전용 단기 공식 CLI 프로세스는 모델·thread·MCP 호출을 실행하지 않는다. 현재 실행 중 앱의 control proxy가 있으면 `config/mcpServer/reload` 후 그 앱의 현재 thread에서 두 확인 도구와 companyId를 검증한다. 이 제어 연결에 접속할 수 없으면 `configurationRegistered=true`, `nativeClientVerified=false`, 구체적인 reason을 반환한다. 도우미는 앱을 종료하거나 대화/대체 서버를 만들거나 도구 승인을 대신 처리하지 않는다. 웹 서버는 로컬 앱의 보안 경계를 원격으로 바꾸지 못한다.
+
+2026-10-18 실제 공식 Codex CLI 0.155.0의 격리 프로필에서 공용 개인 경로의 도구 41개를 읽었다. 모델 호출/대화 생성은 0건이다. 별도 SDK의 두 확인 호출도 기존 회사와 일치했다. 이는 서버와 실제 Codex MCP 클라이언트의 호환성 증거이며, 실행 중 사용자 앱의 도구 카탈로그 갱신 또는 실제 Claude 앱 호출 성공을 증명하지 않는다. 사용자 앱의 control proxy는 현재 접속 불가로 실제 앱 확인이 남아 있다. 회계 검증·인간 승인·전기 로직은 변경하지 않는다.
+
 ## 2026-10-18 Codex의 실제 연결 완료 단계
 
 프로젝트 설정을 만드는 준비 단계와 네이티브 앱의 도구 목록 적용을 구분한다. Codex bootstrap은 같은 MCP capability/회사에 대한 암호화된 일회용 연결 안내를 발급하고 현재 폴더의 .ledgerflow/CODEX_CONNECTION.json에 보관한다. workspacePath는 공식 같은 폴더 대화 링크에만 사용하며 서버가 해당 파일을 읽지 않는다. 생성 설정은 required=true와 시작 제한 90초를 사용한다. 기존 개발용 localhost 설정은 바꾸지 않는다.

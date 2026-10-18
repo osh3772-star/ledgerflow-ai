@@ -93,7 +93,7 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         }
         return json({version:1,server:'ledgerflow-accounting-mcp',companyId:created.companyId,expiresAt:created.expiresAt,
           identityMode:params.claimCode?'personal':'guest',...prepared,...(connection?{connection}:{}),
-          verification:{nativeClientVerified:false,nextTools:['get_system_status','get_company_context']},
+          verification:{nativeClientVerified:false,nextTools:['get_system_status','get_company_context'],...(params.client==='codex'?{automaticSetup:{file:'.ledgerflow/connect-codex.mjs',runOnce:true,noManualMcpMenu:true,verification:'Same running Codex app and current thread only; CLI/SDK checks are separate.'}}:{})},
           security:'세션 URL은 비밀이다. 응답을 공개하거나 URL을 채팅에 출력하지 말고 현재 폴더의 비공개 MCP 설정에만 기록한다.'});
       }
       if(path==='/api/remote/client-setup/issue'&&request.method==='POST'){

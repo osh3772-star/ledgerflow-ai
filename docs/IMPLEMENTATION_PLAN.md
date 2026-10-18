@@ -1,5 +1,18 @@
 # Implementation plan
 
+## 현재: 수동 연결 메뉴를 기본 설치에서 제거
+
+1. 변경 전 소스는 `.ledgerflow/backups/20261018-native-auto-connect/source-before.zip`에 보관했다.
+2. 공개 bootstrap은 독립 실행 가능한 Codex 연결 도우미도 반환한다. 기존 설치 복구는 공개 `/connect-codex.mjs`와 CWD의 기존 키만 사용하며 새 게스트/회사를 만들지 않는다.
+3. 공식 설정 API로 현재 학습 폴더만 신뢰 등록하고 이 MCP 한 항목을 갱신한다. 다른 프로젝트·서버·도구 승인 정책 보존, 드라이브/홈 전체 신뢰 거절, 잘못된 회사 거절을 검증한다.
+4. 공식 running app proxy의 재읽기와 현재 thread의 실제 두 도구 호출이 성공해야만 nativeClientVerified=true다. 제어 연결 미지원/접속 불가·미승인·미갱신을 성공으로 바꾸지 않는다. 기록 전용 CLI 프로세스에서는 모델/대화/회계 호출을 실행하지 않는다.
+5. 실제 공식 Codex 0.155.0 격리 프로필에서 공용 서버의 41개 도구 목록 읽기를 확인했다. 별도 SDK 검사도 기존 개인 회사와 일치했다. 현재 앱 control proxy 접속과 실제 Claude 호출은 아직 미확인이다. 두 구형 Streamable HTTP 프로토콜에 대해서도 회귀 검사를 추가한다.
+6. 전체 check, 웹 build, 비밀값 검사 후 기존 원격 배포와 GitHub 안내를 함께 갱신한다. 이전 수동 Save/Restart 안내는 현재 자동 설치 기준으로 대체한다.
+
+완료 기준은 **등록 성공 / 실제 현재 앱 연결 성공을 구분하는 것**이다. 새 도우미가 없는 앱·런타임 또는 관리 정책상 차단된 앱의 무클릭 성공을 보장하지 않는다. 아래 이전 연결 포털 계획은 구현 이력이다.
+
+검증 결과: `pnpm check` 45개 파일/305개 테스트, 변경 후 설치·웹 안내 단위 검사 25개, 웹 build와 비밀값 노출 0건 검사가 통과했다. 구형 프로토콜 2025-03-26/2025-06-18의 초기화·41개 도구 조회·두 확인 도구 호출도 통과했다. 실제 기존 개인 학습 폴더의 자동 신뢰/등록은 성공했으며 결과는 `CODEX_CONTROL_UNAVAILABLE`, `nativeClientVerified=false`다. 별도 공식 Codex 클라이언트의 41개 도구 조회와 혼동하지 않는다. 실제 Claude 앱 호출 검증은 남아 있다.
+
 ## 2026-10-18 Codex 공통 설치 막힘 수정
 
 1. 수정 전 소스를 .ledgerflow/backups/20261018-codex-onboarding/source-before.zip에 백업한다.

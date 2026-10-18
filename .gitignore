@@ -13,3 +13,4 @@ supabase/.branches/
 .dev.vars
 .dev.vars.*
 apps/web/public/learning-bundle.json
+apps/web/public/connect-codex.mjs

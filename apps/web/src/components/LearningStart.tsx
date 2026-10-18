@@ -1,7 +1,7 @@
 import {useId,useRef,useState} from 'react';
 import learning from '../../../../docs/learning-start.json' with {type:'json'};
 import '../styles/beginner-guide.css';
-import type {LearningAccess} from './PersonalSetup.js';
+import {codexRepairPrompt,type LearningAccess} from './PersonalSetup.js';
 
 export function PromptBox({title,prompt,hint,copyLabel='요청문 복사'}:{title:string;prompt:string;hint:string;copyLabel?:string}){
  const id=useId(),field=useRef<HTMLTextAreaElement>(null),[message,setMessage]=useState('');
@@ -33,7 +33,8 @@ export default function LearningStart({access={mode:'checking'}}:{access?:Learni
   {access.mode==='error'&&<p className="notice error" role="alert">로그인 상태를 확인하지 못해 연결 요청문을 표시하지 않았습니다. 사이트를 새로고침하거나 위에서 Google로 다시 로그인해 주세요.</p>}
   {access.mode==='unavailable'&&<p className="notice" role="status">현재 원격 연결을 준비 중입니다. 서버가 준비되면 로그인 상태에 맞는 요청문을 표시합니다.</p>}
   <p>Antigravity · 안티그래비티에서도 같은 요청문을 사용할 수 있어요.</p>
-  <div className="notice guide-codex-help" role="note"><strong>Codex가 “도구가 아직 없다”고 하면?</strong><p>AI가 주는 <strong>Codex 연결 마치기</strong>를 여세요. 내 장부 주소 복사 → Codex 설정의 <strong>MCP servers</strong>에 같은 이름의 서버 확인/등록 → <strong>Save · 저장 → Restart · 다시 시작</strong> → 같은 폴더에서 확인 요청문 보내기 순서예요. 안내 화면에서 두 도구 호출이 도착했는지 확인할 수 있어요. 다시 설치하거나 새 장부를 만들 필요는 없습니다.</p></div>
+  <div className="notice guide-codex-help" role="note"><strong>Codex가 “도구가 아직 없다”고 하면?</strong><p>아래 <strong>Codex 자동 연결 복구 요청문</strong>을 기존 AI 대화에 보내세요. AI가 현재 학습 폴더만 신뢰 등록하고 같은 장부의 연결을 자동 등록한 뒤 앱의 재읽기를 시도합니다. MCP 등록 메뉴를 찾거나 서버 주소를 직접 입력하지 않습니다. 기존 거래와 장부는 그대로 사용해요. 앱이 자동 재읽기를 지원하지 않으면 그 상태를 정확히 알려줍니다.</p></div>
+  {(anonymous||guest||setup)&&<details id="codex-repair"><summary>이미 설치했는데 도구가 없다면 · 자동 연결 복구</summary><PromptBox title="이미 설치했다면 · Codex 자동 연결 복구" prompt={codexRepairPrompt(setup?.companyId??(guest?access.companyId:undefined))} copyLabel="Codex 자동 연결 복구 요청문 복사" hint="처음 설치할 때 쓰는 요청문이 아닙니다. 기존 폴더의 연결 키를 재사용하고 새 장부·게스트를 만들지 않아요. AI가 도우미를 한 번 실행하며, 앱 자체의 실행 허용은 앱 정책을 따릅니다."/></details>}
   {(personal||anonymous||guest)&&<ol className="guide-setup-list"><li><strong>{personal?'내 장부 전용 요청문을 보냅니다.':guest?'같은 AI 작업 폴더에서 계속합니다.':'비로그인 체험 요청문을 보냅니다.'}</strong> {personal?'기존 AI 작업 폴더에 보내면 이 사이트의 내 회사와 역할 6개를 연결합니다.':guest?'이미 연결되어 있으므로 다시 설치하지 않아도 됩니다.':'AI가 현재 폴더에 역할 6개와 연결을 준비하고, 거래 1,000건이 있는 내 임시 회사를 발급받습니다.'}</li>
    <li><strong>연결된 회사를 확인합니다.</strong> {personal||guest?'AI가 알려준 companyId와 사이트 상단 회사 ID가 같은지 확인하세요.':'AI가 도구를 실제로 호출해 내 임시 회사 ID를 알려줍니다. 임시 승인 링크를 열기 전까지 사이트에는 공개 예시가 보일 수 있어요.'}</li>
    <li><strong>첫 거래를 요청하고 직접 승인합니다.</strong> {personal?'AI가 분개와 검증을 준비하면 이 사이트의 사용자 승인 메뉴에서 검토하세요.':'AI가 분개와 검증을 준비하면 AI가 준 전표별 임시 승인 링크를 열어 검토하세요.'} 승인한 뒤 AI에게 장부 반영을 따로 요청합니다.</li></ol>}

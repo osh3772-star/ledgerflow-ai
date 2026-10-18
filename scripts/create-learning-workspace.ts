@@ -8,7 +8,11 @@ export async function createLearningWorkspace(options:Omit<Options,'sourceDirect
  // Node 24 strips types but does not remap sibling .js specifiers to .ts.
  // This dynamic URL keeps setup dependency-free, including on a fresh PC.
  const module=await import(pathToFileURL(join(sourceRoot,'scripts/learning-in-place.ts')).href) as {installInPlace:typeof installInPlace};
- return module.installInPlace({...options,sourceDirectory:options.sourceDirectory??sourceRoot});
+ const prepared=await module.installInPlace({...options,sourceDirectory:options.sourceDirectory??sourceRoot});
+ if(options.client!=='codex')return prepared;
+ const connector=await import(pathToFileURL(join(sourceRoot,'scripts/connect-codex.mjs')).href);
+ const native=await connector.connectCodex({directory:options.directory,expectedCompanyId:prepared.companyId});
+ return {...prepared,status:native.status,nativeClientVerified:native.nativeClientVerified,nativeConnection:native};
 }
 export function setupArguments(args:string[]){
  const options:Record<string,string>={};

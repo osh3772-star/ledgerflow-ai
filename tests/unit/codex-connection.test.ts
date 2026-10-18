@@ -8,11 +8,11 @@ const view:CodexConnectionView={connectionId:'fixture',companyId:'fixture-compan
 describe('Codex learners receive a concrete native connection handoff',()=>{
  it('does not present generated settings or a single successful tool as a completed native connection',()=>{
   const html=renderToStaticMarkup(createElement(CodexConnectionContent,{view:{...view,checks:{...view.checks,get_system_status:'2026-10-18T00:00:00Z'}},copied:'',onCopy:()=>{}}));
-  expect(html).toContain('Codex 연결 적용이 남았어요');expect(html).toContain('Restart');expect(html).toContain('Save');expect(html).toContain('codex://settings');expect(html).toContain('fixture-company');expect(html).toContain('아직 도착하지 않음');expect(html).not.toContain('두 확인 도구 호출이 도착했어요');
+  expect(html).toContain('실제 앱 연결 확인 대기');expect(html).toContain('자동 연결 복구 요청문 복사');expect(html).not.toContain('codex://settings');expect(html).not.toContain('Add server');expect(html).toContain('fixture-company');expect(html).toContain('아직 도착하지 않음');expect(html).not.toContain('두 확인 도구 호출이 도착했어요');
  });
  it('offers the same-folder continuation only when a folder is known, and escapes path text',()=>{
   const html=renderToStaticMarkup(createElement(CodexConnectionContent,{view:{...view,workspacePath:'/tmp/<book>',resumeUrl:'codex://threads/new?path=%2Ftmp%2Fbook',verified:true},copied:'',onCopy:()=>{}}));
-  expect(html).toContain('같은 폴더에서 확인 대화 열기');expect(html).toContain('/tmp/&lt;book&gt;');expect(html).toContain('두 확인 도구 호출이 도착했어요');expect(html).toContain('보내기 버튼은 직접');
+  expect(html).toContain('/tmp/&lt;book&gt;');expect(html).toContain('두 확인 도구 호출이 도착했어요');expect(html).toContain('같은 회사와 기존 연결 키');expect(html).not.toContain('codex://threads/new');
  });
  it('accepts absolute workspace locations without executing them and rejects relative/control paths',()=>{
   for(const p of ['C:\\Learning\\회계','/home/student/ledger'])expect(workspacePathSchema.safeParse(p).success).toBe(true);

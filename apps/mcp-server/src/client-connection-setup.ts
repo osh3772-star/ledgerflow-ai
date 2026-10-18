@@ -34,7 +34,7 @@ export class ClientConnectionSetup {
     VALUES($1,$2,$3,$4,$5) RETURNING expires_at`,[binding,resolved.companyId,resolved.userId??null,digest(value.token),this.seal(value,binding)])).rows[0];
   return {state:'native_connection_pending' as const,companyId:resolved.companyId,
    setupUrl:this.origin+'/connect/codex/#ticket='+ticket,expiresAt:new Date(row.expires_at).toISOString(),
-   nativeClientVerified:false,action:'Codex 연결 마치기 화면을 사용자에게 보여준다. AI는 이 일회용 링크를 열지 않는다.'};
+   nativeClientVerified:false,action:'먼저 현재 폴더의 .ledgerflow/connect-codex.mjs로 자동 등록·실행 중 앱 재읽기를 시도한다. 수동 등록 메뉴를 찾게 하지 않는다. 이 링크는 사람용 상태/복구 화면이며 AI는 열지 않는다.'};
  }
  async exchange(input:unknown,userId?:string){
   const {ticket}=z.strictObject({ticket:z.string().regex(/^[A-Za-z0-9_-]{43}$/u)}).parse(input),binding=digest(ticket);

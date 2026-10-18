@@ -27,7 +27,7 @@ describe('learning setup belongs to the verified browser state',()=>{
  });
  it('keeps an existing guest book instead of offering another installation',()=>{
   const html=render({mode:'guest',companyId:'existing-company'});
-  expect(html).toContain('existing-company');expect(html).toContain('이미 임시 장부가 연결');expect(html).not.toContain('<textarea');
+  expect(html).toContain('existing-company');expect(html).toContain('이미 임시 장부가 연결');expect(html).toContain('Codex 자동 연결 복구');expect(html).not.toContain('비로그인 체험 요청문 복사');
  });
  it('recognizes verified signed-in sessions even when an older response omits mode',()=>{
   expect(isPersonalSession({signedIn:true})).toBe(true);expect(isPersonalSession({signedIn:true,mode:'personal'})).toBe(true);

@@ -61,6 +61,25 @@ describe('isolated guest learning and journal-bound human review',()=>{
   const bad=await call('/mcp',{jsonrpc:'2.0',id:1,method:'initialize'},{Authorization:'Bearer lf_guest_'+'x'.repeat(43)});
   expect(bad.status).toBe(403);expect(bad.headers.has('www-authenticate')).toBe(false);
  });
+ it('supports older Streamable HTTP protocol clients without forcing OAuth for scoped path credentials',async()=>{
+  for(const protocolVersion of ['2025-03-26','2025-06-18']){
+   const endpoint='/mcp/g/'+a.token;
+   const request=async(id:number,method:string,params:unknown)=>{
+    const response=await call(endpoint,{jsonrpc:'2.0',id,method,params},{Accept:'application/json, text/event-stream','MCP-Protocol-Version':protocolVersion,'X-LedgerFlow-Setup-Probe':'1'});
+    expect(response.status).toBe(200);expect(response.headers.has('www-authenticate')).toBe(false);
+    const text=await response.text();
+    return JSON.parse(response.headers.get('content-type')?.includes('text/event-stream')?text.split(/\r?\n/u).find(line=>line.startsWith('data:'))!.slice(5):text);
+   };
+   const initialized=await request(1,'initialize',{protocolVersion,capabilities:{},clientInfo:{name:'ledgerflow-compatibility-probe',version:'1'}});
+   expect(initialized.result.protocolVersion).toBe(protocolVersion);
+   expect((await request(2,'tools/list',{})).result.tools).toHaveLength(41);
+   for(const toolName of ['get_system_status','get_company_context']){
+    const response=await request(3,'tools/call',{name:toolName,arguments:{}});
+    expect(response.result.isError).not.toBe(true);expect(response.result.structuredContent.ok).toBe(true);
+    if(toolName==='get_company_context')expect(response.result.structuredContent.data.companyId).toBe(a.companyId);
+   }
+  }
+ });
  it('cannot post or approve via writer tools; merely opening a link does not approve',async()=>{
   const c=await connect(a.token),{j,q}=await draft(c,a.companyId);
   expect(j.approvalUrl).toMatch(/^https:\/\/guest.example\/guest\/approval\/#ticket=/u);
@@ -161,7 +180,7 @@ describe('isolated guest learning and journal-bound human review',()=>{
   expect(response.status).toBe(200);const boot=await response.json(),saved=JSON.parse(boot.files['.ledgerflow/guest-session.json']);
   expect(boot.connection).toMatchObject({state:'native_connection_pending',companyId:boot.companyId,nativeClientVerified:false});
   expect(boot.files['.codex/config.toml']).toContain('required = true');expect(boot.files['.codex/config.toml']).toContain('/mcp/g/'+saved.token);
-  expect(boot.files['AGENTS.md']).toContain('Save → Restart');expect(boot.sensitivePaths).toContain('.ledgerflow/CODEX_CONNECTION.json');
+  expect(boot.files['AGENTS.md']).toContain('자동 등록과 재읽기');expect(boot.files['.ledgerflow/connect-codex.mjs']).toContain('config/batchWrite');expect(boot.verification.automaticSetup.noManualMcpMenu).toBe(true);expect(boot.sensitivePaths).toContain('.ledgerflow/CODEX_CONNECTION.json');
   const setupUrl=new URL(boot.connection.setupUrl),ticket=new URLSearchParams(setupUrl.hash.slice(1)).get('ticket')!;
   expect(setupUrl.search).toBe('');expect(setupUrl.href).not.toContain(saved.token);
   const encrypted=(await db.pool.query('SELECT encrypted_payload FROM private.client_connection_setups WHERE handoff_hash=$1',[digest(ticket)])).rows[0];
