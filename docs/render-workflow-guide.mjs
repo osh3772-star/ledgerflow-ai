@@ -69,8 +69,8 @@ function initialize(website){
    .then(async response=>{if(!response.ok)throw new Error();return response.json();})
    .then(config=>{
     const ready=config.available&&config.googleLogin?.enabled;
-    status.querySelector('strong').textContent=ready?'Google 로그인으로 내 장부를 열 수 있도록 연결되어 있습니다.':config.available?'원격 서버는 준비됐고 Google 로그인 설정을 확인 중입니다.':'현재 이 서버는 공개 샘플 조회 모드입니다.';
-    status.querySelector('p').textContent=ready?'대시보드에서 Google 계정으로 로그인한 뒤 같은 계정으로 AI 앱을 연결하세요. 실제 로그인·앱 호출·장부 반영 성공은 각 단계에서 확인합니다.':config.available?'Google 버튼이 비활성이면 운영자가 Google 제공자와 돌아올 주소를 설정해야 합니다. 별도 이메일 회원가입은 사용하지 않습니다.':'개인 장부 처리는 운영 준비가 끝난 뒤 시작합니다. 아래에서 전체 사용 흐름과 샘플 안내를 먼저 읽을 수 있습니다.';
+    status.querySelector('strong').textContent=ready?'Google로 내 연습 장부를 열 수 있어요.':config.available?'Google 로그인을 준비 중이에요.':'지금은 예시 자료를 둘러볼 수 있어요.';
+    status.querySelector('p').textContent=ready?'아래 시작 요청문을 코덱스·클로드 코드에 보내세요. 본인 로그인과 연결 허용만 직접 진행하면 됩니다.':config.available?'잠시 후 다시 확인해 주세요. 먼저 아래 요청문과 첫 거래 학습 순서를 살펴볼 수 있어요.':'아래에서 거래가 장부와 보고서로 이어지는 과정을 먼저 읽어보세요. 개인 장부 연결은 준비 중입니다.';
    }).catch(()=>{status.querySelector('strong').textContent='현재 서버 상태를 확인하지 못했습니다.';status.querySelector('p').textContent='대시보드 상단의 안내를 확인하세요. 이 문서의 절차만으로 서버 연결 성공을 판단하지 않습니다.';});
  }
  for(const button of document.querySelectorAll('.copy'))button.addEventListener('click',async()=>{
@@ -80,7 +80,7 @@ function initialize(website){
    const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();
    const success=document.execCommand('copy');field.remove();if(!success){notify.textContent='요청문을 직접 선택해 복사하세요.';return;}
   }
-  button.textContent='복사 완료';notify.textContent='복사했습니다. 요청문은 AI 앱에, 명령어는 터미널에 붙여 넣으세요.';
+  button.textContent='복사 완료';notify.textContent='복사했어요. 코덱스 또는 클로드 코드 대화창에 붙여 넣으세요.';
   window.setTimeout(()=>{button.textContent='복사';notify.textContent='';},2200);
  });
  document.querySelector('.print').addEventListener('click',()=>window.print());
@@ -97,15 +97,15 @@ const siteLink=website?'<a href="/">대시보드로 돌아가기</a>':'<a href="
 const status=website?'<aside class="status" data-server-status aria-label="현재 서버 설정" aria-live="polite"><strong>현재 서버 상태를 확인하고 있습니다.</strong><p>문서의 작성 시점과 현재 운영 상태를 구분합니다. 실제 업무 성공은 각 단계에서 확인하세요.</p></aside>':'<aside class="status" aria-label="안내서 상태"><strong>이 파일은 작성 시점의 안내서입니다.</strong><p>현재 운영 상태는 공개 사이트 상단에서 확인하세요. 파일을 열거나 요청문을 복사하는 것만으로 회계 업무가 실행되지는 않습니다.</p></aside>';
 const html=[
 '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
-'<meta name="description" content="한빛유통 회계 업무 전체 흐름: Google 로그인, MCP 연결, 거래 조회, 분개, 검증, 사용자 승인, 장부 반영, 결산과 보고서.">',
-'<title>한빛유통 · 회계 업무 전체 워크플로우</title><style>'+css+'</style></head><body id="top">',
-'<div class="topbar"><div class="topbar-inner"><div class="brand"><span>한</span>한빛유통 · 전체 사용 안내</div><div class="actions">'+siteLink+'<button class="print" type="button">인쇄 · PDF로 저장</button></div></div></div>',
-'<header class="hero"><div class="hero-inner"><div class="kicker">ACCOUNTING WORKFLOW · 회계 업무 흐름</div><h1>거래를 확인하는 순간부터<br>재무 보고서가 완성되기까지.</h1>',
-'<p class="lead">사용자는 무엇을 누르고, AI는 어떤 도구를 쓰며, 언제 장부에 반영될까요?<br>처음 접속하는 사람도 순서대로 따라갈 수 있도록 전체 과정을 정리했습니다.</p>',
-'<div class="tags"><span>2026.10.17 기준</span><span>가상 한국회사 · 한빛유통</span><span>MCP 서버 1개</span><span>역할 6개 · 도구 41개</span><span>사용자가 요청하고 직접 승인</span></div></div></header>',
-'<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>전체 흐름 · 20단계와 참고 문서</strong>'+nav+'</nav><main class="main">',
+'<meta name="description" content="코딩을 몰라도 GitHub 주소와 시작 요청문 하나로 준비하고, AI와 함께 거래·분개·승인·장부·재무제표를 배우는 학습 안내.">',
+'<title>한빛유통 · 거래에서 재무제표까지 배우기</title><style>'+css+'</style></head><body id="top">',
+'<div class="topbar"><div class="topbar-inner"><div class="brand"><span>한</span>한빛유통 · 회계 자동화 학습 안내</div><div class="actions">'+siteLink+'<button class="print" type="button">인쇄 · PDF로 저장</button></div></div></div>',
+'<header class="hero"><div class="hero-inner"><div class="kicker">ACCOUNTING WORKFLOW · 회계 흐름 배우기</div><h1>회계가 처음이어도,<br>거래부터 보고서까지 따라가 보세요.</h1>',
+'<p class="lead">회계 자동화 기술과 회계의 흐름을 공부하고 싶은 사람을 위한 안내입니다.<br>GitHub 주소와 요청문 하나로 준비하고, 거래 한 건부터 직접 연습합니다.</p>',
+'<div class="tags"><span>코딩 지식 없이 시작</span><span>가상 한국회사 · 한빛유통</span><span>연습 거래 1,000건</span><span>AI가 설명하고 내가 확인</span></div></div></header>',
+'<div class="layout"><nav class="sidebar" aria-label="문서 목차"><strong>처음 연결부터 보고서까지</strong>'+nav+'</nav><main class="main">',
 status,
-'<section class="readme" aria-label="핵심 사용 순서"><h2>가장 중요한 사용 순서</h2><div class="quickflow"><span>Google 로그인</span><b>→</b><span>AI 앱 MCP 연결</span><b>→</b><span>분개 요청</span><b>→</b><span>내가 웹에서 승인</span><b>→</b><span>앱에 장부 반영 요청</span><b>→</b><span>보고서 확인</span></div><p>원격 운영을 활성화한 뒤의 사용 흐름과, 그 전에 운영자가 준비해야 할 일을 함께 설명합니다.</p></section>',
+'<section class="readme" aria-label="핵심 학습 순서"><h2>이 순서로 한 번 해보세요.</h2><div class="quickflow"><span>시작 요청문 복사</span><b>→</b><span>본인 로그인·연결 허용</span><b>→</b><span>첫 분개 요청</span><b>→</b><span>내가 사이트에서 승인</span><b>→</b><span>AI에게 장부 반영 요청</span><b>→</b><span>보고서 숫자 이해</span></div><p>처음 준비는 아래 요청문 하나로 AI에게 맡기세요. 이후에는 AI 대화창과 이 사이트를 오가며 공부합니다.</p><a href="#section-2">시작 요청문으로 바로 이동 →</a></section>',
 parts.join('\n'),
 '</main></div><footer class="footer">가상회사 회계 업무 체험 · 자료 검토와 최종 승인은 사람에게 있습니다.<br>이 안내 페이지에서 거래 생성·승인·장부 반영을 실행하지 않습니다.<a class="to-top" href="#top">문서 맨 위로 ↑</a></footer><div class="sr-status" role="status" aria-live="polite"></div>',
 '<script>('+initialize.toString()+')('+JSON.stringify(website)+');</script></body></html>'
@@ -114,12 +114,14 @@ const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]));
 const targets=[...html.matchAll(/href="#([^"]+)"/g)].map(match=>match[1]);
 const missingAnchors=targets.filter(target=>!ids.has(target));
 const copyBlocks=html.split('class="copy"').length-1;
-if(toc.length!==21||copyBlocks!==12||missingAnchors.length||html.includes('~~~'))throw new Error('DOCUMENT_STRUCTURE_INVALID');
+if(toc.length!==12||copyBlocks!==4||missingAnchors.length||html.includes('~~~'))throw new Error('DOCUMENT_STRUCTURE_INVALID');
 for(const tag of ['section','table','thead','tbody','pre'])
  if((html.match(new RegExp('<'+tag+'(?:\\s|>)','g'))??[]).length!==(html.match(new RegExp('</'+tag+'>','g'))??[]).length)throw new Error('DOCUMENT_TAGS_INVALID');
 return {html,chapters:toc.length,copyBlocks,missingAnchors:missingAnchors.length,bytes:Buffer.byteLength(html),offline:!website};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const {syncLearningDocs}=await import('./render-learning-docs.mjs');
+ await syncLearningDocs();
  const {html,...metadata}=await renderWorkflowGuide();
  await writeFile(new URL('./WORKFLOW_GUIDE.html',import.meta.url),html,'utf8');
  console.log(JSON.stringify({created:fileURLToPath(new URL('./WORKFLOW_GUIDE.html',import.meta.url)),...metadata}));

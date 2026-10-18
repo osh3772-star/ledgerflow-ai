@@ -29,7 +29,7 @@ function CodeLabel({value}:{value:unknown}){
   return korean?<BilingualText english={english} korean={korean}/>:<>{english}</>;
 }
 export default function Dashboard(){
-  const [tab,setTab]=useState<string>('overview'),[company,setCompany]=useState<Company>(),[period,setPeriod]=useState(0);
+  const [tab,setTab]=useState<string>('guide'),[company,setCompany]=useState<Company>(),[period,setPeriod]=useState(0);
   const [rows,setRows]=useState<Row[]>([]),[journals,setJournals]=useState<Row[]>([]),[trial,setTrial]=useState<Row>({}),[financial,setFinancial]=useState<Row>({});
   const [audit,setAudit]=useState<Row>({}),[selected,setSelected]=useState<Journal>(),[approval,setApproval]=useState<Row|null>(null);
   const [error,setError]=useState(''),[loading,setLoading]=useState(true),[csrf,setCsrf]=useState<string>();
@@ -81,20 +81,20 @@ export default function Dashboard(){
   }
   const pending=journals.filter(j=>j.state==='Approval'&&!j.discardedAt),posted=journals.filter(j=>j.state==='Posted');
   return <div className="workspace">
-    <aside><a className="brand" href="/"><span className="mark" aria-hidden="true">한</span><div className="brand-wordmark"><span className="brand-name">한빛유통</span><span className="brand-tagline">회계 업무 공간</span></div></a>
+    <aside><a className="brand" href="/"><span className="mark" aria-hidden="true">한</span><div className="brand-wordmark"><span className="brand-name">한빛유통</span><span className="brand-tagline">회계 자동화 학습실</span></div></a>
       <div className="company-card"><span className="company-icon" aria-hidden="true">한빛</span><div><strong>{companyDisplayName}</strong><div className="company-meta">가상 도소매 법인 · <BilingualText english="KRW" korean="대한민국 원"/></div></div></div>
       <nav aria-label="주요 메뉴">{tabs.map(([key,title,icon])=><button key={key} className={tab===key?'active':''} onClick={()=>{setTab(key);setSelected(undefined);}}><span>{icon}</span>{title}{key==='approval'&&pending.length>0&&<b>{pending.length}</b>}</button>)}</nav>
       <div className="sidebar-footer"><span className="dot"/>사용자 주도 실행<small>거래는 모두 가상 데이터입니다.</small></div>
     </aside>
     <main><header><div className="breadcrumb">워크스페이스 <span>/</span> {tabs.find(t=>t[0]===tab)?.[1]}</div><span className="synthetic">가상회사</span><span className="avatar">한빛</span></header>
-      <section className="heading"><div><p className="eyebrow">{companyDisplayName} · 가상 한국회사</p><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1><p>거래의 근거부터 승인된 장부까지, 한 곳에서 확인하세요.</p></div><div className="toolbar">
+      <section className="heading"><div><p className="eyebrow">{companyDisplayName} · 가상 한국회사</p><h1>{tabs.find(t=>t[0]===tab)?.[1]}</h1><p>거래가 분개·장부·재무제표로 이어지는 과정을 AI와 함께 배워보세요.</p></div><div className="toolbar">
         <label className="sr-only" htmlFor="period">회계기간</label><select id="period" value={period} onChange={e=>{setPeriod(Number(e.target.value));setSelected(undefined);setReferenceTransactionId('');clearReference();}}>
           {company?.periods.map((p,index)=><option key={p.id} value={index}>{p.from.slice(0,7)} · {p.status==='closed'?'마감':'열림'}</option>)}</select>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
       <RemoteAccess/>
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
-      {publicPreview&&<PublicSiteNotice snapshotAt={snapshotAt}/>}
+      {publicPreview&&tab!=='guide'&&<PublicSiteNotice snapshotAt={snapshotAt}/>}
       {(tab==='overview'||tab==='transactions')&&<section className="notice data-origin-note" aria-label="거래 데이터 안내"><strong>처음부터 보이는 거래는 연습용 샘플입니다.</strong><p>기본 시연 데이터는 미리 만든 가상 거래 1,000건입니다. 실제 회사 거래나 은행에서 자동 수집한 내역이 아닙니다. 거래 조회와 장부 반영은 별개이며, 검증·사용자 승인·장부 반영을 거친 전표만 재무 보고서에 집계됩니다.</p></section>}
       {tab==='overview'&&<GuideWelcome onOpen={()=>{setTab('guide');setSelected(undefined);}}/>}
       {(tab==='overview'||tab==='references')&&<PublicApiStatus configuration={publicConfiguration}/>}

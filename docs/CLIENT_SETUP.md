@@ -1,5 +1,7 @@
 # Shared MCP and approval setup
 
+**이 문서는 내 PC에서 별도로 실행하며 코드를 살펴보는 상세 참고자료다.** 회계 학습의 첫 연결은 [시작 요청문 하나](GETTING_STARTED.md)를 사용한다. 공개 사이트는 Google 로그인·개인 장부·원격 OAuth MCP를 지원하며, 아래 localhost·환경변수·DB 준비 절차를 학습 시작 조건으로 요구하지 않는다.
+
 다른 사람에게 공유하거나 새 PC에 처음 설치하는 경우 [처음 설치 안내](GETTING_STARTED.md)부터 진행한다. 아래는 이미 프로젝트를 받은 사용자의 연결·권한 상세 설정이다.
 
 Node 24 / pnpm 11.25 환경에서 실행한다. 발급받은 4개 API 키는 프로젝트 루트의 ignored `.env.local`에만 둔다. 실제 값을 앱 config/문서/채팅에 복사하지 않는다.
@@ -23,7 +25,7 @@ localhost `http://127.0.0.1:8787/`가 대시보드, `/mcp`가 두 앱의 공유 
 
 출력과 ignored `.ledgerflow/readiness/latest.json`에는 설정 여부·일치 여부와 안전한 결과만 남는다. 프로젝트 설정 또는 MCP 프로토콜 검사 실패 시 종료 코드는 1이다. CLI 설치나 외부 DB 설정이 없으면 수동 후속 항목으로 표시한다. 선택 `LEDGERFLOW_MCP_URL`은 localhost HTTP `/mcp` 주소만 허용하며 실제 서버 주소와 두 앱 설정을 함께 맞춰야 한다. 이 명령은 서버를 새로 실행하거나 `.env.local`의 인증키를 앱 설정으로 복사하지 않는다.
 
-선택 `LEDGERFLOW_MCP_TOKEN`은 서버 측 bearer 설정이다. Codex에서는 공식 설정의 `bearer_token_env_var`에 클라이언트가 별도 환경에서 받은 token 변수명을 지정하고 Claude에서는 HTTP header의 환경변수 참조를 사용한다. 실제 token은 config에 쓰지 않는다. bearer 인증은 인간 승인 인증과 별개다. 현재 기본 config는 localhost 신뢰 개발 경계용이며 원격 OAuth 인증은 미구현이다.
+선택 `LEDGERFLOW_MCP_TOKEN`은 로컬 서버 측 bearer 설정이다. Codex에서는 공식 설정의 `bearer_token_env_var`에 클라이언트가 별도 환경에서 받은 token 변수명을 지정하고 Claude에서는 HTTP header의 환경변수 참조를 사용한다. 실제 token은 config에 쓰지 않는다. bearer 인증은 인간 승인 인증과 별개다. 저장소 기본 config는 localhost 실험용이며 공개 학습 연결은 별도 학습 폴더의 원격 OAuth 설정을 사용한다.
 
 [Codex MCP 설정](https://learn.chatgpt.com/docs/extend/mcp), [Claude Code 환경변수와 HTTP header](https://code.claude.com/docs/en/mcp)에 문법이 명시되어 있다. 클라이언트의 token 환경변수는 서버 `.env.local`을 읽어 가져오는 방식 대신 사용자가 각 앱의 실행 환경에 직접 제공한다.
 
@@ -66,6 +68,6 @@ cwd는 프로젝트 루트로 설정한다. 같은 프로세스가 8787 HTTP 화
 
 ## 운영 범위
 
-현재는 loopback Node 서버다. 선택적 암호화 DB 세션은 구현했으며 외부 배포 전에 HTTPS/OAuth·실제 provider/서버 세션·Supabase 권한 검증이 필요하다. Cloudflare는 정적 Astro 출력만 적합성 검토했으며 이 Node/native DB backend를 Workers에 배포하지 않았다. [구현 결과](IMPLEMENTATION_STATUS.md)
+위 로컬 실행은 loopback Node 서버다. 공개 학습 서비스는 같은 MCP 팩토리의 Cloudflare 진입점·Hyperdrive·Supabase·Google PKCE·원격 OAuth를 배포한 별도 실행 경로다. Node/native 임시 PostgreSQL을 Worker에서 실행하는 구조는 아니다. 실제 앱 연결·장부 수용 검증 범위는 [구현 결과](IMPLEMENTATION_STATUS.md)를 따른다.
 
 `pnpm deploy:check`는 GitHub/Docker/DB 설정의 준비 여부와 담당자를 확인한다. 계정 로그인·프로젝트/저장소 선택·인간 결정은 [사용자 담당표](WORK_ASSIGNMENTS.md), Node 이미지/Compose/CI 실행은 [배포 문서](DEPLOYMENT.md)에 정리했다. Windows/Linux CI와 Linux 이미지 내부 smoke는 [실제 실행 기록](CI_VALIDATION.md)에 보존했으며 실제 Supabase/앱 검증과 구분한다.

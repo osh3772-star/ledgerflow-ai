@@ -1,91 +1,92 @@
-# LedgerFlow AI
+# 한빛유통 · 회계 자동화 학습실
 
-**[Cloudflare에서 한빛유통 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/)** — Google 로그인·OAuth MCP·계정별 회사 분리 구조입니다. 실제 Supabase schema와 Cloudflare→DB 연결·OAuth 앱 등록을 확인했습니다. **2026-10-18 Google Provider 활성화를 직접 확인했고, 사용자로부터 실제 Google 로그인 후 개인 장부가 열렸다는 운영 확인 보고를 받았습니다. Codex/Claude 연결·사용자 승인 후 전기는 별도 확인이 필요합니다.** 이메일·비밀번호 가입은 사용하지 않고 로그인 전 화면은 공통 조회용 샘플입니다. [Google 설정·문제 해결](docs/GOOGLE_LOGIN_SETUP.md) · [원격 사용법](docs/REMOTE_USAGE.md)
+회계 자동화 기술과 회계의 흐름을 공부하고 싶은 사람을 위한 학습 공간입니다. 코딩을 몰라도 가상 한국 도소매 회사 **한빛유통**의 자료로 거래 → 분개 → 검증 → 직접 승인 → 장부 반영 → 재무제표를 따라갈 수 있습니다.
 
-공개 저장소: [osh3772-star/ledgerflow-ai](https://github.com/osh3772-star/ledgerflow-ai)
+**[사이트 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/) · [처음부터 끝까지 학습 순서](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/workflow/)**
 
-**[전체 워크플로우 안내 열기](https://ledgerflow-public-reference-gateway.eric5833.workers.dev/workflow/)** — 가입과 MCP 연결, ERP 1,000건의 의미, 첫 분개, 직접 승인, 장부 반영, 월말 보고서와 오류 복구를 20단계로 설명합니다. 사이트의 ‘처음 사용하기’에도 연결되어 있습니다. [원본 문서](docs/WORKFLOW_GUIDE.md) · [오프라인 HTML](docs/WORKFLOW_GUIDE.html)
+## 처음 시작하기 — 이 요청문 하나면 됩니다
 
-**처음 사용한다면 [첫 사용·원격 연결·선택적 로컬 설치](docs/GETTING_STARTED.md)를 읽으세요.** 원격 활성화 후 방문자는 사이트와 본인 AI 앱만 사용하며 서버·Node.js·DB·API 키 설치는 필요 없습니다. 기존 로컬 독립 실행과 역할·스킬 파일도 유지하며 MCP 서버에서 역할 프롬프트 6개를 제공합니다.
+1. 파일과 앱 설정을 다룰 수 있는 **Codex · 코덱스** 또는 **Claude Code · 클로드 코드**를 엽니다. 사용 가능한 본인 계정이 필요합니다.
+2. 아래 요청문을 **AI 대화창에 한 번** 붙여 넣습니다. GitHub 주소도 포함돼 있습니다.
+3. AI가 안내하면 학습 폴더를 열고, Google 로그인과 **내 장부 연결 허용**을 직접 진행합니다.
+
+```text
+나는 코딩을 모르고, 회계 자동화와 거래가 장부·재무제표로 이어지는 흐름을 배우고 싶어.
+https://github.com/osh3772-star/ledgerflow-ai
+이 저장소의 docs/START_HERE.md를 읽고, 지금 사용하는 Codex 또는 Claude Code에서 학습을 시작할 수 있게 설정해 줘.
+공유 MCP 연결과 회계 역할 6개의 학습 파일을 준비하고 기존 프로젝트·앱 설정은 보존해 줘. 서버·DB·공공 API 키를 새로 만들지 마.
+Google 로그인, 학습 폴더 열기, 앱 연결 허용처럼 내가 직접 해야 하는 화면만 한 번에 하나씩 알려줘.
+설정 파일 준비와 실제 연결 성공은 구분해 줘. get_system_status와 get_company_context를 실제 호출한 뒤에만 연결 완료라고 알려줘.
+마지막에 내 연습 회사와 첫 매출 한 건을 공부하는 요청문을 보여줘. 아직 분개 생성·승인·장부 반영은 하지 마.
+```
+
+회계 서버·데이터베이스·공공 API 키를 직접 설치하거나 발급받지 않습니다. AI가 공개 서버 연결과 기존 역할 파일을 준비합니다. 본인 로그인·연결 동의는 자동으로 대신할 수 없으며, 일반 웹 채팅에 요청문만 보내는 것으로 앱 설정이 바뀌지는 않습니다.
+
+설정 파일만 준비됐다는 답은 연결 완료가 아닙니다. **AI가 실제 회계 도구를 호출해 내 회사를 확인한 뒤** 시작하세요. 앱을 다시 열거나 학습 폴더를 선택해야 할 수 있으며, AI가 남은 화면을 하나씩 안내합니다. [첫 연결을 자세히 보기](docs/GETTING_STARTED.md)
+
+## 준비 후에는 어떻게 쓰나요?
+
+1. **AI 대화창:** 첫 거래 요청문을 보냅니다. 거래 설명·분개 초안·오류 검사 결과를 읽습니다.
+2. **이 사이트:** 새로고침 → 사용자 승인 → 전표 보기. 거래일·계정·금액·증빙과 설명을 확인하고 직접 승인합니다. 이해가 안 되면 먼저 AI에게 물어보세요.
+3. **AI 대화창:** 승인 후 장부 반영 요청문을 보냅니다.
+4. **이 사이트:** 새로고침 → 2026년 1월 → 재무 보고서. 달라진 숫자가 어떤 거래에서 왔는지 확인합니다.
+
+### 첫 거래 요청문
+
+```text
+2026년 1월의 미처리 매출 거래 한 건으로 회계 공부를 시작하고 싶어.
+먼저 실제 연결과 내 회사를 확인하고, 이미 처리한 거래는 제외해 줘.
+증빙을 읽고 어떤 거래인지, 어떤 계정에 왜 기록하는지 쉬운 말로 설명해 줘.
+분개 초안 작성 → 오류 검사 → 내 승인 요청까지 준비하고 멈춰 줘.
+공공 참고자료가 실제 조회인지, 조회하지 못했거나 적용하지 않은 부분이 있는지도 알려줘. 승인은 내가 사이트에서 직접 할게.
+```
+
+### 사이트에서 직접 승인한 뒤 보내는 요청문
+
+```text
+방금 연습한 전표를 사이트에서 직접 승인했어.
+그 전표의 승인 상태와 내용이 그대로인지 확인하고, 승인된 경우에만 장부에 반영해 줘.
+실제 반영 완료 상태를 확인한 뒤 2026년 1월 시산표와 재무제표를 보여줘.
+바뀐 숫자와 그 이유를 회계 초보자에게 설명해 줘. 미승인·반려된 전표는 반영하지 마.
+```
+
+## 무엇을 배울 수 있나요?
+
+| 해볼 수 있는 일 | 배울 수 있는 점 |
+| --- | --- |
+| 거래·증빙 조회 | 거래가 있었다는 사실을 무엇으로 확인하는지 |
+| 분개 초안과 설명 | 어떤 계정에 왜 기록하는지 |
+| 금액·중복·기간·증빙 검사 | 회계 오류를 어떻게 막는지 |
+| 직접 승인 후 장부 반영 | AI의 제안과 사람의 결정이 어떻게 나뉘는지 |
+| 원장·시산표·재무상태표·손익계산서 | 한 거래가 회사 숫자로 이어지는 과정 |
+| 은행 내역 대사·감사 점검 | 받을 돈·줄 돈과 입출금이 맞는지, 빠진 기록은 없는지 |
+| 월말 상각·선급비용 수정·역분개·마감 | 한 달의 회계를 어떻게 정리하고 잘못된 기록을 수정하는지 |
+| 공공자료 조회 | 외부 자료가 회계 판단의 참고 근거가 되는 방식 |
+
+## 왜 거래가 이미 1,000건 있나요?
+
+연습할 자료를 미리 준비한 것입니다. 실제 회사·은행에서 가져온 거래가 아닙니다. 원천 자료 1,000건이 곧 장부 1,000건은 아닙니다. **분개 → 검사 → 직접 승인 → 장부 반영**을 마친 전표만 보고서에 집계됩니다. 아직 반영한 전표가 없으면 ‘장부 반영 전’으로 표시합니다.
+
+Google 계정마다 개인 장부가 따로 저장됩니다. 로그인 전에는 공통 읽기 전용 예시를 봅니다.
+
+## 여섯 AI 역할과 네 공공자료
+
+AI는 총괄·매출·매입·자금·결산·감사 중 필요한 역할을 순서대로 사용합니다. 여섯 AI가 항상 동시에 실행되는 것은 아닙니다. ‘이번에 사용한 역할과 도구를 알려줘’라고 물어 실제 작업을 확인할 수 있습니다.
+
+국세청·DART·국가법령정보·한국은행 자료는 관련 있는 거래의 참고 근거로 사용합니다. 원본 API 키는 서버에 있고 따로 입력하지 않습니다. 가상 거래처에는 실제 사업자번호가 없어 국세청 조회를 제외합니다. 모든 기관이 매 전표마다 호출되지는 않습니다. 공시기업의 매출이 내 장부에 섞이지 않으며 실제 조회·샘플·실패·조회 제외를 구분합니다.
+
+## 왜 만들었나요?
+
+책에서 배운 회계 기록이 장부와 재무제표로 이어지는 모습을 직접 확인하고, AI가 도와주는 부분과 사람이 검토해야 하는 부분을 함께 공부하기 위해 만들었습니다. 반복 계산과 규칙 검사는 코드가 수행합니다. 별도 유료 LLM API·자체 오케스트레이터·무인 스케줄러는 사용하지 않습니다. 본인의 AI 앱 이용 계정과 한도는 별도입니다.
+
+학습용 가상회사입니다. 실제 은행 업무·세금 신고를 대신하지 않고 완전한 K-IFRS 준수를 인증한 서비스가 아닙니다.
+
+## 구현 원리와 검증 기록도 공부하고 싶다면
+
+- [전체 구조·회계 규칙·DB 설계](docs/ARCHITECTURE.md)
+- [회계 도구 41개와 입출력](docs/MCP_TOOLS.md)
+- [여섯 역할의 업무 지침](docs/CLIENT_ROLES.md)
+- [구현·테스트 결과와 남은 검증](docs/IMPLEMENTATION_STATUS.md)
+- [PC에서 따로 실행하며 코드 살펴보기](docs/LOCAL_PRACTICE.md)
 
 [![LedgerFlow checks](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/osh3772-star/ledgerflow-ai/actions/workflows/ci.yml)
-
-한국 가상 도소매 법인의 회계 자동화 포트폴리오다. Claude Code와 Codex가 **단일 foreground MCP 서버**를 공유하고 앱의 6역할 agent·skill로 사용자 요청을 수행한다. 유료 LLM API·자체 오케스트레이터·무인 스케줄러를 사용하지 않는다.
-
-**ERP 1,000건 → 결정론적 분개 → 독립 검증 → 인간 화면 승인 → 원자적 전기 → 원장·시산표·BS/IS**를 구현했다. 결산 수정분개·역분개·기간 마감·반려 전표 폐기·은행 대사, 무료 공공 API 4종의 11개 도구, Astro React 대시보드를 포함한다. MCP 도구는 41개다.
-
-**처음 사용한다면 [사용 안내](docs/USER_GUIDE.md)부터 읽으세요.** API 연결 상태표, 현재 Mock/Live 구분, 사용 순서, 앱에 복사할 요청문, 사용자 승인과 자동화 범위를 한 문서로 정리했다.
-
-공공 API 4종은 실제 응답을 검증했고, 새 분개 초안에 거래일 법령·공시기업 재무·금리 참고자료를 첨부한다. 가상 거래처의 국세청 검증은 실제 번호가 없어 제외한다. 새 로컬 설치는 `mock`이며 운영자 키의 직접 실조회 또는 [Cloudflare 공유 중계](docs/PUBLIC_GATEWAY.md)로 연결할 수 있다. 원격은 서버 측 공공 API 키를 사용하며 방문자에게 키를 배포하지 않는다. 앱에서 요청하고 웹에서 직접 승인한 뒤 앱에 전기를 요청한다.
-
-## 실행
-
-Node 24, pnpm 11.25.
-
-```powershell
-pnpm install --frozen-lockfile
-pnpm start
-```
-
-화면: `http://127.0.0.1:8787/`. 두 앱 MCP: `http://127.0.0.1:8787/mcp`. 프로젝트 `.mcp.json`과 `.codex/config.toml`이 같은 endpoint를 사용한다. 앱 신뢰/허용 설정 후 재로드한다. 서버 종료는 `stop` + Enter.
-
-`pnpm start`는 웹을 build하고 단일 로컬 demo 서버를 연다. `.env.local`의 Supabase 설정을 보존하면서 이 프로세스에는 폐기형 demo DB를 명시적으로 선택한다. 추가 로그인/클라우드 설정 없이 실행하며, 종료하면 DB가 정리되고 다음 실행에 같은 합성 1,000건으로 재생성된다. 지속 장부의 `pnpm mcp:start`/postgres 경로와 기존 안전 검사는 유지한다. [시연 순서와 완료 범위](docs/PORTFOLIO_READY.md), [연결·stdio·인간 승인·DB 설정](docs/CLIENT_SETUP.md).
-
-서버 실행 후 다른 터미널에서 `pnpm mcp:doctor`로 두 앱 설정·현재 Codex 등록·MCP 41개 도구·회사 범위 읽기를 점검한다. 결과는 `.ledgerflow/readiness/latest.json`에 저장하며 실제 앱 추론과 인간 승인은 별도로 확인한다.
-
-남은 일은 [사용자/Codex 담당표](docs/WORK_ASSIGNMENTS.md)에 나눴다. `pnpm deploy:check`가 계정·도구·설정의 준비 여부와 담당자를 출력한다. [Docker·CI 실행 및 검증 범위](docs/DEPLOYMENT.md)를 참고한다.
-
-사용자 준비를 Aside AI로 진행할 때는 [한 번에 하나씩 전달하는 명령](docs/ASIDE_TASKS.md)을 사용한다. 외부 인증 DB의 선택적 [암호화 세션 저장](docs/SECURITY_SESSIONS.md)도 제공하며 기본 로컬 demo는 로그인 없이 유지한다.
-
-기존 Supabase 연결을 준비할 때는 [단계별 설정](docs/SUPABASE_SETUP.md)에 따라 세 연결값만 먼저 입력한다. `pnpm supabase:check`가 TLS·Auth health·DB schema metadata를 읽기 전용으로 점검하며, 자동 migration/seed·사용자 인증·Storage 검증을 수행한 것으로 표시하지 않는다.
-
-초기 schema 설치의 `pnpm supabase:init`도 기본은 읽기 계획이다. `--offline`은 로컬 migration manifest만 생성하고, 명시적인 `--apply --project=... --hash=...`만 빈 namespace에 6개 원본 migration을 한 트랜잭션으로 적용한다. 실제 Auth 사용자·ERP hosted 적재·서버 profile 전환은 후속 단계다.
-
-## 키와 인간 승인
-
-키는 루트 ignored `.env.local`에 둔다. 새 checkout은 `.env.example`을 복사한다.
-
-```dotenv
-ADAPTER_MODE=mock
-NTS_SERVICE_KEY=
-DART_API_KEY=
-LAW_OC=
-ECOS_API_KEY=
-```
-
-공공 API 실조회는 `ADAPTER_MODE=live`, 명시 진단은 `pnpm api:check` / `pnpm api:adapters`다. API 실패를 mock 성공으로 바꾸지 않는다. `pnpm env:check`는 설정 여부만 출력한다.
-
-키가 이미 등록된 운영자 PC는 `pnpm api:live`로 다른 설정을 보존하며 실조회 모드를 켠다. `pnpm api:references`는 사용자 장부를 바꾸지 않고 합성 거래의 공공근거 수집을 진단한다. 다른 사용자는 운영자에게 받은 접속 토큰으로 `pnpm gateway:connect`를 실행하면 원본 API 키 4개 없이 공유 중계를 사용할 수 있다. 공개 서비스 배포·토큰 전달이 먼저 필요하다.
-
-로컬 데모에는 로그인이나 비밀번호 설정이 없다. 전표·증빙을 검토하고 화면에서 승인 또는 반려 버튼을 누른다. 앱은 승인 요청을 만들며 앱의 tool 실행 허용은 장부 승인이 아니다.
-
-## 구현 / 검증
-
-| 구현 | 증거 |
-| --- | --- |
-| 고정 ERP 1,000건 + 격리회사 1건, 원본 migration 001~003 보존 | fixture SHA·실제 PostgreSQL RLS/FK/CHECK/UNIQUE 테스트 |
-| Decimal 복식부기·10종 거래·원장·시산표·BS/IS | 수기 gold + 합성 오류 데이터셋, LLM 독립 |
-| 인간 승인·hash/version·원자적 전기·불변성 | 승인 우회/권한 철회/라인 변조/중복/마감 테스트 |
-| 상각·선급 결산·역분개·폐기·은행 대사 | 월 완결 마감 및 실제 DB 통합 테스트 |
-| 4 공공 API Adapter / 11 MCP 도구 | 전체 mock, 일부 live 실키, 캐시·장애 테스트 |
-| 분개 공공근거 snapshot·선택 Cloudflare 중계 | 거래일 법령 실조회, 금액 불변·승인 hash·동시 멱등, Worker bundle·인증·쿼터 검사 |
-| 단일 MCP HTTP/stdio, 두 앱 설정 / 각 6역할 | 두 SDK 연결·공유 Draft·정적 config/skill 검사 |
-| 연결 자가진단·기존 PostgreSQL profile | 읽기 연결·현재 Codex 등록, Draft 재기동 보존·미완성 schema 거절 |
-| Astro React 화면, Supabase Auth/Storage 연결 코드·정책 | 정적 build·브라우저 검토, JWT adapter 테스트 |
-| Windows/Linux CI + Linux Docker 이미지 | [최신 실행](https://github.com/osh3772-star/ledgerflow-ai/actions/runs/38849513756)에서 각 OS 211 tests, 실제 이미지 내부 비관리자 MCP 41개 도구·회사 범위 조회 |
-
-최종 테스트 수·평가 수치와 live 조회 범위는 [IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)에 기록한다. [실제 GitHub CI](docs/CI_VALIDATION.md)는 Windows/Linux 회귀 검사와 Linux Docker 이미지 smoke를 통과했다. 실제 Claude Code/Codex 앱 추론, hosted Supabase Auth/Storage, 장부 backend 원격 배포는 외부 수용 검증이 남아 있다.
-
-2026-10-16 **Cloudflare 공공자료 중계는 실제 배포와 네 기관 주요 조회를 확인했다.** 수신자는 저장소 설치 후 `pnpm gateway:connect`로 운영자에게 받은 전용 토큰을 입력하면 된다. 원본 API 키 4개는 전달하지 않는다. 장부 backend의 원격 배포·native 앱 추론·hosted Supabase 검증은 별도다.
-
-현재 로컬 검사는 **242개 테스트 / 35개 파일**이 통과했다. 공개 사이트의 조회/변경 차단 5개, 공공근거·중계 20개와 기존 재무 화면·회계 검사를 포함한다. 위에 연결한 Windows/Linux CI 기준 소스와 이번 변경의 새 CI 결과는 구분한다. 고정 가상 ERP 1,000건의 Draft 생성·분류 평가, 수기 분개 10/10, 합성 오류 5/5 탐지를 확인했다. 프로젝트 유료 모델 API 호출은 0회다.
-
-![LedgerFlow 대시보드](docs/screenshots/dashboard.png)
-
-## 설계와 한계
-
-[전체 아키텍처·ERD·운영비](docs/ARCHITECTURE.md), [개발 계획·평가](docs/IMPLEMENTATION_PLAN.md), [MCP 전체 명세](docs/MCP_TOOLS.md), [native 역할 계약](docs/CLIENT_ROLES.md).
-
-매출 인도·단일 수행의무·일정 단위원가·월 상각 등 합성 시나리오 정책에 한정한다. 완전한 K-IFRS 준수, 실제 기업 정확도, 법인세/법정 신고·현금흐름표·주석을 제공한다고 주장하지 않는다. 공공 자료는 참고자료이며 가상회사 장부에 섞지 않는다. `auth-bootstrap.sql`은 native DB 테스트 전용이며 Supabase에 적용하지 않는다.
-
-Cloudflare에는 공공자료만 중계하는 Worker를 배포했다. Node/native DB 장부 backend는 로컬에 유지한다. [공유 연결·배포·무료 한도](docs/PUBLIC_GATEWAY.md)와 [실제 검증 상태](docs/IMPLEMENTATION_STATUS.md)를 확인한다. 프로젝트 모델 API 추가비용은 0이고 기존 앱 구독 한도와 외부 DB 비용은 별도다.

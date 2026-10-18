@@ -1,5 +1,17 @@
 # Implementation and verification status
 
+## 2026-10-18 회계 자동화 학습 안내 개편
+
+사이트와 GitHub의 첫 안내를 **회계 자동화 기술과 회계 흐름을 공부하는 사람** 하나의 대상으로 통일했다. 첫 화면은 ‘처음 사용하기’이며 GitHub 주소가 포함된 시작 요청문 하나를 제공한다. 서버·DB 설치와 배포 설명을 첫 학습 경로에서 제거하고, 기능 → 첫 매출 한 건 → 직접 승인 → 장부 반영 → 보고서 읽기 → 한 달 정리 순서로 안내한다.
+
+웹·README·GETTING_STARTED·전체 안내의 네 요청문은 `docs/learning-start.json`을 공유한다. `docs/render-learning-docs.mjs`가 세 Markdown 문서를, 기존 renderer가 12개 단원·복사 블록 4개·깨진 앵커 0개의 HTML을 생성한다. 기존 가상 1,000건·6역할·회계 엔진·공공 API·승인 통제를 보존한다.
+
+시작 요청문이 가리키는 `docs/START_HERE.md`와 의존성 없는 `scripts/create-learning-workspace.ts`를 추가했다. 이미 실행 중인 공용 MCP 하나의 양 앱 설정·기존 역할 파일·업무 지침만 별도 학습 폴더에 준비하며, 기존 프로젝트/글로벌 앱 설정을 덮어쓰지 않는다. 기본 source의 앱 인증 설정 대신 공개 도구 카탈로그로 41개 allowlist를 작성한다. Node가 없는 앱에서는 AI 파일 도구로 같은 allowlist를 준비하도록 설명한다.
+
+새 PC에서 앱 선택·Google 로그인·MCP 연결 동의는 본인이 진행한다. 설치 스크립트는 항상 `connectionVerified:false`를 반환하며, 설정 준비·로그인 대기·현재 앱의 실제 status/context 호출 성공을 구분한다. 새 설치자의 실제 네이티브 앱에서 요청문 하나로 인증·연결까지 마친 수용 검증은 아직 별도다. 개발 검증을 그 성공 증거로 대신하지 않는다.
+
+`pnpm check`는 **263개/40개 파일 통과**다. 별도 학습 폴더의 단일 공용 MCP·기존 6역할 원문 재사용·설정 보존·멱등 재실행·충돌/수정 거부·추가 패키지 설치 없는 Node 실행을 검사했다. 웹 2페이지와 Worker dry build도 통과했고, README·첫 연결·전체 안내의 시작 요청문 일치, 대상 분류 표현 제거, 공개 파일 비밀값 노출 0건을 확인했다.
+
 ## 2026-10-18 Google 로그인 운영 수정의 원본 반영
 
 운영 Worker에만 적용됐던 두 `cipher.update()` 수정 사항을 `remote-auth.ts`와 `remote-google-auth.ts`에 반영했다. JSON을 명시적인 UTF-8 Buffer로 전달하며 기존 AES-GCM 암호문 형식·키·AAD·세션·회계 승인 흐름은 유지한다. 별도 유료 API·서버·migration은 추가하지 않았다.
