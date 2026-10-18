@@ -58,7 +58,7 @@
 
 ## 다음 최소 단위
 
-현재 최소 단위는 Google Provider의 소유자 설정을 마치고 실제 Google 로그인·앱 OAuth와 status/context·사용자 직접 승인 후 Posted를 확인하는 것이다. Supabase 회계 schema와 원격 장부는 같은 Worker에 배포했다. 운영자의 사용자 신원이나 장부 승인 결정을 개발자가 만들어 대신하지 않는다. 기존 `pnpm start` 로컬 demo도 보존한다.
+2026-10-18 Google Provider 활성화를 직접 확인했고 사용자에게 실제 Google 로그인 후 개인 장부 진입 성공 보고를 받았다. 운영 Worker의 암호화 호환성 수정도 원본에 반영했다. 현재 다음 최소 단위는 본인 Codex 또는 Claude의 앱 OAuth 연결 후 `get_system_status` → `get_company_context` 실제 호출을 확인하는 것이다. 이후 사용자 직접 웹 승인 후 Posted와 별도 실사용자 격리를 확인한다. Supabase 회계 schema와 원격 장부는 같은 Worker에 배포했다. 운영자의 사용자 신원이나 장부 승인 결정을 개발자가 만들어 대신하지 않는다. 기존 `pnpm start` 로컬 demo도 보존한다.
 
 핵심 회계 구현은 [현재 검증 결과](IMPLEMENTATION_STATUS.md)에 기록했다. 사용자 지시에 따라 현재 최소 단위는 **기존 Supabase 연결값 3개 준비 → TLS/Auth health/DB metadata 읽기 전용 진단**이다. [단계별 연결 계획](SUPABASE_SETUP.md)을 따른다. 실제 Claude Code/Codex 공유 Draft·인간 승인·Posted 수용 테스트도 남아 있으며 DB 접속만으로 완료 처리하지 않는다.
 

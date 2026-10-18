@@ -23,7 +23,8 @@ export class RemoteGoogleAuth {
   private seal(value:z.infer<typeof flowSchema>,binding:string){
     const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',Buffer.from(this.auth.config.encryptionKey,'base64'),iv);
     cipher.setAAD(Buffer.from(this.auth.config.origin+'/google-pkce-v1/'+binding));
-    return Buffer.concat([iv,cipher.update(JSON.stringify(value)),cipher.final(),cipher.getAuthTag()]).toString('base64');
+    // Match browser-session encryption on Node and Cloudflare Workerd.
+    return Buffer.concat([iv,cipher.update(Buffer.from(JSON.stringify(value),'utf8')),cipher.final(),cipher.getAuthTag()]).toString('base64');
   }
   private open(value:string,binding:string){
     const bytes=Buffer.from(value,'base64'),decipher=createDecipheriv('aes-256-gcm',Buffer.from(this.auth.config.encryptionKey,'base64'),bytes.subarray(0,12));

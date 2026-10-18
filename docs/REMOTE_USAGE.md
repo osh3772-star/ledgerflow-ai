@@ -1,6 +1,6 @@
 # 설치 없이 사용하는 원격 장부
 
-2026-10-17. **Google 로그인으로 전환했다.** 별도 사이트 이메일·비밀번호 가입은 제거했다. Supabase 회계 schema와 Cloudflare→DB 연결은 준비됐으며, Google Provider를 소유자 계정에서 등록해야 한다. /api/remote/config의 googleLogin.enabled가 true여야 Google 버튼이 활성화된다. 실제 Google 로그인·AI 앱 OAuth·사용자 승인 후 Posted는 별도 검증이 필요하다. [운영 설정과 Aside 명령어](GOOGLE_LOGIN_SETUP.md)
+2026-10-18. **Google 로그인으로 전환했고 운영 제공자 활성화를 확인했다.** 별도 사이트 이메일·비밀번호 가입은 제거했다. Supabase 회계 schema와 Cloudflare→DB 연결이 준비됐고 `/api/remote/config`는 `googleLogin.enabled:true`다. 실제 Google 로그인 후 개인 장부가 열렸다는 사용자 전달 운영 보고를 받았다. 기존 운영자는 OAuth 키를 중복 생성할 필요가 없다. 서로 다른 실제 사용자 격리·AI 앱 OAuth·사용자 승인 후 Posted는 별도 검증이 필요하다. [운영 설정·문제 해결](GOOGLE_LOGIN_SETUP.md)
 
 사이트: https://ledgerflow-public-reference-gateway.eric5833.workers.dev/
 

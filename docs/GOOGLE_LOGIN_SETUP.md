@@ -2,7 +2,9 @@
 
 방문자는 **Google로 계속하기 → 계정 선택**으로 장부를 엽니다. 별도의 이메일·비밀번호 회원가입과 가입 확인메일은 사용하지 않습니다. Google 인증 후 확인된 Supabase 사용자 UUID로 기존 회사·권한을 선택하며, 전표 승인은 여전히 사용자가 사이트에서 직접 합니다.
 
-코드는 구현되어 있고 실제 PostgreSQL의 Google PKCE·브라우저 결합·단일 사용·만료·세션·기존 회계 흐름을 테스트합니다. **운영 Supabase Google 제공자는 마지막 확인에서 꺼져 있습니다.** 설정 전에는 로그인 버튼을 비활성화하고 준비 중으로 안내합니다. 가짜 성공이나 이메일 인증 해제로 우회하지 않습니다.
+**2026-10-18 현재:** 공개 사이트 `/api/remote/config`에서 `googleLogin.enabled:true`, `checked:true`를 확인했습니다. 사용자가 전달한 운영 확인 보고에서는 실제 Google 로그인 후 개인 장부가 열렸습니다. 아래 설정은 신규 운영자용이며, 현재 운영 프로젝트에 OAuth 키를 중복 생성할 필요는 없습니다. 네이티브 MCP 앱 연결과 실제 웹 전표 승인은 별도로 확인해야 합니다.
+
+코드는 실제 PostgreSQL에서 Google PKCE·브라우저 결합·단일 사용·만료·세션·기존 회계 흐름을 테스트합니다. 제공자 설정 전에는 로그인 버튼을 비활성화하고 준비 중으로 안내합니다. 가짜 성공이나 이메일 인증 해제로 우회하지 않습니다.
 
 ## 운영자가 등록할 주소
 
@@ -48,6 +50,11 @@ Client ID·Secret을 Supabase Google Provider에 등록하고 활성화하며, S
 4. AI 앱의 MCP OAuth 인증 브라우저에서도 같은 Google 계정을 선택하고, 원래의 **내 장부 연결 허용** 화면으로 돌아오는지 확인합니다. Google 로그인이 MCP 접근 동의나 전표 승인을 자동으로 대신하지 않습니다.
 
 Google의 Supabase callback과 AI 앱의 localhost callback은 서로 다른 단계입니다. Google에 Codex·Claude의 임의 localhost 주소를 등록하지 않습니다. MCP client callback은 기존 서버의 OAuth 등록·검증을 따릅니다.
+
+## 설정 중 권한 오류 또는 Worker 암호화 오류
+
+- Google Cloud에서 `iam.serviceAccounts.list` 또는 `oauthconfig.verification.get` 권한 오류가 나면 현재 계정이 OAuth 설정을 관리할 수 있는 프로젝트인지 확인합니다. 서비스 계정 생성이나 토큰 생성자 권한 추가로 해결하지 않습니다. 본인이 관리하는 프로젝트를 선택하거나 새 로그인 전용 프로젝트를 만든 뒤 **Google Auth Platform → 클라이언트 → 웹 애플리케이션**을 사용합니다. 이 변경으로 기존 Supabase 프로젝트나 DB를 새로 만들 필요는 없습니다.
+- Workerd에서 `cipher.update()`에 문자열만 넘기면 `ERR_INVALID_ARG_VALUE`가 발생할 수 있습니다. Google PKCE flow와 브라우저 세션 두 곳 모두 `cipher.update(Buffer.from(JSON.stringify(value),'utf8'))`로 명시적인 바이트를 전달합니다. 암호화 키·AES-GCM 포맷·브라우저 결합·기존 암호문은 그대로 유지합니다. Node 테스트만으로 이 런타임 차이를 확인할 수 없으므로 `tests/integration/remote-auth-workerd.test.ts`가 Wrangler에 고정된 Workerd에서 두 경로를 검사합니다. [보고된 런타임 문제](https://github.com/cloudflare/workerd/issues/6920)
 
 기술 구조: 서버 측 S256 PKCE, 10분 해시 쿠키와 암호화 DB flow, 원자적 단일 사용, Supabase getUser 검증, Google identity 확인, 기존 Secure/HttpOnly/CSRF 세션 재사용. Google access token은 보관하지 않습니다. 이전 Supabase UUID가 유지되는 계정은 기존 회사 연결을 사용하고, 다른 신원이면 별도 회사로 취급합니다. 이메일만 같다고 사이트가 자체 계정 병합을 하지 않습니다.
 

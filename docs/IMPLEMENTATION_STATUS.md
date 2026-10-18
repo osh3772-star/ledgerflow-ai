@@ -1,5 +1,15 @@
 # Implementation and verification status
 
+## 2026-10-18 Google 로그인 운영 수정의 원본 반영
+
+운영 Worker에만 적용됐던 두 `cipher.update()` 수정 사항을 `remote-auth.ts`와 `remote-google-auth.ts`에 반영했다. JSON을 명시적인 UTF-8 Buffer로 전달하며 기존 AES-GCM 암호문 형식·키·AAD·세션·회계 승인 흐름은 유지한다. 별도 유료 API·서버·migration은 추가하지 않았다.
+
+Wrangler에 고정된 Miniflare/Workerd 런타임에서 실제 소스를 묶어 Google PKCE 시작→코드 교환→브라우저 세션 저장과 한글 왕복, 다른 브라우저/키 거부, code 재사용 거부를 검사하는 두 회귀 테스트를 추가했다. 테스트는 메모리 저장소와 Auth fixture를 사용하며 외부 호출·실제 사용자·실제 장부에 접근하지 않는다.
+
+최종 `pnpm check`는 **258개/39개 파일 통과**다. 수정 전 두 호출을 재현한 별도 Workerd 비교 실험에서는 세션/Google 경로 모두 HTTP 500이었고 수정 후 두 테스트는 HTTP 200이다. Worker dry build 성공, Git 공개 대상 및 웹 build 비밀값 노출 0건을 확인했다.
+
+공개 `/api/remote/config`는 `available:true`, `googleLogin:{enabled:true,checked:true}`다. 사용자가 전달한 운영 확인 보고에 따르면 Google 로그인 후 개인 장부가 열렸다. 이번 소스 작업에서 실제 계정 로그인을 재실행하거나 전표 승인·전기를 수행하지는 않았다. 아래 Google 비활성 기록은 2026-10-17 당시 결과다.
+
 ## Google 로그인 전환
 
 2026-10-17. 이메일·비밀번호 입력과 원격 signup/password login 경로를 종료하고 Google 버튼·서버 S256 PKCE·원래 MCP 동의 화면 복귀를 구현했다. 008 migration은 암호화된 10분 단일 사용 login flow만 추가한다. 기존 회사 UUID·회계 도구 41개·역할 6개·사람 승인·불변 전표와 원본 001~007을 보존한다.

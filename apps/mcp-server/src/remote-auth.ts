@@ -12,7 +12,8 @@ export function sealSession(value:BrowserIdentity,key:string,binding=''){
   const bytes=Buffer.from(key,'base64');if(bytes.length!==32)throw new Error('REMOTE_KEY_INVALID');
   const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',bytes,iv);
   cipher.setAAD(Buffer.from('ledgerflow-remote-browser-v1/'+binding));
-  return Buffer.concat([iv,cipher.update(JSON.stringify(value)),cipher.final(),cipher.getAuthTag()]).toString('base64');
+  // Workerd requires explicit bytes when no inputEncoding is supplied.
+  return Buffer.concat([iv,cipher.update(Buffer.from(JSON.stringify(value),'utf8')),cipher.final(),cipher.getAuthTag()]).toString('base64');
 }
 export function openSession(value:string,key:string,binding=''):BrowserIdentity{
   const bytes=Buffer.from(value,'base64'),decipher=createDecipheriv('aes-256-gcm',Buffer.from(key,'base64'),bytes.subarray(0,12));
