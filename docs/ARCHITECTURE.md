@@ -1,5 +1,13 @@
 # LedgerFlow architecture
 
+## 2026-10-18 개인 장부와 AI 연결 일치
+
+Google 웹 세션 → CSRF 보호 POST /api/remote/setup-ticket → 10분 일회용 claimCode → GET bootstrap 또는 POST /api/remote/claim → 7일 작성 전용 연결(/mcp/p/...) → 같은 remote_workspaces의 companyId를 사용한다. provider JWT/쿠키는 AI에 전달하지 않는다. 서버는 코드·연결 키의 SHA-256만 DB에 보관하며 같은 bootstrapKey의 만료 전 재시도만 허용한다. 다른 키 재사용·만료·취소·외부 회사 접근은 거절하고 새 게스트로 대체하지 않는다. 기존 OAuth 연결도 유지한다.
+
+같은 폴더의 guestToken을 전달하면 빈 개인 샘플 장부 대신 게스트 작업 장부를 연결한다. 원래 회사/거래는 삭제하지 않고 private.remote_workspace_history에 남긴다. 같은 트랜잭션에서 verified owner membership/작성자 mapping을 전환한다. 기존 AI 키는 원래 만료까지만 새 소유자 장부의 작성자로 유지하며 익명 검토 권한은 중단한다. 양쪽 모두 작업한 장부는 WORKSPACE_SELECTION_REQUIRED로 중단한다. 이미 익명으로 승인했지만 미전기인 전표는 원래 통제를 보존해 GUEST_PENDING_POSTING으로 중단한다.
+
+010 migration은 setup tickets, learning links, workspace history만 추가하고 이전 migration/게시 전표/회계 함수는 변경하지 않는다. 회사 ID·최근 MCP 호출·작성자 전표 상태는 서버가 확인한 해당 회사만 보여 준다. 작성자는 계속 승인 권한이 없고 사람의 검증된 웹 세션으로만 개인 전표를 결정한다.
+
 > 현재 기본 설치: 공개 GET /api/remote/bootstrap에서 임시 회사+핵심 스키마+6역할 번들을 받아 CWD 파일 도구로 병합한다. Git/Node 실행·홈 설정·외부 MCP 스키마 읽기는 기본 경로에서 제거했다. Antigravity는 workspace plugin의 mcp_config.json, Claude/Codex는 프로젝트 설정에 단기 guest URL을 등록한다. 첫 매출은 status/context/propose 통합 옵션의 정상 경로 3회다. 아래 이전 header helper/글로벌 설치 설명은 구형 기록이며 [현재 시작 지침](START_HERE.md)이 우선한다.
 
 

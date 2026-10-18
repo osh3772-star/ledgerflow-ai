@@ -2,7 +2,8 @@ import {useEffect,useState} from 'react';
 import {PromptBox} from './LearningStart.js';
 import learning from '../../../../docs/learning-start.json' with {type:'json'};
 import '../styles/remote-access.css';
-type Identity={signedIn:boolean;email?:string;csrf?:string;mode?:string;expiresAt?:string};
+import {personalSetupPrompt,type LearningSetup} from './PersonalSetup.js';
+type Identity={signedIn:boolean;email?:string;csrf?:string;mode?:string;companyId?:string;expiresAt?:string};
 async function api(path:string,init?:RequestInit){
  const r=await fetch(path,{...init,credentials:'same-origin'}),data=await r.json();
  const errors:Record<string,string>={AUTH_FAILED:'Google 로그인을 다시 시작하세요.',GOOGLE_PROVIDER_NOT_CONFIGURED:'Google 로그인을 준비 중입니다. 잠시 후 다시 확인해 주세요.',
@@ -10,14 +11,16 @@ async function api(path:string,init?:RequestInit){
   EMAIL_VERIFICATION_REQUIRED:'Google 계정의 이메일 확인 상태를 확인하세요.',RATE_LIMITED:'잠시 후 다시 시도하세요.',
   UNAUTHENTICATED:'세션이 만료됐습니다. 다시 로그인하세요.',REMOTE_SERVICE_UNAVAILABLE:'원격 장부 서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.',
   WORKSPACE_CAPACITY_REACHED:'현재 학습 계정 정원이 찼습니다. 잠시 후 다시 확인해 주세요.'};
+ errors.WORKSPACE_SELECTION_REQUIRED='두 장부에 작업 기록이 있어 자동으로 합치지 않았습니다. 보관할 장부를 먼저 확인하세요.';
  if(!r.ok)throw new Error(errors[String(data.error)]??'요청을 완료하지 못했습니다. 연결과 로그인 상태를 확인하세요.');
  return data;
 }
-export default function RemoteAccess(){
+export default function RemoteAccess({onSetup}:{onSetup?:(setup:LearningSetup|null)=>void}){
  const [config,setConfig]=useState<{available:boolean;mcpUrl?:string;googleLogin?:{enabled:boolean;checked:boolean}}>(),[identity,setIdentity]=useState<Identity>({signedIn:false});
  const [message,setMessage]=useState(''),[busy,setBusy]=useState(false),[expanded,setExpanded]=useState(false);
  const [consent,setConsent]=useState<{clientName:string;redirectUri:string}>();
  const [connections,setConnections]=useState<{id:string;name:string;revoked:boolean}[]>([]);
+ const [setup,setSetup]=useState<LearningSetup|null>(null);
  const authorizing=typeof window!=='undefined'&&window.location.pathname==='/oauth/authorize';
  const authorization=typeof window==='undefined'?'':window.location.pathname+window.location.search;
  const authPath='/api/remote/authorization?request='+encodeURIComponent(authorization);
@@ -32,9 +35,15 @@ export default function RemoteAccess(){
    const session=await api('/api/remote/session');
    if(authorizing&&session.mode==='guest'){setIdentity({signedIn:false});return;}
    setIdentity(session);
+   if(session.signedIn&&session.mode==='personal'&&!authorizing)await issueSetup(session);
    if(session.signedIn){if(authorizing)setConsent(await api(authPath));setConnections(await api('/api/remote/connections'));}
-  }catch(e){if(authorizing)setMessage(String(e));}
+  }catch(e){setMessage(String(e));}
  })();},[]);
+ async function issueSetup(session=identity){
+  onSetup?.(null);setSetup(null);
+  const ticket=await api('/api/remote/setup-ticket',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session.csrf??''},body:'{}'});
+  const value={personal:true,prompt:personalSetupPrompt(window.location.origin,ticket.claimCode),companyId:ticket.companyId,expiresAt:ticket.expiresAt};setSetup(value);onSetup?.(value);
+ }
  async function login(){
   setBusy(true);setMessage('');
   try{const data=await api('/api/remote/google/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnTo:authorizing?authorization:'/'})});
@@ -67,8 +76,8 @@ export default function RemoteAccess(){
      <p>연결을 마치면 돌아갈 주소: <code>{consent.redirectUri}</code></p>
      <button disabled={busy} onClick={()=>void connect()}>내 장부 연결 허용</button> <a href="/">취소하고 사이트로 돌아가기</a></>}
    </div>:<div className="remote-connection">
-    <p>처음이면 아래 요청문을 코덱스 또는 클로드 코드에 보내세요. AI가 학습에 필요한 연결과 역할 파일을 준비합니다. 임시 연습에는 Google 로그인이 필요 없습니다. Google로 보관한 장부만 별도 OAuth로 연결합니다.</p>
-    <PromptBox title="AI와 회계 공부 시작하기" prompt={learning.setupPrompt} hint="이미 연결했다면 다시 설치하지 않아도 됩니다. AI에게 첫 거래 연습을 요청하세요."/>
+    <p>{identity.mode==='personal'?'아래 요청문은 지금 로그인한 내 장부 전용입니다. 같은 폴더에서 보내면 기존 임시 연결도 이어 줍니다. 새 게스트 장부를 만들지 않습니다.':'아래 요청문으로 임시 학습을 준비합니다. 기록을 보관할 때는 전용 승인 화면에서 Google을 연결하세요.'}</p>
+    {identity.mode==='personal'?<>{setup?<PromptBox title="내 Google 장부에 AI 연결하기" prompt={setup.prompt} hint={'10분 안에 AI에게 보내세요. 연결 키는 7일 유효하며 아래에서 접근을 취소할 수 있습니다. 회사 ID: '+setup.companyId}/>:<p role="status">내 장부 연결 요청문을 준비 중입니다. 실패했다면 다시 발급해 주세요.</p>}<button className="secondary" onClick={()=>void issueSetup().catch(e=>setMessage(String(e)))}>연결 요청문 다시 발급</button></>:<PromptBox title="AI와 회계 공부 시작하기" prompt={learning.setupPrompt} hint="이미 연결했다면 다시 설치하지 않아도 됩니다."/>}
     <details><summary>연결 주소가 필요한 경우</summary><label>회계 도구 연결 주소<input readOnly value={config.mcpUrl??''}/></label><button className="secondary" onClick={()=>void copy(config.mcpUrl??'')}>주소 복사</button><p>처음 사용하기의 시작 요청문이 이 주소를 사용합니다. 주소가 저장된 것과 실제 로그인·연결 성공은 다릅니다.</p></details>
     <p><a href="/workflow/">연결 후 첫 거래부터 보고서까지 배우기 →</a></p>
     <details><summary>연결한 앱과 접근 취소</summary>{connections.filter(c=>!c.revoked).map(c=><p key={c.id}>{c.name} <button className="secondary" onClick={()=>void revoke(c.id)}>이 연결 취소</button></p>)}</details>

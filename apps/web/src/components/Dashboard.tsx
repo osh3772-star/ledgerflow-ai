@@ -5,6 +5,7 @@ import BeginnerGuide,{GuideWelcome} from './BeginnerGuide.js';
 import {FinancialMetrics,BalanceSheetPanel,TrialBalancePanel} from './FinancialReports.js';
 import {PublicApiStatus,PublicReferences,PublicSiteNotice} from './PublicReferences.js';
 import RemoteAccess from './RemoteAccess.js';
+import type {LearningSetup} from './PersonalSetup.js';
 type Row=Record<string,unknown>;
 type Company={companyId:string;name:string;periods:{id:string;from:string;to:string;status:string}[]};
 type Journal={id:string;version:number;state:string;hash:string;discardedAt:string|null;payload:{transactionId:string;sourceDocumentIds:string[];description:string;recognitionOn:string;publicReferences?:unknown;lines:{accountCode:string;debit:string;credit:string}[];basis:{standards:string[];assumptions:string[];uncertainty:string}}};
@@ -41,6 +42,7 @@ export default function Dashboard(){
   const [referenceTransactionId,setReferenceTransactionId]=useState('');
   const [publicPreview,setPublicPreview]=useState(false),[snapshotAt,setSnapshotAt]=useState(''),[previewReference,setPreviewReference]=useState<unknown>();
   const [hosted,setHosted]=useState(false),[guestWorkspace,setGuestWorkspace]=useState(false);
+  const [setup,setSetup]=useState<LearningSetup|null>(null),[workspaceStatus,setWorkspaceStatus]=useState<{companyId:string;lastMcpCall:{tool:string;outcome:string;at:string}|null;aiPreparedJournals:{id:string;state:string;at:string}[]}|null>(null);
   const referenceRequest=useRef(0);
   const current=company?.periods[period],query=current?'from='+current.from+'&to='+current.to:'from=2026-01-01&to=2026-01-31';
   async function refresh(){
@@ -50,6 +52,7 @@ export default function Dashboard(){
       setPublicPreview(context.publicPreview===true);setSnapshotAt(String(context.snapshotAt??''));setPreviewReference(context.publicReferenceExample?.report);
       setHosted(context.publicPreview===true||context.remoteWorkspace===true);
       setGuestWorkspace(context.guestWorkspace===true);
+      setWorkspaceStatus(null);if(context.remoteWorkspace){const status=await api('/api/remote/workspace-status');if(status.companyId===context.company.companyId)setWorkspaceStatus(status);else throw new Error('장부 연결이 변경됐습니다. 다시 새로고침해 주세요.');}
       if(context.humanApprovalMode!=='unavailable'){
         try{const session=await api('/api/human/session');setCsrf(session.csrf);}catch{setCsrf(undefined);}
       }else setCsrf(undefined);
@@ -60,6 +63,8 @@ export default function Dashboard(){
     }catch(e){setError(e instanceof Error?e.message:'서버를 확인하세요.');}finally{setLoading(false);}
   }
   useEffect(()=>{void refresh();},[period]);
+  useEffect(()=>{const onFocus=()=>void refresh();window.addEventListener('focus',onFocus);return()=>window.removeEventListener('focus',onFocus);},[period]);
+  useEffect(()=>{const id=new URLSearchParams(window.location.search).get('journal');if(id&&company){setTab('approval');void inspect(id);}},[company?.companyId]);
   async function inspect(id:string){try{setArchived(false);const journal=await api('/api/journal?id='+id);setSelected(journal);
     setApproval(await api('/api/approval?id='+id));setEvidence(await api('/api/documents?transactionId='+journal.payload.transactionId));}catch(e){setSelected(undefined);setError(String(e));}}
   async function decide(decision:'approved'|'rejected'){
@@ -92,7 +97,8 @@ export default function Dashboard(){
         <label className="sr-only" htmlFor="period">회계기간</label><select id="period" value={period} onChange={e=>{setPeriod(Number(e.target.value));setSelected(undefined);setReferenceTransactionId('');clearReference();}}>
           {company?.periods.map((p,index)=><option key={p.id} value={index}>{p.from.slice(0,7)} · {p.status==='closed'?'마감':'열림'}</option>)}</select>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}>↻ 새로고침</button></div></section>
-      <RemoteAccess/>
+      <RemoteAccess onSetup={setSetup}/>
+      {company&&<section className="notice workspace-identity" aria-label="현재 장부 연결 확인"><strong>{publicPreview?'공개 예시 장부':guestWorkspace?'내 임시 학습 장부':'현재 보고 있는 내 장부'}</strong><p>회사 ID <code style={{overflowWrap:'anywhere'}}>{company.companyId}</code></p><p>AI가 알려준 companyId가 이 ID와 같아야 같은 승인 목록을 봅니다.</p>{workspaceStatus&&<><p>AI 연결 기록: {workspaceStatus.lastMcpCall?<>{new Date(workspaceStatus.lastMcpCall.at).toLocaleString('ko-KR')} · {workspaceStatus.lastMcpCall.tool} · {workspaceStatus.lastMcpCall.outcome==='success'?'성공':'오류'}</>:'아직 확인된 도구 호출이 없습니다.'}</p><p>최근 AI 작성 전표: {workspaceStatus.aiPreparedJournals.length?workspaceStatus.aiPreparedJournals.map(j=><span key={j.id}><code>{j.id}</code> · <CodeLabel value={j.state}/> </span>):'아직 없습니다. 연결한 AI에서 첫 매출 분개를 요청해 보세요.'}</p><small>최근 기록이며 앱의 현재 온라인 상태나 AI 검토 완료를 뜻하지 않습니다. 새로고침하면 갱신됩니다.</small></>}</section>}
       {error&&<div className="notice error" role="alert">{error}</div>}
       {loading&&<div className="notice" role="status">회계 자료를 불러오는 중입니다.</div>}
       {publicPreview&&tab!=='guide'&&<PublicSiteNotice snapshotAt={snapshotAt}/>}
@@ -101,7 +107,7 @@ export default function Dashboard(){
       {(tab==='overview'||tab==='references')&&<PublicApiStatus configuration={publicConfiguration}/>}
       {tab==='references'&&publicPreview&&<><section className="panel"><h2>공공자료 예시 · 2026-01-10 매출</h2><p>이 가상 거래를 기준으로 미리 수집한 자료입니다. 상단 회계기간 선택과 별개인 예시이며 공개 샘플 조회 시 기관 API를 새로 호출하지 않습니다. 원격 장부가 활성화되면 로그인한 계정에서 다른 거래의 참고자료를 조회할 수 있습니다.</p></section><PublicReferences report={previewReference}/></>}
       {tab==='references'&&!publicPreview&&<><section className="panel"><div className="panel-title"><h2>거래와 공공자료 함께 확인</h2><button className="secondary" disabled={loading||referenceLoading||!rows.length} onClick={()=>void inspectReferences()}>{referenceLoading?'조회 중…':'선택한 거래의 참고자료 조회'}</button></div><label htmlFor="reference-transaction">참고자료를 확인할 거래</label> <select id="reference-transaction" value={referenceTransactionId||String(rows[0]?.id??'')} disabled={loading||referenceLoading} onChange={e=>{setReferenceTransactionId(e.target.value);clearReference();}}>{rows.map(row=><option key={String(row.id)} value={String(row.id)}>{String(row.externalRef)} · {String(row.recognitionOn)}</option>)}</select><p className="muted">현재 페이지의 거래를 선택해 조회합니다. 거래·전표 생성이나 승인·장부 반영은 하지 않습니다. 분개 초안 생성에서도 같은 공통 서비스가 실행됩니다.</p></section>{referenceReport!==undefined&&<PublicReferences report={referenceReport}/>}</>}
-      {tab==='guide'&&<BeginnerGuide hosted={hosted} onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
+      {tab==='guide'&&<BeginnerGuide hosted={hosted} setup={setup} personalPending={hosted&&!publicPreview&&!guestWorkspace} onNavigate={target=>{setTab(target);setSelected(undefined);window.scrollTo({top:0});}}/>}
       {(tab==='overview'||tab==='reports')&&<>
         <FinancialMetrics financial={financial} loading={loading} error={error} pendingCount={pending.length} postedCount={posted.length}/>
         <div className="two-column"><BalanceSheetPanel financial={financial} loading={loading} error={error} asOf={current?.to}/>

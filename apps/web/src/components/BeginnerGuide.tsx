@@ -1,6 +1,7 @@
 import LearningStart,{PromptBox} from './LearningStart.js';
 import learning from '../../../../docs/learning-start.json' with {type:'json'};
 import '../styles/beginner-guide.css';
+import type {LearningSetup} from './PersonalSetup.js';
 
 type GuideTarget='approval'|'reports'|'references';
 const features=[
@@ -30,14 +31,14 @@ export function GuideWelcome({onOpen}:{onOpen:()=>void}){
   <button type="button" className="guide-primary-button" onClick={onOpen}>처음 시작하기 · 요청문 복사 →</button></section>;
 }
 
-export default function BeginnerGuide({onNavigate,hosted=false}:{onNavigate:(target:GuideTarget)=>void;hosted?:boolean}){
+export default function BeginnerGuide({onNavigate,hosted=false,setup,personalPending}:{onNavigate:(target:GuideTarget)=>void;hosted?:boolean;setup?:LearningSetup|null;personalPending?:boolean}){
  return <div className="beginner-guide">
   <section className="guide-intro"><span className="guide-kicker">한빛유통 · 회계 자동화 학습실</span>
    <h1>회계가 처음이어도,<br/>거래부터 보고서까지 따라갈 수 있어요.</h1>
    <p>이곳은 <strong>회계 자동화 기술과 회계의 흐름을 공부하고 싶은 사람</strong>을 위한 공간입니다. 가상 한국 도소매 회사의 자료를 가지고 ‘왜 이 계정에 적는지’, ‘왜 승인이 필요한지’, ‘보고서 숫자는 어디서 오는지’를 직접 확인합니다.</p>
    <div className="guide-principles"><span>코딩 지식 없이 시작</span><span>연습 거래 1,000건</span><span>AI가 설명하고 내가 확인</span></div>
   </section>
-  <LearningStart/>
+  <LearningStart setup={setup??null} personalPending={personalPending??false}/>
   {!hosted&&<p className="guide-local-note">지금은 PC에서 실행한 연습 화면입니다. 위 시작 요청문은 공개 사이트의 개인 장부에 연결합니다. 이 PC의 임시 연습을 이어가려면 현재 앱 연결을 유지하세요. 두 장부의 데이터는 서로 다릅니다.</p>}
   <section className="guide-section" aria-labelledby="guide-features-title"><span className="guide-kicker">준비가 끝나면</span><h2 id="guide-features-title">이런 과정을 직접 해볼 수 있어요.</h2>
    <div className="guide-feature-grid">{features.map(([title,description],i)=><article key={title}><span className="guide-role-icon">{String(i+1).padStart(2,'0')}</span><h3>{title}</h3><p>{description}</p></article>)}</div>

@@ -1,5 +1,5 @@
 import {afterAll,beforeAll,describe,expect,it} from 'vitest';
-import {randomUUID,createHash} from 'node:crypto';
+import {randomUUID,randomBytes,createHash} from 'node:crypto';
 import {Client,StreamableHTTPClientTransport} from '@modelcontextprotocol/client';
 import {PublicDataService} from '@ledgerflow/public-data';
 import {startLocalPostgres} from '../../scripts/local-postgres.js';
@@ -7,6 +7,8 @@ import {createRemoteRouter} from '../../apps/mcp-server/src/remote-router.js';
 import {RemoteAuth,digest,sealSession,openSession} from '../../apps/mcp-server/src/remote-auth.js';
 import {provisionWorkspace,tenantFixture} from '../../apps/mcp-server/src/remote-workspace.js';
 import {SERVER_NAME} from '../../apps/mcp-server/src/server.js';
+import {GuestLearning} from '../../apps/mcp-server/src/guest-learning.js';
+import {collectLearningBundle} from '../../scripts/build-learning-bundle.js';
 
 describe('remote verified users, OAuth and isolated human-approved ledgers',()=>{
  const origin='https://accounting.example',resource=origin+'/mcp',a=randomUUID(),b=randomUUID();
@@ -71,8 +73,9 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   db=await startLocalPostgres();
   // Test-owned Auth harness only; real provisioning must use Supabase Auth.
   await db.pool.query('INSERT INTO auth.users(id) VALUES($1),($2)',[a,b]);
+  const bundle=(await collectLearningBundle()).bundle;
   router=createRemoteRouter({pool:db.pool,publicData:new PublicDataService({},'mock'),auth:{origin,supabaseUrl:'https://auth.example',publishableKey:'fixture-key',encryptionKey:key},
-   authFetch,assets:{fetch:async()=>new Response('<html>sign in and consent</html>',{headers:{'Content-Type':'text/html'}})}});
+   authFetch,assets:{fetch:async request=>new URL(request.url).pathname==='/learning-bundle.json'?Response.json(bundle):new Response('<html>sign in and consent</html>',{headers:{'Content-Type':'text/html'}})}});
   for(const email of users.keys()){
    const response=await googleCallback(await googleStart(email));expect(response.status).toBe(303);
    const cookie=response.headers.getSetCookie().find(value=>value.startsWith('lf_remote='))!.split(';')[0]!;
@@ -224,4 +227,80 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   await db.pool.query('UPDATE private.remote_oauth_grants SET expires_at=now()-interval \'1 second\' WHERE access_hash=$1',[digest(grant.tokens.access_token)]);
   expect((await call('/mcp',{...post({}),headers:{Authorization:'Bearer '+grant.tokens.access_token,'Content-Type':'application/json'}})).status).toBe(401);
  });
+ it('redeems a browser-issued ticket into the exact Google company and exposes its journal in the same approval list',async()=>{
+  expect((await call('/api/remote/setup-ticket',post({}))).status).toBe(401);
+  expect((await call('/api/remote/setup-ticket',{...post({}),headers:{Origin:'https://attacker.example','Content-Type':'application/json'}},'a@example.test')).status).toBe(403);
+  const before=(await db.pool.query('SELECT count(*)::int AS n FROM private.guest_workspaces')).rows[0].n;
+  const session=await (await call('/api/remote/session',undefined,'a@example.test')).json();
+  const issued=await (await call('/api/remote/setup-ticket',post({}),'a@example.test')).json();
+  expect(issued.companyId).toBe(session.companyId);
+  const bootstrapKey=randomBytes(32).toString('base64url'),body={claimCode:issued.claimCode,bootstrapKey,client:'codex'};
+  const linked=await (await call('/api/remote/claim',post(body))).json();expect(linked.companyId).toBe(session.companyId);
+  expect((await (await call('/api/remote/claim',post(body))).json()).token).toBe(linked.token);
+  expect((await (await call('/api/remote/claim',post({...body,bootstrapKey:randomBytes(32).toString('base64url')}))).json()).error).toBe('CLAIM_CODE_USED');
+  expect((await call('/api/remote/guest',post({bootstrapKey}),'a@example.test')).status).toBe(409);
+  const c=await connect(linked.token);expect((await tool(c,'get_system_status')).ok).toBe(true);
+  expect((await tool(c,'get_company_context')).data.companyId).toBe(session.companyId);
+  const prepared=await tool(c,'propose_journal_entry',{companyId:session.companyId,idempotencyKey:randomUUID(),firstSale:{from:'2026-01-01',to:'2026-01-31'},validateAndRequestApproval:true,client:'codex'});
+  expect(prepared.ok).toBe(true);expect(prepared.data.state).toBe('Approval');expect(prepared.data.approvalUrl).toBe(origin+'/?journal='+prepared.data.id);
+  const journals=await (await call('/api/journals',undefined,'a@example.test')).json();expect(journals.some((j:any)=>j.id===prepared.data.id)).toBe(true);
+  const status=await (await call('/api/remote/workspace-status',undefined,'a@example.test')).json();expect(status.companyId).toBe(session.companyId);expect(status.lastMcpCall.tool).toBe('propose_journal_entry');expect(status.aiPreparedJournals.some((j:any)=>j.id===prepared.data.id)).toBe(true);
+  expect((await tool(c,'post_journal_entry',{companyId:session.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash})).error?.code).toBe('APPROVAL_REQUIRED');
+  expect((await tool(c,'get_transactions',{companyId:(await provisionWorkspace(db.pool,b)).companyId,from:'2026-01-01',to:'2026-01-31'})).error?.code).toBe('FORBIDDEN');
+  const other=await (await call('/api/remote/workspace-status',undefined,'b@example.test')).json();expect(other.aiPreparedJournals.some((j:any)=>j.id===prepared.data.id)).toBe(false);
+  const expired=await (await call('/api/remote/setup-ticket',post({}),'a@example.test')).json();await db.pool.query("UPDATE private.remote_setup_tickets SET expires_at=now()-interval '1 second' WHERE code_hash=$1",[digest(expired.claimCode)]);
+  expect((await (await call('/api/remote/claim',post({...body,claimCode:expired.claimCode}))).json()).error).toBe('CLAIM_CODE_EXPIRED');
+  expect((await db.pool.query('SELECT count(*)::int AS n FROM private.guest_workspaces')).rows[0].n).toBe(before);
+  const connection=(await (await call('/api/remote/connections',undefined,'a@example.test')).json()).find((l:any)=>l.name==='codex'&&!l.revoked);
+  await call('/api/remote/connections',post({id:connection.id}),'b@example.test');expect((await tool(c,'get_company_context')).ok).toBe(true);
+  await call('/api/remote/connections',post({id:connection.id}),'a@example.test');expect((await call('/mcp',{...post({}),headers:{Authorization:'Bearer '+linked.token,'Content-Type':'application/json'}})).status).toBe(403);
+ });
+ it('adopts existing guest work over an untouched Google fixture, keeps the old AI URL working, and preserves both companies',async()=>{
+  const id=randomUUID(),email='bridge@example.test';users.set(email,id);await db.pool.query('INSERT INTO auth.users(id) VALUES($1)',[id]);
+  const response=await googleCallback(await googleStart(email)),cookie=response.headers.getSetCookie().find(v=>v.startsWith('lf_remote='))!.split(';')[0]!;
+  const session=await (await call('/api/remote/session',{headers:{Cookie:cookie}})).json();cookies.set(email,{cookie,csrf:session.csrf});
+  const guest=new GuestLearning(db.pool,origin,key,new PublicDataService({},'mock')),g=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});
+  const c=await connect(g.token);await tool(c,'get_system_status');await tool(c,'get_company_context');
+  const prepared=await tool(c,'propose_journal_entry',{companyId:g.companyId,idempotencyKey:randomUUID(),firstSale:{from:'2026-01-01',to:'2026-01-31'},validateAndRequestApproval:true,client:'codex'});expect(prepared.ok).toBe(true);
+  const ticket=await (await call('/api/remote/setup-ticket',post({}),email)).json();
+  const params=new URLSearchParams({client:'codex',requestId:randomUUID(),claimCode:ticket.claimCode,bootstrapKey:randomBytes(32).toString('base64url'),guestToken:g.token});
+  const boot=await call('/api/remote/bootstrap?'+params),bundle=await boot.json();expect(boot.status).toBe(200);expect(bundle.companyId).toBe(g.companyId);expect(bundle.identityMode).toBe('personal');
+  expect(bundle.files['.codex/config.toml']).toContain('/mcp/p/lf_personal_');
+  expect(JSON.parse(bundle.files['.ledgerflow/guest-session.json'])).toMatchObject({mode:'personal',companyId:g.companyId});
+  expect((await tool(c,'get_company_context')).data.companyId).toBe(g.companyId);
+  const renewal=await (await call('/api/remote/setup-ticket',post({}),email)).json();
+  expect((await (await call('/api/remote/claim',post({claimCode:renewal.claimCode,bootstrapKey:randomBytes(32).toString('base64url'),client:'codex',guestToken:g.token}))).json()).companyId).toBe(g.companyId);
+  expect((await (await call('/api/remote/session',undefined,email)).json()).companyId).toBe(g.companyId);
+  const journals=await (await call('/api/journals',undefined,email)).json();expect(journals.some((j:any)=>j.id===prepared.data.id)).toBe(true);
+  expect((await (await call('/api/approval?id='+prepared.data.id,undefined,email)).json()).status).toBe('pending');
+  expect((await db.pool.query('SELECT count(*)::int AS n FROM public.business_transactions WHERE company_id=ANY($1::uuid[])',[ [session.companyId,g.companyId] ])).rows[0].n).toBe(2000);
+  expect((await db.pool.query('SELECT previous_company_id,company_id FROM private.remote_workspace_history WHERE user_id=$1',[id])).rows[0]).toMatchObject({previous_company_id:session.companyId,company_id:g.companyId});
+  const other=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});await expect(guest.claim(other.id,id)).rejects.toMatchObject({code:'WORKSPACE_SELECTION_REQUIRED'});
+  expect((await tool(c,'get_company_context')).data.companyId).toBe(g.companyId);
+  expect((await tool(c,'get_transactions',{companyId:session.companyId,from:'2026-01-01',to:'2026-01-31'})).error?.code).toBe('FORBIDDEN');
+  // Explicit human decision in the test-owned browser, never in production.
+  expect((await call('/api/human/decision',post({companyId:g.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash,decision:'approved'}),email)).status).toBe(200);
+  expect((await tool(c,'post_journal_entry',{companyId:g.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash})).data.state).toBe('Posted');
+  expect((await (await call('/api/journal?id='+prepared.data.id,undefined,email)).json()).state).toBe('Posted');
+ },60000);
+ it('links a reviewed guest into an already signed-in Google browser without approving it or giving the writer approval scope',async()=>{
+  const id=randomUUID(),email='web-link@example.test';users.set(email,id);await db.pool.query('INSERT INTO auth.users(id) VALUES($1)',[id]);
+  const response=await googleCallback(await googleStart(email)),cookie=response.headers.getSetCookie().find(v=>v.startsWith('lf_remote='))!.split(';')[0]!;
+  const session=await (await call('/api/remote/session',{headers:{Cookie:cookie}})).json();cookies.set(email,{cookie,csrf:session.csrf});
+  const guest=new GuestLearning(db.pool,origin,key,new PublicDataService({},'mock')),g=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')}),c=await connect(g.token);
+  await tool(c,'get_system_status');await tool(c,'get_company_context');
+  const prepared=await tool(c,'propose_journal_entry',{companyId:g.companyId,idempotencyKey:randomUUID(),firstSale:{from:'2026-01-01',to:'2026-01-31'},validateAndRequestApproval:true,client:'codex'});
+  // Test-owned human fixture only. No production approval URL is opened.
+  const ticket=new URLSearchParams(new URL(prepared.data.approvalUrl).hash.slice(1)).get('ticket');
+  const opened=await call('/api/remote/guest-review/open',{...post({ticket}),headers:{'Sec-Fetch-Site':'same-origin','Content-Type':'application/json'}},email);expect(opened.status).toBe(200);
+  const combined=cookie+'; '+opened.headers.getSetCookie()[0]!.split(';')[0];
+  const headers={Cookie:combined,'Content-Type':'application/json'};
+  expect((await call('/api/remote/link-guest',{...post({}),headers:{...headers,'X-CSRF-Token':'invalid'}},email)).status).toBe(403);
+  expect((await call('/api/remote/guest-review',{headers:{Cookie:combined}})).status).toBe(200);
+  const linked=await call('/api/remote/link-guest',{...post({}),headers},email);expect(linked.status).toBe(200);expect((await linked.json()).companyId).toBe(g.companyId);
+  expect((await (await call('/api/context',{headers:{Cookie:combined}})).json()).company.companyId).toBe(g.companyId);
+  expect((await (await call('/api/approval?id='+prepared.data.id,undefined,email)).json()).status).toBe('pending');
+  expect((await tool(c,'get_company_context')).data.companyId).toBe(g.companyId);
+  expect((await tool(c,'post_journal_entry',{companyId:g.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash})).error?.code).toBe('APPROVAL_REQUIRED');
+ },60000);
 });

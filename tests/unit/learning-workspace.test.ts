@@ -12,6 +12,10 @@ describe('one-prompt setup CLI keeps the open working folder',()=>{
  it('supports an explicitly selected existing directory with no empty-folder check',()=>{
   expect(setupArguments(['--directory','.','--client','claude'])).toEqual({directory:resolve('.'),client:'claude'});
  });
+ it('accepts an explicit one-time personal claim code without printing it',()=>{
+  const code='a'.repeat(43);expect(setupArguments(['--client','codex','--claim-code',code]).claimCode).toBe(code);
+  expect(()=>setupArguments(['--client','codex','--claim-code','bad'])).toThrow('CLAIM_CODE_INVALID');
+ });
  it('requires the current app rather than guessing or editing all app configurations',()=>{
   for(const args of [[],['--in-place'],['--client','unknown'],['--client','--in-place']])expect(()=>setupArguments(args)).toThrow();
   expect(setupArguments(['--client','antigravity']).client).toBe('antigravity');

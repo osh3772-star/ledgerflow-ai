@@ -1,5 +1,5 @@
 import {createHmac,randomBytes,randomUUID} from 'node:crypto';
-import type {Pool} from 'pg';
+import type {Pool,PoolClient} from 'pg';
 import {z} from 'zod';
 import {DomainError,type Journal} from '@ledgerflow/contracts';
 import {digest} from './remote-auth.js';
@@ -105,23 +105,40 @@ export class GuestLearning{
   await this.review(browser);
   return this.services(browser.workspace,'human').accounting!.decide({companyId:browser.workspace.companyId,journalId:browser.journalId,expectedHash:browser.hash,decision});
  }
- async claim(guestId:string,verifiedUserId:string){
-  const client=await this.pool.connect();
+ async claim(guestId:string,verifiedUserId:string,transaction?:PoolClient){
+  const client=transaction??await this.pool.connect();
   try{
-   await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['remote-workspace/'+verifiedUserId]);
+   if(!transaction)await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['remote-workspace/'+verifiedUserId]);
    const guest=(await client.query('SELECT * FROM private.guest_workspaces WHERE id=$1 AND NOT revoked AND claimed_user_id IS NULL AND expires_at>now() FOR UPDATE',[guestId])).rows[0];
    if(!guest)throw new DomainError('GUEST_EXPIRED','임시 장부가 만료됐습니다.');
-   if((await client.query('SELECT 1 FROM private.remote_workspaces WHERE user_id=$1',[verifiedUserId])).rowCount)throw new DomainError('WORKSPACE_CONFLICT','이미 보관 중인 개인 장부가 있어 자동으로 합치지 않았습니다.');
+   const existing=(await client.query('SELECT company_id,writer_id FROM private.remote_workspaces WHERE user_id=$1 FOR UPDATE',[verifiedUserId])).rows[0];
+   // A freshly logged-in account already has a seeded company. It contains
+   // fixture rows, but no user work. Preserve it rather than deleting/reseeding.
+   if(existing&&(await client.query(`SELECT 1 FROM public.journal_entries WHERE company_id=$1
+    UNION ALL SELECT 1 FROM public.agent_tasks WHERE company_id=$1
+    UNION ALL SELECT 1 FROM public.reconciliation_matches WHERE company_id=$1
+    UNION ALL SELECT 1 FROM public.fiscal_periods WHERE company_id=$1 AND status='closed'
+    UNION ALL SELECT 1 FROM public.evidence_objects WHERE company_id=$1
+    UNION ALL SELECT 1 FROM public.business_transactions WHERE company_id=$1 AND created_at>(SELECT created_at FROM private.remote_workspaces WHERE user_id=$2) LIMIT 1`,[existing.company_id,verifiedUserId])).rowCount)
+    throw new DomainError('WORKSPACE_SELECTION_REQUIRED','두 장부에 작업 기록이 있어 자동으로 합치지 않았습니다. 기존 개인 장부 연결 요청문에서 임시 기록 보관 없이 연결하거나 장부 선택을 먼저 확인하세요.');
    await client.query('SELECT pg_advisory_xact_lock(20261017,1000)');
-   if(Number((await client.query('SELECT count(*) AS n FROM private.remote_workspaces')).rows[0].n)>=25)throw new DomainError('WORKSPACE_CAPACITY_REACHED','보관할 수 있는 학습 계정 정원이 찼습니다.');
+   if(!existing&&Number((await client.query('SELECT count(*) AS n FROM private.remote_workspaces')).rows[0].n)>=25)throw new DomainError('WORKSPACE_CAPACITY_REACHED','보관할 수 있는 학습 계정 정원이 찼습니다.');
    if((await client.query("SELECT 1 FROM public.approval_requests a JOIN public.journal_entries j ON j.id=a.journal_id WHERE a.company_id=$1 AND a.status='approved' AND j.state<>'Posted'",[guest.company_id])).rowCount)
     throw new DomainError('GUEST_PENDING_POSTING','승인한 전표의 장부 반영을 먼저 마쳐 주세요.');
    await client.query("INSERT INTO public.company_memberships(company_id,user_id,role) VALUES($1,$2,'admin')",[guest.company_id,verifiedUserId]);
    const principal=randomUUID();await client.query("INSERT INTO public.principals(id,company_id,kind,user_id) VALUES($1,$2,'human',$3)",[principal,guest.company_id,verifiedUserId]);
    for(const scope of ['erp:read','accounting:approve','accounting:close'])await client.query('INSERT INTO public.principal_scopes(company_id,principal_id,scope) VALUES($1,$2,$3)',[guest.company_id,principal,scope]);
-   await client.query('INSERT INTO private.remote_workspaces(user_id,company_id,writer_id) VALUES($1,$2,$3)',[verifiedUserId,guest.company_id,guest.writer_id]);
+   if(existing){
+    await client.query('INSERT INTO private.remote_workspace_history(user_id,previous_company_id,company_id) VALUES($1,$2,$3)',[verifiedUserId,existing.company_id,guest.company_id]);
+    await client.query('UPDATE public.company_memberships SET active=false WHERE company_id=$1 AND user_id=$2',[existing.company_id,verifiedUserId]);
+    await client.query('UPDATE public.principals SET active=false WHERE company_id=$1 AND (user_id=$2 OR id=$3)',[existing.company_id,verifiedUserId,existing.writer_id]);
+    await client.query('UPDATE private.remote_workspaces SET company_id=$2,writer_id=$3 WHERE user_id=$1',[verifiedUserId,guest.company_id,guest.writer_id]);
+   }else await client.query('INSERT INTO private.remote_workspaces(user_id,company_id,writer_id) VALUES($1,$2,$3)',[verifiedUserId,guest.company_id,guest.writer_id]);
    await client.query('UPDATE private.guest_workspaces SET claimed_user_id=$2 WHERE id=$1',[guest.id,verifiedUserId]);
-   await client.query('COMMIT');
-  }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+   // Keep the existing AI configuration working, now as a writer for the
+   // verified owner's workspace. The original guest expiry is never extended.
+   await client.query("INSERT INTO private.remote_learning_links(user_id,access_hash,name,expires_at) SELECT $2,access_hash,'linked guest',expires_at FROM private.guest_workspaces WHERE id=$1",[guest.id,verifiedUserId]);
+   if(!transaction)await client.query('COMMIT');
+  }catch(error){if(!transaction)await client.query('ROLLBACK');throw error;}finally{if(!transaction)client.release();}
  }
 }

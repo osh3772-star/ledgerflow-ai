@@ -1,5 +1,19 @@
 # Implementation and verification status
 
+## 2026-10-18 Google 웹 장부와 AI 연결 일치
+
+완료: 로그인한 웹 세션+CSRF로 10분 setup ticket 발급 → 개인 bootstrap/--claim-code 교환 → 7일 작성 전용 MCP 연결. GET bootstrap과 선택적 CLI 모두 같은 companyId를 반환하며 현재 폴더에 비공개 연결 상태를 보관한다. 코드 실패/만료 시 새 게스트로 대체하지 않는다. 기존 OAuth·41도구·6역할·공공 API·회계 엔진은 유지한다.
+
+완료: 기존 게스트 키 또는 사람이 연 검토 화면을 이용해 기본 샘플뿐인 Google 장부와 연결한다. 기존 게스트 전표/version/hash/증빙을 그대로 두고 회사 소유 mapping을 원자적으로 바꾸며, 빈 이전 회사는 이력에 보존한다. 기존 AI 연결도 원래 만료까지만 같은 회사의 작성자로 유지한다. Google 웹 세션이 과거 게스트 쿠키보다 우선한다. 개인 승인 링크는 로그인한 승인 화면을 열며 작성자에게 승인 권한을 주지 않는다.
+
+완료: 대시보드 상단 회사 ID, 해당 회사의 최근 MCP 호출과 최근 작성 전표를 표시한다. 최근 기록은 현재 온라인 상태나 AI 판단 완료의 증거로 표현하지 않는다. 시작 안내/README/워크플로 HTML의 생성 원본도 개인 요청문을 우선 안내한다.
+
+검증: 전체 `pnpm check`에서 42파일/284케이스 중 283개 통과, 새 테스트의 중복 Origin 헤더 fixture 1개 실패를 확인해 fixture를 수정했다. 이후 변경 구간 `pnpm check tests/integration/remote-workspaces.test.ts tests/integration/guest-learning.test.ts tests/unit/learning-in-place.test.ts tests/unit/learning-workspace.test.ts`는 **4파일/36케이스 모두 통과**했다. 같은 Google 회사/웹 승인 목록, 기존 게스트 기록 보존, 테스트용 인간 웹 승인 후 Posted, 미승인 전기 거절, 만료·재사용·취소·타인 회사/연결 접근 거절을 포함한다. 추가 typecheck·웹 build·Git/공개 자산 키 노출 검사도 통과했다.
+
+배포: 010 migration을 기존 receipt 방식으로 적용하고 Cloudflare 원격 Worker를 갱신했다. 실제 HTTPS에서 config 200/remote available, 미로그인 setup-ticket 401, 임의 claim code 400/CLAIM_CODE_EXPIRED, 임의 개인 MCP 키 403/PERSONAL_LINK_EXPIRED 및 no-store를 확인했다. 공개 화면에서 회사 ID 표시도 확인했다. 실제 사용자의 Google 쿠키/연결 코드를 개발자가 교환하거나 운영 전표를 생성·승인·전기하지 않았다.
+
+남은 실제 사용자 확인: 로그인한 사이트에서 전용 요청문을 복사해 **기존 AI 작업 폴더**에 보내고 네이티브 앱의 status/context가 웹 상단과 같은 회사인지 확인한다. 양쪽 장부에 작업 기록이 있으면 자동 병합하지 않고 WORKSPACE_SELECTION_REQUIRED로 보존한다. 이 경우 자동 병합/장부 선택 UI는 제공하지 않는다. 임시 승인 후 미전기 전표는 먼저 별도 요청으로 반영해야 보관할 수 있다.
+
 ## 2026-10-18 첫 매출 통합 준비와 터미널 없는 설치
 
 기본 첫 매출 학습을 get_system_status → get_company_context → propose_journal_entry의 정상 경로 3회로 묶었다. validateAndRequestApproval:true는 기존 독립 엔진/DB 검증과 승인 요청을 사용하고, firstSale은 아직 게시/진행 중인 초안이 없는 첫 매출을 선택한다. 같은 idempotencyKey로 부분 완료를 재개한다. client를 지정하면 서버의 **기계적 준비 결과**도 한 번만 기록하므로 별도 거래·증빙·validate·request·기계적 record 호출이 필요 없다. 응답에 거래·증빙·검증·승인 상태·사람 전용 approvalUrl을 포함한다. AI의 판단이나 인간의 결정을 자동화했다는 뜻이 아니다.

@@ -97,7 +97,9 @@ describe('isolated guest learning and journal-bound human review',()=>{
   expect(await guest.byToken(fresh.token)).toBeUndefined();
   expect((await db.pool.query('SELECT company_id FROM private.remote_workspaces WHERE user_id=$1',[user])).rows[0].company_id).toBe(fresh.companyId);
   const second=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')});
-  await expect(guest.claim(second.id,user)).rejects.toMatchObject({code:'WORKSPACE_CONFLICT'});
+  await guest.claim(second.id,user);
+  expect((await db.pool.query('SELECT company_id FROM private.remote_workspaces WHERE user_id=$1',[user])).rows[0].company_id).toBe(second.companyId);
+  expect((await db.pool.query('SELECT count(*)::int AS n FROM public.business_transactions WHERE company_id=$1',[fresh.companyId])).rows[0].n).toBe(1000);
  });
  it('prepares the first sale with exactly three calls, records once, and never approves or posts',async()=>{
   const fresh=await guest.provision({bootstrapKey:randomBytes(32).toString('base64url')}),c=await connect(fresh.token);
@@ -125,6 +127,8 @@ describe('isolated guest learning and journal-bound human review',()=>{
   const config=JSON.parse(result.files[path]),url=config.mcpServers['ledgerflow-accounting-mcp'].serverUrl;
   expect(Object.keys(result.files).every(p=>!p.startsWith('/')&&!p.includes('..')&&!p.includes('~'))).toBe(true);
   expect(result.files['AGENTS.md']).toContain('외부 스키마 대신');expect(result.files['GEMINI.md']).toContain('view_file로 읽지 않는다');
+  expect(JSON.parse(result.files['.ledgerflow/guest-session.json'])).toMatchObject({mode:'guest',companyId:result.companyId});
+  expect(result.sensitivePaths).toContain('.ledgerflow/guest-session.json');
   expect(JSON.parse(result.files['docs/MCP_CATALOG.json']).tools.find((t:any)=>t.name==='propose_journal_entry').inputSchema.properties.validateAndRequestApproval).toBeDefined();
   const c=new Client({name:'workspace-path-client',version:'1'});clients.push(c);
   await c.connect(new StreamableHTTPClientTransport(new URL(url),{fetch:fetcher}));

@@ -1,5 +1,14 @@
 # Implementation plan
 
+## 2026-10-18 개인 연결 보정
+
+1. 원본 Git archive 백업 후 기존 41개 도구·6역할·ERP·독립 검증/승인 함수를 보존한다.
+2. 010 migration + 검증된 웹 세션의 10분 단일 사용 setup ticket + 7일 작성 연결을 추가한다. 기존 OAuth와 익명 학습 경로도 보존한다.
+3. 설치기 --claim-code 및 터미널 없는 bootstrap에 개인 연결 분기를 구현한다. 코드 실패 시 새 게스트 발급을 금지한다. 기존 게스트는 같은 폴더의 키 소유 증명으로 빈 개인 장부와 연결한다.
+4. 웹 전용 요청문·회사 ID·최근 호출/작성 전표 표시와 생성 원본 문서까지 함께 수정한다.
+5. 실제 PostgreSQL + SDK에서 동일 companyId/웹 승인 목록 일치, 재시도·만료·취소·타인 scope 거절, 연결만으로 미승인 전기 불가, 기존 양쪽 자료 보존을 검증한다. 전체 pnpm check 및 웹 build 후 receipt로 010을 적용해 원격 배포한다.
+6. 테스트 fixture 신원과 실제 Google/네이티브 앱 검증을 구분한다. 운영자의 로그인 쿠키나 승인 링크를 개발자가 교환하지 않는다. 실제 사용자 확인은 새 요청문 → 앱의 status/context 회사 ID → 웹에서 직접 승인 순서다.
+
 > 현재 기본 설치: 공개 GET /api/remote/bootstrap에서 임시 회사+핵심 스키마+6역할 번들을 받아 CWD 파일 도구로 병합한다. Git/Node 실행·홈 설정·외부 MCP 스키마 읽기는 기본 경로에서 제거했다. Antigravity는 workspace plugin의 mcp_config.json, Claude/Codex는 프로젝트 설정에 단기 guest URL을 등록한다. 첫 매출은 status/context/propose 통합 옵션의 정상 경로 3회다. 아래 이전 header helper/글로벌 설치 설명은 구형 기록이며 [현재 시작 지침](START_HERE.md)이 우선한다.
 
 

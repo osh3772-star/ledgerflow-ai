@@ -27,6 +27,7 @@ async function main(){
     {file:'202610170007_remote_workspaces.sql',receipt:'remote_schema_receipt',table:'remote_workspaces',lock:7},
     {file:'202610170008_google_login.sql',receipt:'remote_google_schema_receipt',table:'remote_login_flows',lock:8},
     {file:'202610180009_guest_learning.sql',receipt:'remote_guest_schema_receipt',table:'guest_workspaces',lock:9},
+    {file:'202610180010_personal_learning_links.sql',receipt:'remote_learning_schema_receipt',table:'remote_setup_tickets',lock:10},
    ] as const;
    for(const upgrade of upgrades){
     const sql=await readFile('supabase/migrations/'+upgrade.file,'utf8'),hash=createHash('sha256').update(sql).digest('hex');

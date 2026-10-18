@@ -4,6 +4,20 @@
 
 ## 1. 현재 앱에 맞는 번들을 한 번 받는다
 
+**Google 장부 전용 요청문에 claimCode가 있으면 이 절차가 우선한다.** 정적 게스트 URL을 호출하지 않는다. 사이트 로그인 쿠키나 Google JWT를 읽을 필요가 없다. 사이트가 확인한 계정/회사의 10분 일회용 코드로 서버가 작성 전용 연결을 발급한다.
+
+현재 폴더에 43자 base64url bootstrapKey를 비공개로 생성·보관하고 아래 GET에 client, 새 requestId, claimCode, bootstrapKey를 전달한다. 재시도에는 같은 bootstrapKey를 사용한다. 기존 현재 폴더의 LedgerFlow 설정이 lf_guest_ URL이면 해당 guestToken도 전달해 임시 기록을 연결한다. 홈 폴더/다른 MCP 설정/사용자 쿠키는 읽지 않는다.
+
+```text
+https://ledgerflow-public-reference-gateway.eric5833.workers.dev/api/remote/bootstrap?client=<현재앱>&requestId=<새-UUID>&claimCode=<요청문의-코드>&bootstrapKey=<비공개-43자-난수>&guestToken=<기존-게스트가-있을-때만>
+```
+
+guestToken이 없으면 쿼리 자체를 생략한다. 새 개인 연결은 7일이며 사이트에서 즉시 취소할 수 있다. 코드는 일회용이고 동일 bootstrapKey의 응답 유실 재시도만 만료 전 허용한다. 코드가 만료/실패했거나 WORKSPACE_SELECTION_REQUIRED이면 **게스트 발급으로 대체하지 않는다**. 오류와 필요한 조치만 알린다. 연결 회사는 서버 응답/get_company_context가 기준이며 사이트를 새로고침한 상단 회사 ID와 일치해야 한다.
+
+Google 로그인으로 기본 1,000건만 생긴 빈 개인 장부는 기존 게스트의 작업 장부로 연결된다. 빈 회사 데이터는 삭제하지 않고 이력에 보존한다. 기존 AI의 게스트 URL은 원래 만료 시각까지 같은 개인 회사의 작성자로 연결되며, 익명 승인 링크는 더 이상 사용하지 않는다. 양쪽 모두 작업이 있으면 자동 병합하지 않는다. 임시 승인 후 미전기 전표가 있으면 먼저 사용자가 요청한 장부 반영을 끝내야 한다. 연결은 승인이나 전기가 아니다.
+
+**코드 없이 새 임시 학습을 명시적으로 시작할 때만** 아래 공통 게스트 경로를 사용한다. 이미 로그인했다고 들었는데 전용 코드가 없으면 사이트의 ‘AI 연결·장부 관리’에서 요청문을 복사하도록 안내하고 임의로 새 회사를 만들지 않는다.
+
 현재 앱을 codex, claude, antigravity 중 하나로 정한다. 기본 URL 읽기 도구로 다음 공개 endpoint를 GET한다. requestId는 **이번 요청용 새 UUID**로 바꾸며 예시 문자열을 그대로 쓰거나 다른 사람의 URL/응답을 재사용하지 않는다. requestId는 캐시 혼선을 피하기 위한 값이고 서버가 발급하는 비밀 키는 별도의 암호학적 난수다.
 
 ```text
@@ -22,6 +36,7 @@ https://ledgerflow-public-reference-gateway.eric5833.workers.dev/api/remote/boot
 - 기존 사용자 코드·스킬·문서는 보존한다. 같은 경로의 역할/계약 문서가 다른 내용이면 덮어쓰지 말고 .ledgerflow 아래 대체 경로에 넣어 관리 블록의 참조를 바꾼다.
 - docs/MCP_CATALOG.json은 핵심 도구의 **현재 input schema**와 출력 요약이다. 카탈로그 전체 41개 도구의 복제가 아니라 첫 거래와 후속 전기에 필요한 부분집합이다. 다른 기능의 스키마는 앱이 이미 제공하는 MCP 목록을 사용한다. ~/.gemini/antigravity/mcp/*.json을 view_file로 읽지 않는다.
 - 비밀 MCP 설정을 쓰기 **전에** 해당 경로를 현재 .gitignore에 병합한다. 다른 서버의 항목은 유지하고 ledgerflow-accounting-mcp 하나만 병합한다. 이미 Git 추적 중인 설정은 .gitignore만으로 보호되지 않으므로 비밀 URL을 커밋 대상으로 두지 않는다. 안전하게 제외됐는지 확인할 수 없으면 그 파일 쓰기를 보류하고 상태를 보고한다.
+- 응답의 .ledgerflow/guest-session.json은 기존 이름을 유지한 **비공개 연결 상태 파일**이다. 개인 연결에서는 mode:personal, 같은 companyId/만료와 재시도 키를 기록한다. .ledgerflow 전체를 먼저 제외한 뒤 서버가 발급한 해당 파일만 갱신하고 코드는 보관하지 않는다. 이후 선택적 설치기 실행에서도 개인 연결을 새 게스트로 대체하지 않게 하는 데 사용한다.
 
 앱별 프로젝트 설정:
 
@@ -67,6 +82,6 @@ approvalUrl은 사람에게만 보여주고 멈춘다. AI는 링크를 열거나
 
 설정 준비/실제 앱 두 도구 호출/역할 파일 준비를 성공 또는 미확인으로 짧게 보고한다. 원문 세션 URL이나 키는 제외한다. 설치 단계에서는 분개·승인·전기를 하지 않고 docs/learning-start.json의 firstRequest를 보여준다.
 
-터미널을 **사용자가 별도로 원하고 허용한 경우에만** 기존 create-learning-workspace.ts --in-place --client <현재앱>을 선택적으로 사용할 수 있다. 이 경로도 CWD 안의 설정만 변경하며 홈·글로벌 설정·header helper를 쓰지 않는다. 기본 설치의 필수 단계가 아니다.
+터미널을 **사용자가 별도로 원하고 허용한 경우에만** 기존 create-learning-workspace.ts --in-place --client <현재앱> --claim-code <전용코드>를 선택적으로 사용할 수 있다. 개인 연결은 반드시 --claim-code를 전달한다. 기존 개인 연결 재실행은 같은 비공개 세션을 재사용하고 임시 세션을 만들지 않는다. 이 경로도 CWD 안의 설정만 변경하며 홈·글로벌 설정·header helper를 쓰지 않는다. 기본 설치의 필수 단계가 아니다. 원문 코드/전체 실행 인자는 출력하지 않는다.
 
 공식 경로 근거: [Antigravity 플러그인](https://antigravity.google/docs/plugins), [Antigravity MCP](https://antigravity.google/docs/mcp), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp).

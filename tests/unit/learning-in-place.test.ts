@@ -72,4 +72,24 @@ describe('in-place guest installer preserves current work and private active con
   const t=join(root,'invalid');await mkdir(t,{recursive:true});await writeFile(join(t,'.mcp.json'),'my existing non-json');
   await expect(install('claude','invalid')).rejects.toThrow();expect(await readFile(join(t,'.mcp.json'),'utf8')).toBe('my existing non-json');
  });
+ it('switches a prior guest installation with a claim code, retains the personal session on retry, and never silently provisions a guest',async()=>{
+  const target=join(root,'switch');await install('codex','switch');
+  const personalToken='lf_personal_'+'b'.repeat(43),paths:string[]=[];
+  const personalFetch:typeof fetch=async(input,init)=>{
+   const path=new URL(String(input)).pathname,body=JSON.parse(String(init?.body));paths.push(path);
+   if(path==='/api/remote/claim'){
+    expect(body).toMatchObject({claimCode:'c'.repeat(43),guestToken:token,client:'codex'});
+    return Response.json({token:personalToken,companyId,mcpUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp',mode:'personal',expiresAt:new Date(Date.now()+604800000).toISOString()});
+   }
+   expect(path).toContain('/mcp/p/');expect(new Headers(init?.headers).get('authorization')).toBe('Bearer '+personalToken);
+   const headers=new Headers(init?.headers);headers.set('authorization','Bearer '+token);return fetcher(input,{...init,headers});
+  };
+  const options={directory:target,sourceDirectory:process.cwd(),client:'codex' as const,fetcher:personalFetch};
+  const result=await installInPlace({...options,claimCode:'c'.repeat(43)});expect(result.mode).toBe('in_place_personal');
+  expect(JSON.stringify(result)).not.toContain(personalToken);expect(await readFile(join(target,'.codex/config.toml'),'utf8')).toContain('/mcp/p/'+personalToken);
+  await installInPlace(options);expect(paths.filter(p=>p==='/api/remote/claim')).toHaveLength(1);expect(paths).not.toContain('/api/remote/guest');
+  const failed:string[]=[];
+  await expect(installInPlace({...options,claimCode:'d'.repeat(43),fetcher:async input=>{failed.push(new URL(String(input)).pathname);return Response.json({error:'CLAIM_CODE_EXPIRED'},{status:400});}})).rejects.toThrow('CLAIM_CODE_EXPIRED');
+  expect(failed).toEqual(['/api/remote/claim']);expect(await readFile(join(target,'.codex/config.toml'),'utf8')).toContain(personalToken);
+ });
 });
