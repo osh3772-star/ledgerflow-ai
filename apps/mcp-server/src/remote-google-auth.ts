@@ -9,7 +9,7 @@ export const googleCookie=(value:string,clear=false)=>GOOGLE_FLOW_COOKIE+'='+val
 export function googleReturnTo(value:string,origin:string){
   const url=new URL(value,origin);
   if(!value.startsWith('/')||value.startsWith('//')||value.includes('\\')||url.origin!==origin||url.hash||
-    !(url.pathname==='/'&&!url.search||url.pathname==='/oauth/authorize'&&url.search))
+    !(url.pathname==='/'&&!url.search||url.pathname==='/connect/codex/'&&!url.search||url.pathname==='/oauth/authorize'&&url.search))
     throw new DomainError('FORBIDDEN','돌아갈 주소를 확인하세요.');
   return url.pathname+url.search;
 }
@@ -34,7 +34,7 @@ export class RemoteGoogleAuth {
   async begin(input:unknown,claimGuestId?:string){
     const q=z.strictObject({returnTo:z.string().max(10000).default('/')}).parse(input);
     const returnTo=googleReturnTo(q.returnTo,this.auth.config.origin);
-    if(returnTo!=='/')await this.auth.authorization(new URL(returnTo,this.auth.config.origin));
+    if(new URL(returnTo,this.auth.config.origin).pathname==='/oauth/authorize')await this.auth.authorization(new URL(returnTo,this.auth.config.origin));
     const configured=await this.configuration();
     if(!configured.checked)throw new DomainError('GOOGLE_PROVIDER_UNAVAILABLE','Google 로그인 설정을 확인하지 못했습니다.');
     if(!configured.enabled)throw new DomainError('GOOGLE_PROVIDER_NOT_CONFIGURED','운영자의 Google 연결 설정이 필요합니다.');

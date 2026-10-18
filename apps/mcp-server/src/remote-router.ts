@@ -14,6 +14,7 @@ import {GuestLearning,guestCookie} from './guest-learning.js';
 import {randomBytes} from 'node:crypto';
 import {learningBundleSchema,createBootstrapFiles} from './learning-bootstrap.js';
 import {PersonalLearning} from './personal-learning.js';
+import {ClientConnectionSetup,setupCookie,workspacePathSchema} from './client-connection-setup.js';
 
 export const REMOTE_PATHS=['/mcp','/oauth/','/.well-known/','/api/remote/'];
 export async function boundedBody(request:Request,max=16384){
@@ -29,8 +30,12 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
   const google=new RemoteGoogleAuth(auth);
   const guest=new GuestLearning(options.pool,options.auth.origin,options.auth.encryptionKey,options.publicData);
   const personal=new PersonalLearning(options.pool,options.auth.origin,options.auth.encryptionKey,guest);
+  const setup=new ClientConnectionSetup(options.pool,options.auth.origin,options.auth.encryptionKey,async token=>{
+    const linked=await personal.resolve(token);if(linked)return linked;
+    const temporary=await guest.byToken(token);return temporary?{companyId:temporary.companyId}:undefined;
+  });
   const origin=options.auth.origin,resource=origin+'/mcp';
-  const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization,Content-Type,MCP-Protocol-Version,MCP-Session-Id','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Expose-Headers':'WWW-Authenticate,MCP-Session-Id'};
+  const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization,Content-Type,MCP-Protocol-Version,MCP-Session-Id,X-LedgerFlow-Setup-Probe','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Expose-Headers':'WWW-Authenticate,MCP-Session-Id'};
   const unauthorized=()=>json({error:'MCP_LOGIN_REQUIRED'},401,{'WWW-Authenticate':'Bearer resource_metadata="'+origin+'/.well-known/oauth-protected-resource/mcp"',...cors});
   return async(request:Request):Promise<Response|undefined>=>{
     const url=new URL(request.url),path=url.pathname;
@@ -66,7 +71,7 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         if(request.method!=='GET')return json({error:'METHOD_NOT_ALLOWED'},405);
         if(request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'SAME_ORIGIN_REQUIRED'},403);
         if(request.headers.get('purpose')==='prefetch'||request.headers.get('sec-purpose')?.includes('prefetch'))return json({error:'PREFETCH_NOT_ALLOWED'},400);
-        const params=z.strictObject({client:z.enum(['codex','claude','antigravity']),requestId:z.uuid(),claimCode:z.string().regex(/^[A-Za-z0-9_-]{43}$/u).optional(),bootstrapKey:z.string().regex(/^[A-Za-z0-9_-]{43}$/u).optional(),guestToken:z.string().regex(/^lf_guest_[A-Za-z0-9_-]{43}$/u).optional()}).parse(Object.fromEntries(url.searchParams));
+        const params=z.strictObject({client:z.enum(['codex','claude','antigravity']),requestId:z.uuid(),workspacePath:workspacePathSchema.optional(),claimCode:z.string().regex(/^[A-Za-z0-9_-]{43}$/u).optional(),bootstrapKey:z.string().regex(/^[A-Za-z0-9_-]{43}$/u).optional(),guestToken:z.string().regex(/^lf_guest_[A-Za-z0-9_-]{43}$/u).optional()}).parse(Object.fromEntries(url.searchParams));
         const asset=await options.assets.fetch(new Request(origin+'/learning-bundle.json'));
         if(!asset.ok)return json({error:'LEARNING_BUNDLE_UNAVAILABLE'},503);
         const bundle=learningBundleSchema.parse(await asset.json());
@@ -80,10 +85,32 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         prepared.files['.ledgerflow/guest-session.json']=JSON.stringify({bootstrapKey,token:created.token,companyId:created.companyId,expiresAt:created.expiresAt,mode:params.claimCode?'personal':'guest'});
         prepared.sensitivePaths.push('.ledgerflow/guest-session.json');
         prepared.mergePolicies['.ledgerflow/guest-session.json']='replace_owned_private_session';
+        const connection=params.client==='codex'?await setup.issue({token:created.token,workspacePath:params.workspacePath}):undefined;
+        if(connection){
+          prepared.files['.ledgerflow/CODEX_CONNECTION.json']=JSON.stringify(connection);
+          prepared.sensitivePaths.push('.ledgerflow/CODEX_CONNECTION.json');
+          prepared.mergePolicies['.ledgerflow/CODEX_CONNECTION.json']='replace_owned_private_session';
+        }
         return json({version:1,server:'ledgerflow-accounting-mcp',companyId:created.companyId,expiresAt:created.expiresAt,
-          identityMode:params.claimCode?'personal':'guest',...prepared,
+          identityMode:params.claimCode?'personal':'guest',...prepared,...(connection?{connection}:{}),
           verification:{nativeClientVerified:false,nextTools:['get_system_status','get_company_context']},
           security:'세션 URL은 비밀이다. 응답을 공개하거나 URL을 채팅에 출력하지 말고 현재 폴더의 비공개 MCP 설정에만 기록한다.'});
+      }
+      if(path==='/api/remote/client-setup/issue'&&request.method==='POST'){
+        if(!request.headers.get('content-type')?.startsWith('application/json')||request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'SAME_ORIGIN_REQUIRED'},403);
+        // An existing capability is required; this route never provisions a company.
+        const token=request.headers.get('authorization')?.match(/^Bearer (lf_(?:guest|personal)_[A-Za-z0-9_-]{43})$/u)?.[1];
+        if(!token)return json({error:'UNAUTHENTICATED'},401);
+        const body=z.strictObject({workspacePath:workspacePathSchema.optional()}).parse(JSON.parse(await boundedBody(request)));
+        return json(await setup.issue({token,...body}));
+      }
+      if(path==='/api/remote/client-setup/open'&&request.method==='POST'){
+        if(request.headers.get('origin')!==origin||request.headers.get('sec-fetch-site')!=='same-origin'||!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'SAME_ORIGIN_REQUIRED'},403);
+        const opened=await setup.exchange(JSON.parse(await boundedBody(request)),(await auth.browser(request))?.userId);
+        const {browserToken,...view}=opened;return json(view,200,{'Set-Cookie':setupCookie(browserToken)});
+      }
+      if(path==='/api/remote/client-setup/status'&&request.method==='GET'){
+        return json(await setup.state(request,(await auth.browser(request))?.userId));
       }
       if(path==='/api/remote/guest'&&request.method==='POST'){
         if(!request.headers.get('content-type')?.startsWith('application/json')||request.headers.get('origin')&&request.headers.get('origin')!==origin)return json({error:'INVALID_REQUEST'},403);
@@ -152,6 +179,18 @@ export function createRemoteRouter(options:{pool:Pool;auth:RemoteAuthConfigurati
         }
         if(!workspace)dependencies.approvalLink=async journal=>origin+'/?journal='+encodeURIComponent(journal.id);
         dependencies.humanRouter=async()=>json({error:'HUMAN_WEB_ONLY'},403);
+        // Only these read-only diagnostics are observed. The optional installer
+        // probe is never evidence that Codex's native tool catalog has loaded.
+        if(guestToken&&request.method==='POST'&&!request.headers.has('x-ledgerflow-setup-probe')){
+          const text=await boundedBody(inbound,65536),message=JSON.parse(text);
+          inbound=new Request(inbound,{body:text});
+          if(message?.method==='initialize'&&typeof message.params?.clientInfo?.name==='string'&&message.params.clientInfo.name!=='ledgerflow-learning-setup')
+            await setup.initialized(guestToken,message.params.clientInfo.name);
+          if(message?.params?.clientInfo?.name!=='ledgerflow-learning-setup'){
+            const audit=dependencies.audit,credential=guestToken;
+            dependencies.audit=async event=>{await audit(event);if(event.outcome==='success')await setup.received(credential,event.tool);};
+          }
+        }
         const handler=createMcpHandler(()=>createLedgerFlowServer(dependencies),{legacy:'stateless',maxRequestBodySize:65536,maxSubscriptions:0,keepAliveMs:0,onerror:()=>{}});
         if(workspace||linked){const headers=new Headers(inbound.headers);headers.delete('mcp-session-id');inbound=new Request(new Request(resource,inbound),{headers});}
         try{const response=await handler.fetch(inbound),body=await response.arrayBuffer();

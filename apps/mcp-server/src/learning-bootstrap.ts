@@ -13,6 +13,7 @@ export const coreLearningRules=`# 한빛유통 회계 자동화 학습
 현재 폴더의 docs/CLIENT_ROLES.md, docs/MCP_CATALOG.json과 필요한 .agents/skills의 역할만 읽는다. 홈·워크스페이스 밖 파일, ~/.gemini/antigravity/mcp/*.json, ~/.claude, ~/.codex를 view_file로 읽거나 수정하지 않는다. 외부 스키마 대신 이 폴더의 카탈로그를 보고 MCP를 바로 호출한다.
 설치는 기본 URL 읽기와 현재 폴더 파일 쓰기로 수행한다. git/node 실행, 추가 체크아웃, 샌드박스 우회, 글로벌 설정 변경, 앱 권한 자동 허용을 하지 않는다. 기존 파일은 관리 블록/해당 MCP 항목만 병합하고 나머지는 보존한다.
 세션 URL·키가 담긴 MCP 설정은 비공개 파일이며 커밋·공유·채팅 출력하지 않는다. 거래는 합성 학습 자료이고 공공자료는 참고 근거다.
+Codex는 프로젝트 신뢰와 설정 적용이 필요하다. 현재 대화에 도구가 없으면 설치 완료라고 하지 말고 .ledgerflow/CODEX_CONNECTION.json의 setupUrl을 'Codex 연결 마치기'로 사용자에게 보여준다. 이 단기 일회용 안내 링크만 예외적으로 표시할 수 있으며 AI는 열지 않는다. Settings → MCP servers에서 기존 같은 이름의 서버를 확인/추가하고 Save → Restart 후 같은 폴더에서 두 도구를 호출하도록 안내한다. 새 장부를 만들거나 홈 설정을 대신 수정하지 않는다. 파일 생성·별도 SDK 검사는 실제 앱 연결 성공이 아니다.
 개인 장부 연결 코드가 주어지면 그 코드로만 연결한다. 코드 만료·실패 시 게스트로 대체하지 않는다. 기존 게스트 기록 연결에는 현재 폴더의 guestToken을 함께 전달한다. 연결 후 반환된 companyId와 사이트 상단 ID가 같아야 하며 계정이 같다는 추측으로 성공을 보고하지 않는다.
 먼저 get_system_status → get_company_context를 실제 호출한다. 같은 대화에서 이미 성공했고 회사가 그대로면 불필요하게 반복하지 않는다.
 첫 매출은 propose_journal_entry({companyId,firstSale:{from:"2026-01-01",to:"2026-01-31"},idempotencyKey:"first-sale-2026-01",validateAndRequestApproval:true,client:<codex|claude_code|antigravity>}) 한 번으로 준비한다. 응답에 증빙·검증·승인 요청·기계적 준비 결과가 있으므로 get_transactions/get_source_documents/validate_journal_entry/request_journal_approval/record_agent_result를 반복 호출하지 않는다. 내용이 부족하거나 오류가 난 경우에만 필요한 추가 도구를 사용한다. AI의 판단 결과를 추가 기록할 때는 별도 Result임을 구분한다.
@@ -26,7 +27,7 @@ export function createBootstrapFiles(bundle:LearningBundle,client:LearningClient
  files['GEMINI.md']='AGENTS.md와 docs/CLIENT_ROLES.md를 읽는다. ~/.gemini/antigravity/mcp/*.json 등 외부 디렉토리를 view_file로 읽지 않는다. 현재 docs/MCP_CATALOG.json으로 직접 MCP를 호출한다.\n';
  const config=client==='antigravity'?'.agents/plugins/ledgerflow-learning/mcp_config.json':client==='claude'?'.mcp.json':'.codex/config.toml';
  files['.gitignore']='/.ledgerflow/\n/'+config+'\n';
- if(client==='codex')files[config]=`[mcp_servers.${LEARNING_SERVER}]\nurl = ${JSON.stringify(mcpUrl)}\nstartup_timeout_sec = 90\ntool_timeout_sec = 90\n`;
+ if(client==='codex')files[config]=`[mcp_servers.${LEARNING_SERVER}]\nurl = ${JSON.stringify(mcpUrl)}\nrequired = true\nstartup_timeout_sec = 90\ntool_timeout_sec = 90\n`;
  else files[config]=JSON.stringify({mcpServers:{[LEARNING_SERVER]:client==='claude'?{type:'http',url:mcpUrl}:{serverUrl:mcpUrl}}},null,2)+'\n';
  if(client==='antigravity'){
   const root='.agents/plugins/ledgerflow-learning/';

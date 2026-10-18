@@ -26,6 +26,8 @@ https://ledgerflow-public-reference-gateway.eric5833.workers.dev/api/remote/boot
 
 응답에는 임시 회사 ID·만료 시각, 기존 6개 역할, 규칙 문서, 로컬 핵심 도구 명세, 해당 앱의 MCP 설정 파일 내용이 함께 있다. 회사는 세션별로 격리되고 합성 거래 1,000건이 준비된다. Google·API 키·Node·Git 설치는 필요 없다. GET도 학습 공간을 하나 만들므로 필요 없이 다시 열거나 검색엔진·공개 링크에 등록하지 않는다. 이전 설치가 유효하면 현재 폴더의 기존 연결을 재사용한다. 잘리거나 실패한 응답을 성공으로 취급하지 않는다.
 
+**Codex 앱:** GET에 `workspacePath=<현재 CWD의 URL 인코딩한 절대 경로>`도 전달한다. 서버가 이 경로의 파일에 접근하지 않으며 같은 폴더로 돌아오는 공식 Codex 대화 링크에만 사용한다. 응답의 `connection`과 `.ledgerflow/CODEX_CONNECTION.json`은 같은 회사·같은 키에 연결된 사람용 설치 안내이다. 30분 일회용 `setupUrl`만 사용자에게 **Codex 연결 마치기** 링크로 보여줄 수 있다. AI는 이 링크를 열지 않는다. 원문 MCP URL은 계속 비공개다.
+
 이 응답의 MCP URL은 24시간 비밀 권한이다. **전체 응답이나 세션 URL을 채팅·로그·스크린샷에 출력하지 않는다.** 해당 URL은 /mcp/g/<guestToken> 형식이며 인증 헤더나 홈의 자격증명 파일이 필요 없다. URL 경로도 호스트/클라이언트 로그에 남을 수 있으므로 합성 임시 장부에만 사용하고 공개하지 않는다. 보관한 개인 장부의 기존 OAuth는 유지한다.
 
 ## 2. 현재 폴더에만 파일을 병합한다
@@ -53,6 +55,17 @@ Antigravity 플러그인에는 plugin.json·skills·rules와 위 MCP 설정 하�
 새로 쓴 AGENTS/역할 계약을 현재 대화에서 직접 읽는다. 현재 폴더의 카탈로그로 get_system_status → get_company_context를 실제 호출하고, 회사 ID가 bootstrap 응답과 같은지 비교한다. 외부 스키마 파일 읽기나 터미널의 별도 SDK smoke 검사를 기본 설치 절차에 추가하지 않는다.
 
 앱이 제공하는 공식 연결 갱신이 있으면 사용한다. 설정 파일 준비와 실제 앱 호출 성공은 별도다. 모든 앱/버전의 즉시 hot reload·도구 허용 팝업 0회를 보장하지 않으며 권한 확인을 대신 승인하거나 보안 설정을 끄지 않는다. 일반 웹 채팅처럼 현재 폴더 파일을 쓸 수 없는 환경에서도 설치됐다고 주장하지 않는다.
+
+### Codex에서 현재 대화에 도구가 안 보일 때 — 여기서 끝내지 않는다
+
+1. **설정 준비 / 현재 앱 연결 적용 대기(`native_connection_pending`)**라고 보고하고 응답의 `connection.setupUrl`을 **Codex 연결 마치기**로 보여준다. 단순히 “MCP 도구가 로드되지 않았다”는 말만 남기고 끝내지 않는다.
+2. 사람은 그 화면에서 **내 장부 주소 복사 → Codex 설정 열기 → MCP servers**로 간다. 같은 이름이 있으면 기존 연결을 확인하고, 없으면 **Add server → Streamable HTTP**로 등록한다. 중복 서버를 추가하지 않는다. **Save → Restart**로 적용한다. 프로젝트 설정은 신뢰한 프로젝트에서만 읽히므로 신뢰 확인이 있으면 사람이 선택한다.
+3. 안내 화면의 **같은 폴더에서 확인 대화 열기**를 누르거나 기존 폴더 대화에 **확인 요청문**을 붙여 넣고 직접 보낸다. `codex://threads/new`는 요청문을 미리 넣을 뿐 자동 전송하지 않는다.
+4. AI가 실제 `get_system_status` → `get_company_context`를 호출하고 회사 ID를 비교한다. 안내 화면은 **정확히 그 연결 키**의 성공 수신 기록만 보여 준다. 설치기 SDK 검사는 제외하고 클라이언트 자체 신고 이름을 앱 신원 증명으로 취급하지 않는다.
+
+기존 설치의 안내만 만료된 경우 **새 bootstrap으로 장부를 발급하지 않는다**. 현재 폴더의 비공개 세션 키로 `POST /api/remote/client-setup/issue`를 호출한다. JSON은 `{"workspacePath":"<현재 절대 경로>"}`, Authorization은 현재 키의 Bearer다. HTTP 요청 도구가 지원할 때만 사용하고 요청의 원문 헤더를 채팅에 남기지 않는다. 응답은 같은 회사의 새 안내이며 장부/전표를 바꾸지 않는다. HTTP 요청 기능이 없으면 기존 private 설정의 URL을 Codex 설정 URL 칸에 직접 복사할 수 있게 **현재 폴더의 비공개 설정 위치**와 위 Save → Restart 순서를 안내한다. 원문 URL을 채팅에 출력하지 않는다. 이 경우 서버 수신 화면은 미확인으로 남기며 새 게스트를 만들거나 홈 파일/터미널로 우회하지 않는다.
+
+Codex용 생성 설정은 `required = true`, 시작 제한 90초로 연결 오류를 드러낸다. 실행 중 대화의 도구 목록을 설정 파일만으로 주입·재로딩할 수 있다고 가정하지 않는다. [Codex 공식 MCP 설정 순서](https://learn.chatgpt.com/docs/extend/mcp), [프로젝트 신뢰 설정](https://learn.chatgpt.com/docs/config-file/config-basic), [공식 설정·새 대화 링크](https://learn.chatgpt.com/docs/reference/commands).
 
 ## 4. 첫 매출은 정상 경로 3회로 준비한다
 

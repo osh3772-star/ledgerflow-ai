@@ -11,6 +11,8 @@ describe('in-place guest installer preserves current work and private active con
   const path=new URL(String(input)).pathname,body=JSON.parse(String(init?.body));requests.push(path+':'+(body.method??'provision'));
   if(path.endsWith('/guest'))return Response.json({token,companyId,mcpUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp',expiresAt:new Date(Date.now()+86400000).toISOString()});
   expect(new Headers(init?.headers).get('authorization')).toBe('Bearer '+token);
+  if(path.endsWith('/client-setup/issue'))return Response.json({state:'native_connection_pending',companyId,setupUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/connect/codex/#ticket='+'s'.repeat(43),nativeClientVerified:false});
+  expect(new Headers(init?.headers).get('x-ledgerflow-setup-probe')).toBe('1');
   if(body.method==='notifications/initialized')return new Response(null,{status:202});
   const result=body.method==='initialize'?{protocolVersion:'2025-11-25'}:body.method==='tools/list'?{tools:Array.from({length:41},()=>({}))}:
    {structuredContent:{ok:true,data:body.params.name==='get_system_status'?{server:'ledgerflow-accounting-mcp'}:{companyId,name:'한빛유통'}}};
@@ -31,6 +33,9 @@ describe('in-place guest installer preserves current work and private active con
   expect(await readFile(join(home,'.codex/config.toml'),'utf8')).toBe(homeBefore);
   const settings=await readFile(join(target,'.codex/config.toml'),'utf8'),parsed=toml(settings) as any;
   expect(parsed.mcp_servers['ledgerflow-accounting-mcp'].url).toContain('/mcp/g/'+token);
+  expect(parsed.mcp_servers['ledgerflow-accounting-mcp']).toMatchObject({required:true,startup_timeout_sec:90});
+  expect(result.status).toBe('native_connection_pending');expect(result.connection.setupUrl).toContain('/connect/codex/#ticket=');
+  expect(await readFile(join(target,'.ledgerflow/CODEX_CONNECTION.json'),'utf8')).toContain('native_connection_pending');
   expect(parsed.mcp_servers['ledgerflow-accounting-mcp'].http_headers_helper).toBeUndefined();
   const again=await install('codex');expect(again.nativeClientVerified).toBe(false);
   expect((await readFile(join(target,'AGENTS.md'),'utf8')).match(/ledgerflow-learning:start/gu)).toHaveLength(1);
@@ -81,6 +86,7 @@ describe('in-place guest installer preserves current work and private active con
     expect(body).toMatchObject({claimCode:'c'.repeat(43),guestToken:token,client:'codex'});
     return Response.json({token:personalToken,companyId,mcpUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/mcp',mode:'personal',expiresAt:new Date(Date.now()+604800000).toISOString()});
    }
+   if(path.endsWith('/client-setup/issue')){expect(new Headers(init?.headers).get('authorization')).toBe('Bearer '+personalToken);return Response.json({state:'native_connection_pending',companyId,setupUrl:'https://ledgerflow-public-reference-gateway.eric5833.workers.dev/connect/codex/#ticket='+'t'.repeat(43),nativeClientVerified:false});}
    expect(path).toContain('/mcp/p/');expect(new Headers(init?.headers).get('authorization')).toBe('Bearer '+personalToken);
    const headers=new Headers(init?.headers);headers.set('authorization','Bearer '+token);return fetcher(input,{...init,headers});
   };

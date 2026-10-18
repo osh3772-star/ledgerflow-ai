@@ -1,5 +1,16 @@
 # Implementation plan
 
+## 2026-10-18 Codex 공통 설치 막힘 수정
+
+1. 수정 전 소스를 .ledgerflow/backups/20261018-codex-onboarding/source-before.zip에 백업한다.
+2. bootstrap/선택적 설치기는 같은 키·회사에 대한 Codex 연결 마치기 안내를 발급하고 CWD에만 보관한다. 네이티브 도구가 없을 때 native_connection_pending과 안내 링크를 반환한다.
+3. 공개 설치 안내/개인 요청문/README/워크플로 생성 원본에 Codex Save → Restart와 같은 폴더 확인 대화를 연결한다. 생성된 설정은 required=true로 누락을 드러내며 기존 개발용 localhost 설정은 유지한다.
+4. 011은 연결 메타데이터만 추가한다. 단일 사용·만료·개인 소유자·취소·회사별 수신 격리·별도 SDK 검사 제외·전표 무변경을 실제 PostgreSQL/SDK에서 검증한다. 기존 001~010은 수정하지 않는다.
+5. pnpm check/웹 build/키 노출 검사 후 receipt 검증을 거쳐 원격 Worker와 공개 문서를 배포한다. 실제 타인 PC의 Codex UI 완료 여부는 서버/SDK 테스트와 구분해서 보고한다.
+
+완료 기준: 파일 생성만으로 완료라 하지 않고, 호출 불가 상태에서도 사용자가 진행할 수 있는 구체적 연결 안내를 제공한다. 네이티브 앱이 실제 도구를 제공한 뒤 두 확인 호출과 회사 ID 일치를 확인한다. 앱 정책의 신뢰/권한/설정 적용을 무클릭으로 우회하는 것은 범위에 포함하지 않는다.
+
+
 ## 2026-10-18 개인 연결 보정
 
 1. 원본 Git archive 백업 후 기존 41개 도구·6역할·ERP·독립 검증/승인 함수를 보존한다.

@@ -45,7 +45,7 @@ a{color:var(--green);text-underline-offset:4px}button{font:inherit;cursor:pointe
 https://github.com/osh3772-star/ledgerflow-ai
 이 저장소의 docs/START_HERE.md를 URL 읽기로 보고, 지금 사용하는 앱의 기본 URL 읽기·현재 폴더 파일 쓰기만으로 학습 환경을 준비해 줘.
 git clone·node·터미널 실행·샌드박스 우회·홈 폴더 접근 없이 공개 bootstrap API에서 내 임시 장부와 역할/규칙 번들을 받아 현재 폴더에 병합해 줘. 기존 파일과 다른 MCP 연결은 보존하고 임시 세션 URL은 공개하거나 커밋하지 마.
-앱에 맞는 현재 폴더의 MCP 설정 하나를 등록하고, 외부 MCP 스키마 대신 현재 폴더의 docs/MCP_CATALOG.json으로 get_system_status → get_company_context를 호출해 확인해 줘. 앱 자체 허용/갱신이 필요하면 우회하지 말고 남은 상태만 정확히 알려줘.
+앱에 맞는 현재 폴더의 MCP 설정 하나를 등록하고, 외부 MCP 스키마 대신 현재 폴더의 docs/MCP_CATALOG.json으로 get_system_status → get_company_context를 호출해 확인해 줘. Codex는 bootstrap에 workspacePath=현재 폴더 절대 경로도 전달해 줘. 지금 대화에 MCP 도구가 없다면 단순히 미확인이라고 끝내지 말고 응답의 connection.setupUrl을 사람이 여는 “Codex 연결 마치기” 링크로 보여줘. 그 화면에서 같은 장부 주소 등록 → Save → Restart → 같은 폴더에서 두 도구 호출까지 이어가게 해 줘. AI가 그 링크를 열거나 새 장부를 만들지 마. 앱의 권한 확인은 우회하지 마.
 마지막에 첫 매출 통합 준비 요청문을 보여줘. 이번 설치에서 분개·승인·장부 반영은 하지 마.
 이 요청문은 비로그인 체험 전용이야. 내 Google 장부를 연결하려는 작업이면 임시 장부를 만들지 말고 사이트에서 개인 연결 요청문을 받도록 안내해 줘.</code></pre></div>
 <p>회계 서버·데이터베이스·공공 API 키를 직접 설치하거나 발급받지 않습니다. AI가 URL 읽기와 현재 폴더 파일 쓰기로 임시 장부와 연결을 준비합니다. 터미널·홈 폴더 접근·외부 MCP 스키마 읽기는 기본 경로에 없습니다. 임시 장부는 24시간 동안 접근할 수 있고, 보관하려는 경우에만 Google을 연결합니다. AI 앱 자체의 신뢰 확인·새 연결 읽기는 앱 정책에 따라 필요할 수 있으므로 모든 앱·버전의 무클릭 완료를 보장하지 않습니다.</p>
@@ -53,7 +53,7 @@ git clone·node·터미널 실행·샌드박스 우회·홈 폴더 접근 없이
 <section class="chapter" id="section-3"><h2>03. 내 장부가 연결됐는지 확인하기</h2>
 <p>공개 학습 번들을 한 번 받으면 서버에서 내 임시 가상회사와 연습 거래 1,000건이 자동 발급됩니다. 비공개 세션 키로 현재 앱과 해당 회사가 연결됩니다. 다른 사람은 다른 키와 다른 회사로 연습합니다. 키 없이 최초 연결하는 앱도 MCP 세션별로 임시 회사가 배정되지만, 학습을 이어갈 때는 bootstrap이 반환한 세션 전용 주소를 사용합니다.</p>
 <p>임시 장부는 24시간 후 접근이 만료됩니다. 자동 삭제를 의미하지는 않습니다. Google 장부 전용 요청문은 10분 코드로 7일짜리 AI 작성 연결을 준비하며 승인 권한을 주지 않습니다. 기본 샘플뿐인 빈 Google 장부는 기존 임시 작업 장부로 연결하고, 양쪽 모두 작업한 장부는 자동 병합하지 않습니다. 임시 링크 승인은 실명 확인이 없으므로 실제 업무용 인증으로 사용하지 않습니다.</p>
-<div class="table-wrap"><table><thead><tr><th scope="col">AI가 알려주는 상태</th><th scope="col">의미</th><th scope="col">다음에 할 일</th></tr></thead><tbody><tr><td>설정 준비됨</td><td>현재 폴더와 현재 앱의 연결 설정이 병합됨</td><td>AI가 실제 연결 검사를 계속 진행</td></tr><tr><td>로컬 문서 준비됨</td><td>역할·규칙·핵심 도구 명세가 현재 폴더에 만들어짐</td><td>AI가 외부 파일 대신 이 문서로 직접 도구 호출</td></tr><tr><td>현재 앱 연결 확인됨</td><td>현재 앱의 두 도구 호출이 실제 성공</td><td>첫 거래 한 건으로 학습 시작</td></tr><tr><td>앱 새 연결 읽기 대기</td><td>앱이 실행 중 설정 변경을 읽지 못함</td><td>앱 고유 새로고침·신뢰 확인이 필요한 경우만 안내받기</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">AI가 알려주는 상태</th><th scope="col">의미</th><th scope="col">다음에 할 일</th></tr></thead><tbody><tr><td>설정 준비됨</td><td>현재 폴더와 현재 앱의 연결 설정이 병합됨</td><td>AI가 실제 연결 검사를 계속 진행</td></tr><tr><td>로컬 문서 준비됨</td><td>역할·규칙·핵심 도구 명세가 현재 폴더에 만들어짐</td><td>AI가 외부 파일 대신 이 문서로 직접 도구 호출</td></tr><tr><td>현재 앱 연결 확인됨</td><td>현재 앱의 두 도구 호출이 실제 성공</td><td>첫 거래 한 건으로 학습 시작</td></tr><tr><td>앱 새 연결 읽기 대기</td><td>앱이 실행 중 설정 변경을 읽지 못함</td><td>AI가 주는 Codex 연결 마치기 → 주소 등록 → Save → Restart → 같은 폴더에서 확인 요청문 보내기</td></tr></tbody></table></div>
 <p>MCP는 AI가 이 사이트의 회계 도구를 사용하는 통로입니다. 서버를 하나 더 설치하는 뜻이 아닙니다. 첫 연결이 끝나도 거래를 자동으로 전부 처리하지 않습니다. 무엇을 공부할지 AI에게 요청하면서 진행합니다.</p>
 </section>
 <section class="chapter" id="section-4"><h2>04. 준비 후 해볼 수 있는 기능</h2>

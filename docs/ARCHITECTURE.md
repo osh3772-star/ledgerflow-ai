@@ -1,5 +1,14 @@
 # LedgerFlow architecture
 
+## 2026-10-18 Codex의 실제 연결 완료 단계
+
+프로젝트 설정을 만드는 준비 단계와 네이티브 앱의 도구 목록 적용을 구분한다. Codex bootstrap은 같은 MCP capability/회사에 대한 암호화된 일회용 연결 안내를 발급하고 현재 폴더의 .ledgerflow/CODEX_CONNECTION.json에 보관한다. workspacePath는 공식 같은 폴더 대화 링크에만 사용하며 서버가 해당 파일을 읽지 않는다. 생성 설정은 required=true와 시작 제한 90초를 사용한다. 기존 개발용 localhost 설정은 바꾸지 않는다.
+
+사람은 /connect/codex/ 화면에서 비공개 주소를 Codex 설정의 동일 서버에 복사하고 Save → Restart 후 확인 요청문을 직접 보낸다. 실행 중 대화의 native tool catalog를 서버나 문서가 강제로 갱신한다고 가정하지 않는다. 서버 수신 기록은 정확히 같은 access hash의 성공한 get_system_status/context만 기록하며 설치기의 X-LedgerFlow-Setup-Probe 검사는 제외한다. 클라이언트 자체 신고 이름은 앱 신원 인증이 아니다.
+
+011 migration의 private.client_connection_setups는 단기 안내/수신 기록만 보관한다. 키는 AES-256-GCM, origin·티켓 hash AAD로 암호화하며 티켓은 fragment와 hash로 처리한다. 안내 30분/교환 후 브라우저 30분, 동일 Google 소유자 확인, HttpOnly·Secure·SameSite=Strict 쿠키, Origin·Sec-Fetch-Site 검사, RLS/revoke를 적용한다. 상태 조회는 connectionId와 브라우저 세션을 함께 확인하고 원래 MCP 키의 만료·취소·회사 변경도 재검사한다. 안내 재발급은 기존 키만 사용하고 회사/전표/승인 권한을 만들지 않는다. 기존 MCP 1개·41도구·6역할과 인간 승인 경계는 유지한다.
+
+
 ## 2026-10-18 개인 장부와 AI 연결 일치
 
 Google 웹 세션 → CSRF 보호 POST /api/remote/setup-ticket → 10분 일회용 claimCode → GET bootstrap 또는 POST /api/remote/claim → 7일 작성 전용 연결(/mcp/p/...) → 같은 remote_workspaces의 companyId를 사용한다. provider JWT/쿠키는 AI에 전달하지 않는다. 서버는 코드·연결 키의 SHA-256만 DB에 보관하며 같은 bootstrapKey의 만료 전 재시도만 허용한다. 다른 키 재사용·만료·취소·외부 회사 접근은 거절하고 새 게스트로 대체하지 않는다. 기존 OAuth 연결도 유지한다.

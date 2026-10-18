@@ -78,7 +78,7 @@ export default function BeginnerGuide({onNavigate,hosted=false,access={mode:'che
   </section>
   <section className="guide-section"><h2>자주 묻는 질문</h2>
    <details className="guide-details"><summary>다른 사람이 연습하면 내 장부도 바뀌나요?</summary><p>임시 세션마다 회사와 거래가 따로 저장됩니다. Google로 보관한 장부는 계정별로 분리됩니다. 공개 화면의 읽기 전용 예시와도 다릅니다.</p></details>
-   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>현재 폴더에 설정하지만 앱 자체의 연결 새로고침이 필요할 수 있습니다. AI에게 ‘실제 연결과 내 회사를 확인해 줘. 아직 분개하지 마’라고 요청하세요. 현재 폴더의 핵심 도구 명세로 앱의 실제 호출을 확인하세요. Google 로그인은 임시 연습에 필요 없습니다. 파일만 준비됐다는 답은 연결 성공이 아닙니다.</p></details>
+   <details className="guide-details"><summary>설정은 됐다는데 AI가 거래를 못 읽어요.</summary><p>Codex가 아직 도구를 못 찾으면 AI가 준 <strong>Codex 연결 마치기</strong>를 여세요. 안내 화면의 주소를 Codex 설정의 같은 이름 서버에 확인·등록하고 <strong>Save → Restart</strong>한 뒤 같은 폴더에서 확인 요청문을 보내세요. 두 도구 호출이 도착했는지 안내 화면에서 확인할 수 있어요. 새 장부를 만들거나 설치를 처음부터 반복하지 마세요.</p><p>다른 앱도 파일 준비와 실제 연결은 별개예요. 실제 연결과 내 회사 ID를 확인한 뒤 첫 거래를 요청하세요. Google 로그인은 임시 연습에 필요 없습니다.</p></details>
    <details className="guide-details"><summary>승인했는데 보고서가 그대로예요.</summary><p>승인 후 장부 반영 요청까지 했는지 확인하세요. AI에게 전표가 실제 반영 완료 상태인지 물어보고 사이트에서 해당 월을 선택한 뒤 새로고침하세요. 이미 반영한 전표를 중복으로 만들지 않습니다.</p></details>
    <details className="guide-details"><summary>추가 유료 AI API를 신청해야 하나요?</summary><p>이 프로젝트를 위해 별도 OpenAI·Gemini API 키를 만들지 않습니다. 사용하는 코덱스·클로드 코드의 계정과 이용 한도는 필요합니다. 사이트와 AI 앱 모두 무제한 사용을 보장하지는 않습니다.</p></details>
   </section>

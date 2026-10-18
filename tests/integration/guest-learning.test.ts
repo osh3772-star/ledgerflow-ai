@@ -7,6 +7,7 @@ import {createRemoteRouter} from '../../apps/mcp-server/src/remote-router.js';
 import {GuestLearning} from '../../apps/mcp-server/src/guest-learning.js';
 import {verifyLearningMcp} from '../../scripts/learning-in-place.js';
 import {collectLearningBundle} from '../../scripts/build-learning-bundle.js';
+import {digest} from '../../apps/mcp-server/src/remote-auth.js';
 
 describe('isolated guest learning and journal-bound human review',()=>{
  const origin='https://guest.example',key=Buffer.alloc(32,19).toString('base64');
@@ -155,4 +156,39 @@ describe('isolated guest learning and journal-bound human review',()=>{
   expect(result.ok).toBe(true);expect(result.data.state).toBe('Approval');expect(result.data.preparation.roleResult).toBeNull();
   expect((await db.pool.query('SELECT count(*)::int n FROM public.agent_tasks WHERE company_id=$1',[fresh.companyId])).rows[0].n).toBe(0);
  });
+ it('finishes Codex setup for the exact existing credential and excludes standalone installer probes',async()=>{
+  const workspacePath='C:\\Learning\\한빛유통',response=await call('/api/remote/bootstrap?'+new URLSearchParams({client:'codex',requestId:randomUUID(),workspacePath}));
+  expect(response.status).toBe(200);const boot=await response.json(),saved=JSON.parse(boot.files['.ledgerflow/guest-session.json']);
+  expect(boot.connection).toMatchObject({state:'native_connection_pending',companyId:boot.companyId,nativeClientVerified:false});
+  expect(boot.files['.codex/config.toml']).toContain('required = true');expect(boot.files['.codex/config.toml']).toContain('/mcp/g/'+saved.token);
+  expect(boot.files['AGENTS.md']).toContain('Save → Restart');expect(boot.sensitivePaths).toContain('.ledgerflow/CODEX_CONNECTION.json');
+  const setupUrl=new URL(boot.connection.setupUrl),ticket=new URLSearchParams(setupUrl.hash.slice(1)).get('ticket')!;
+  expect(setupUrl.search).toBe('');expect(setupUrl.href).not.toContain(saved.token);
+  const encrypted=(await db.pool.query('SELECT encrypted_payload FROM private.client_connection_setups WHERE handoff_hash=$1',[digest(ticket)])).rows[0];
+  expect(encrypted.encrypted_payload).not.toContain(saved.token);
+  expect((await call('/api/remote/client-setup/open',{ticket},{Origin:'https://attacker.example'})).status).toBe(403);
+  const opened=await call('/api/remote/client-setup/open',{ticket});expect(opened.status).toBe(200);
+  expect(opened.headers.get('set-cookie')).toContain('HttpOnly; Secure; SameSite=Strict');
+  const cookie=opened.headers.get('set-cookie')!.split(';')[0]!,view=await opened.json();
+  expect(view.companyId).toBe(boot.companyId);expect(new URL(view.resumeUrl).searchParams.get('path')).toBe(workspacePath);
+  expect(view.settingsUrl).toBe('codex://settings');expect(view.verified).toBe(false);
+  expect((await call('/api/remote/client-setup/open',{ticket})).status).toBe(400);
+  const status=async()=>await (await call('/api/remote/client-setup/status?connectionId='+view.connectionId,undefined,{Cookie:cookie})).json();
+  await verifyLearningMcp(view.mcpUrl,saved.token,fetcher);expect((await status()).checks).toEqual({get_system_status:null,get_company_context:null});
+  const other=await connect(a.token);await tool(other,'get_system_status');await tool(other,'get_company_context');expect((await status()).verified).toBe(false);
+  const c=new Client({name:'fixture-codex-native',version:'1'});clients.push(c);
+  await c.connect(new StreamableHTTPClientTransport(new URL(view.mcpUrl),{fetch:fetcher}));
+  await tool(c,'get_system_status');expect((await status()).verified).toBe(false);
+  expect((await tool(c,'get_company_context')).data.companyId).toBe(boot.companyId);
+  expect(await status()).toMatchObject({companyId:boot.companyId,verified:true,clientName:'fixture-codex-native'});
+  expect((await call('/api/remote/client-setup/status?connectionId='+'a'.repeat(64),undefined,{Cookie:cookie})).status).not.toBe(200);
+  expect((await db.pool.query('SELECT count(*)::int n FROM public.journal_entries WHERE company_id=$1',[boot.companyId])).rows[0].n).toBe(0);
+  const before=(await db.pool.query('SELECT count(*)::int n FROM private.guest_workspaces')).rows[0].n;
+  const renewed=await call('/api/remote/client-setup/issue',{workspacePath},{Authorization:'Bearer '+saved.token});
+  expect((await renewed.json()).companyId).toBe(boot.companyId);
+  expect((await db.pool.query('SELECT count(*)::int n FROM private.guest_workspaces')).rows[0].n).toBe(before);
+  expect((await call('/api/remote/client-setup/issue',{workspacePath},{Authorization:'Bearer '+b.token})).status).not.toBe(200);
+  await db.pool.query('UPDATE private.guest_workspaces SET expires_at=now()-interval \'1 second\',created_at=now()-interval \'1 day\' WHERE company_id=$1',[boot.companyId]);
+  expect((await status()).error).toBe('CONNECTION_EXPIRED');
+ },60000);
 });

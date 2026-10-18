@@ -303,4 +303,26 @@ describe('remote verified users, OAuth and isolated human-approved ledgers',()=>
   expect((await tool(c,'get_company_context')).data.companyId).toBe(g.companyId);
   expect((await tool(c,'post_journal_entry',{companyId:g.companyId,journalId:prepared.data.id,expectedHash:prepared.data.hash})).error?.code).toBe('APPROVAL_REQUIRED');
  },60000);
+ it('protects personal Codex handoffs with the same Google owner, single-use exchange and live revocation',async()=>{
+  const issued=await (await call('/api/remote/setup-ticket',post({}),'a@example.test')).json();
+  const params=new URLSearchParams({client:'codex',requestId:randomUUID(),workspacePath:'/home/learner/book',claimCode:issued.claimCode,bootstrapKey:randomBytes(32).toString('base64url')});
+  const response=await call('/api/remote/bootstrap?'+params),boot=await response.json();expect(response.status).toBe(200);
+  const ticket=new URLSearchParams(new URL(boot.connection.setupUrl).hash.slice(1)).get('ticket');
+  const open={...post({ticket}),headers:{'Content-Type':'application/json','Sec-Fetch-Site':'same-origin'}};
+  expect((await call('/api/remote/client-setup/open',open)).status).toBe(401);
+  expect((await call('/api/remote/client-setup/open',open,'b@example.test')).status).toBe(403);
+  const opened=await call('/api/remote/client-setup/open',open,'a@example.test');expect(opened.status).toBe(200);
+  const view=await opened.json();expect(view.companyId).toBe(issued.companyId);expect(view.mcpUrl).toContain('/mcp/p/');
+  expect(view.verified).toBe(false);expect((await call('/api/remote/client-setup/open',open,'a@example.test')).status).toBe(400);
+  const cookie=opened.headers.get('set-cookie')!.split(';')[0]!,statusPath='/api/remote/client-setup/status?connectionId='+view.connectionId;
+  expect((await call(statusPath,{headers:{Cookie:cookie}})).status).toBe(401);
+  const status=()=>call(statusPath,{headers:{Cookie:cookies.get('a@example.test')!.cookie+'; '+cookie}});
+  expect((await (await status()).json()).companyId).toBe(issued.companyId);
+  const link=JSON.parse(boot.files['.ledgerflow/guest-session.json']);
+  await db.pool.query('UPDATE private.remote_learning_links SET revoked=true WHERE access_hash=$1',[digest(link.token)]);
+  expect((await (await status()).json()).error).toBe('CONNECTION_EXPIRED');
+  const flow=await googleStart('a@example.test','/connect/codex/'),callback=await googleCallback(flow);
+  expect(callback.headers.get('location')).toBe(origin+'/connect/codex/');
+  expect((await call('/api/remote/google/start',post({returnTo:'/connect/codex/?redirect=https://attacker.example'}))).status).toBe(403);
+ },60000);
 });
